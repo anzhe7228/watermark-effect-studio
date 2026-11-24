@@ -1,4 +1,4 @@
-[Uploading README.md…]()
+[README.md](https://github.com/user-attachments/files/35357256/README.md)
 # 水印效果工作室（Watermark Effect Studio）
 
 一款**纯前端、单文件、零服务器、完全本地离线运行**的多图层水印与材质滤镜工作台。双击 `index.html` 即可在浏览器中使用，无需安装任何软件或联网。
