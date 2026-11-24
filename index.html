@@ -2,8 +2,22 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>水印效果工作室 · 多图层一键出图</title>
+  <script>
+    // 工作室是独立页面：任何返回都不允许退到查款页（浏览器返回键锁在本页）
+    (function () {
+      function lockHistory() {
+        try { history.pushState({ __studioLock: 1 }, "", location.href); } catch (e) {}
+      }
+      lockHistory();
+      window.addEventListener("popstate", function () {
+        lockHistory();
+        try { if (typeof showToast === "function") showToast("这里是独立工作区，返回键不会回到查款页"); } catch (e) {}
+      });
+      window.addEventListener("pageshow", function (e) { if (e.persisted) lockHistory(); });
+    })();
+  </script>
   <style>
     :root {
       --bg: #0b0d12;
@@ -246,7 +260,9 @@
     .viewport.mode-move { cursor: default; }
     .viewport.mode-cavity { cursor: crosshair; }
     .viewport.mode-lasso { cursor: crosshair; }
+    .viewport.mode-wand { cursor: crosshair; }
     .viewport.mode-eraser { cursor: crosshair; }
+    .viewport.mode-brush { cursor: crosshair; }
     .viewport.mode-eyedropper { cursor: crosshair; }
     .viewport.drag-over { outline: 2px dashed var(--accent); outline-offset: -10px; background: rgba(125,166,255,0.06); }
 
@@ -296,9 +312,16 @@
       flex-shrink: 0;
     }
     .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 8px; }
+    .row-drag { display: none; }
+    .toolbar-left { flex: 0 0 auto; }
+    .toolbar-right { flex: 1 1 auto; justify-content: flex-end; min-width: 0; }
     .zoom-badge {
       min-width: 48px; text-align: center;
       font-variant-numeric: tabular-nums; color: #c8d2e8;
+    }
+    @media (max-width: 900px) {
+      .toolbar-right { min-width: 0; }
+      #stageHint { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     }
 
     /* Right Inspector */
@@ -516,9 +539,11 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    .bg-blur-pop { display: none; }
+
     /* About / Compliance Modal */
     .modal-backdrop {
-      position: fixed; inset: 0; z-index: 120;
+      position: fixed; inset: 0; z-index: 260;
       background: rgba(6, 8, 14, 0.76);
       backdrop-filter: blur(6px);
       display: none; align-items: center; justify-content: center;
@@ -564,24 +589,97 @@
       @supports (height: 100dvh) { body { height: 100dvh; } }
       header {
         height: auto;
-        padding: 5px 8px;
-        flex-wrap: wrap;
-        gap: 5px;
+        min-height: 40px;
+        padding: 4px 6px;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 4px;
+        position: relative;
       }
-      .brand { display: none; }
-      #btnFullscreen { display: none; }
-      .header-center {
-        flex: 1;
+      /* 手机端：底图模式三按钮与导出按钮单行流式排布，不重叠 */
+      #bgModeGroup {
+        position: static;
+        width: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 2px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        flex: 0 1 auto;
         min-width: 0;
+        overflow: hidden;
+      }
+      #bgModeGroup .seg-btn { width: auto; min-width: 0 !important; padding: 5px 6px !important; font-size: 10.5px !important; letter-spacing: -0.2px; text-align: center; line-height: 1.15; border-radius: 5px; background: rgba(255, 255, 255, 0.06); color: #c3cddf; border: 1px solid transparent; white-space: nowrap; box-sizing: border-box; }
+      #bgModeGroup .seg-btn.active { background: var(--accent); color: #0a0d13; font-weight: 700; border-color: #a9c4ff; }
+      /* 放大版模糊度浮层 */
+      .bg-blur-pop {
+        position: fixed;
+        left: 50%;
+        bottom: calc(18vh + env(safe-area-inset-bottom, 0px));
+        transform: translateX(-50%);
+        width: min(94vw, 420px);
+        display: none;
+        align-items: center;
         gap: 5px;
-        flex-wrap: wrap;
+        padding: 10px;
+        background: #141a26;
+        border: 1px solid rgba(125, 166, 255, 0.45);
+        border-radius: 12px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+        z-index: 150;
+        box-sizing: border-box;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+      .bg-blur-pop.show { display: flex; flex-wrap: wrap; gap: 6px; }
+      .bg-blur-pop > #bgBlurInline { flex: 1 1 100%; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 11px; }
+      .bg-blur-pop > #bgBlurInline > span:first-child { display: none; }
+      .bg-blur-pop > #bgBlurInline .bg-tint-inline { display: none !important; }
+      .bg-blur-pop > #bgBlurInline input[type="range"] { flex: 1 1 auto; width: auto; min-width: 0; height: 34px; touch-action: none; }
+      .bg-blur-pop .bbp-tint-row { flex: 1 1 100%; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; padding-top: 5px; border-top: 1px dashed rgba(255,255,255,0.14); }
+      .bg-blur-pop .bbp-tint-presets { display: flex; gap: 4px; flex: 1 1 100%; flex-wrap: wrap; }
+      .bg-tint-chip { border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.07); color: #dbe4f8; font-size: 10.5px; padding: 3px 8px; border-radius: 99px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+      .bg-tint-chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,0.45); }
+      .bg-blur-pop > #bgBlurInline #valBgBlur { min-width: 30px !important; font-size: 11px; text-align: right; }
+      .bbp-close { flex: 0 0 auto; padding: 6px 10px; font-size: 11px; border-radius: 8px; border: 1px solid rgba(125, 166, 255, 0.45); background: rgba(125, 166, 255, 0.16); color: #dce7ff; }
+      .bbp-close:active { background: rgba(125, 166, 255, 0.34); }
+      .bbp-step { flex: 0 0 auto; width: 26px; height: 28px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.22); background: rgba(255, 255, 255, 0.08); color: #dce7ff; font-size: 14px; line-height: 1; }
+      .bbp-step:active { background: rgba(125, 166, 255, 0.3); }
+      .bbp-num-wrap { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 2px; height: 28px; padding: 0 6px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.22); background: rgba(255, 255, 255, 0.08); }
+      .bbp-num-wrap input { width: 34px; border: none; background: transparent; color: #eef4ff; font-size: 16px; text-align: right; padding: 0; -moz-appearance: textfield; }
+      .bbp-num-wrap input::-webkit-outer-spin-button, .bbp-num-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      .bbp-num-wrap i { font-style: normal; font-size: 10px; color: #9fb0cc; }
+      .bg-blur-pop > #bgBlurInline #valBgBlur { display: none; }
+      .bg-blur-pop #rngBgBlur { -webkit-appearance: none; appearance: none; background: transparent; }
+      .bg-blur-pop #rngBgBlur::-webkit-slider-runnable-track { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.2); }
+      .bg-blur-pop #rngBgBlur::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -9px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); }
+      .bg-blur-pop #rngBgBlur::-moz-range-track { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.2); }
+      .bg-blur-pop #rngBgBlur::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; }
+      header::-webkit-scrollbar { display: none; }
+      .brand { display: none; }
+      #btnFullscreen, #btnOffline { display: none; }
+      .desktop-only { display: none !important; }
+      .header-center {
+        flex: 0 1 auto;
+        min-width: 0;
+        gap: 4px;
+        flex-wrap: nowrap;
       }
       .header-center > span { display: none; }
-      .seg-btn { padding: 3px 7px; font-size: 11px; }
-      .bg-blur-inline { padding: 2px 6px; font-size: 10px; }
-      .bg-blur-inline input[type="range"] { width: 64px; }
-      .header-actions { gap: 4px; }
-      .header-actions .btn { padding: 4px 7px; font-size: 11px; }
+      .seg-btn { padding: 2px 6px; font-size: 10px; white-space: nowrap; flex: 0 0 auto; }
+      .bg-blur-inline { padding: 0 5px; font-size: 9.5px; flex: 0 0 auto; white-space: nowrap; }
+      .bg-blur-inline input[type="range"] { width: 50px; }
+      #valBgBlur { min-width: 20px !important; font-size: 9.5px; }
+      .header-actions { gap: 4px; flex: 0 0 auto; }
+      .header-actions .btn { padding: 5px 7px; font-size: 10.5px; white-space: nowrap; flex: 0 0 auto; }
+      @media (max-width: 385px) {
+        #bgModeGroup .seg-btn { padding: 5px 4px !important; font-size: 9.5px !important; }
+        .header-actions .btn { padding: 5px 5px; font-size: 9.5px; }
+      }
 
       .workspace {
         grid-template-columns: 38px 1fr;
@@ -590,7 +688,7 @@
         transition: none;
       }
       body.mobile-canvas-max .workspace {
-        grid-template-rows: minmax(0, 1fr) 38px;
+        grid-template-rows: minmax(0, 1fr) calc(38px + env(safe-area-inset-bottom, 0px));
       }
       body.mobile-canvas-max .inspector .tab-panel,
       body.mobile-canvas-max .inspector .safety-banner {
@@ -598,7 +696,8 @@
       }
       body.mobile-canvas-max .inspector .tabs {
         border-bottom: none;
-        height: 38px;
+        height: calc(38px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px);
       }
       .tool-rail {
         grid-column: 1;
@@ -639,21 +738,190 @@
       .tab-btn { padding: 8px 4px; font-size: 12px; }
       .tab-panel {
         padding: 10px;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
         gap: 10px;
         background: var(--surface);
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
       }
+      input[type="text"], input[type="number"], textarea, select { font-size: 16px; }
       .card { padding: 9px; gap: 8px; }
+      .safety-banner {
+        padding: 2px 6px !important;
+        font-size: 9px !important;
+        line-height: 1.3 !important;
+        letter-spacing: -0.2px;
+      }
       .stage-hint { display: none; }
-      .stage-toolbar { height: 28px; padding: 0 6px; }
-      .stage-toolbar .btn-sm { padding: 1px 5px; font-size: 10px; }
+      .stage-toolbar { height: 28px; padding: 0 5px; gap: 4px; }
+      .zoom-badge { min-width: 36px; font-size: 10px; }
+      @media (max-width: 480px) { #btnZoom100 { display: none; } }
+      #stageHint { display: none !important; }
+      .row-drag {
+        flex: 0 0 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #10141d, #161b27);
+        border-top: 1px solid var(--border-strong);
+        cursor: row-resize;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        z-index: 8;
+      }
+      .row-drag span { width: 58px; height: 4px; border-radius: 99px; background: rgba(165, 195, 255, 0.5); }
+      .row-drag.dragging { background: #1c2538; }
+      .row-drag.dragging span { background: var(--accent); width: 72px; }
+      body.mobile-canvas-max .row-drag { display: flex; }
+      .stage-toolbar .btn-sm { padding: 1px 4px; font-size: 10px; }
       #canvasDimLabel { display: none; }
       #btnMobileTogglePanel { display: inline-flex !important; }
-      .context-bar { top: 4px; max-width: 96%; flex-wrap: wrap; padding: 4px 7px; gap: 4px; font-size: 10px; }
+      .context-bar {
+        position: fixed; top: 0; left: 6px; right: 6px; transform: none; max-width: none;
+        flex-wrap: wrap; overflow: visible;
+        padding: 4px 30px 4px 6px; gap: 4px; font-size: 10px;
+      }
+      body.ctx-bar-docked .viewport { padding-top: 56px; }
+      .ctx-close { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255,255,255,.32); background: rgba(255,255,255,.14); color: #fff; font-size: 11px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; z-index: 2; }
+      .ctx-close:active { background: rgba(255,255,255,.32); }
+      .ctx-num { width: 46px; height: 24px; box-sizing: border-box; font-size: 16px !important; text-align: center; border-radius: 5px; border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.1); color: #fff; padding: 0 2px; }
+      .ctx-num:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,.16); }
+      #btnCloseEraserBar, #btnCloseBrushBar, #btnCloseEyeBar, #btnCloseCavityBar { display: none !important; }
+      #ctxEyedropperGroup, #ctxEraserGroup, #ctxBrushGroup, #ctxLassoGroup, #ctxCavityGroup {
+        width: 100%; max-width: 100%; flex-wrap: wrap !important; gap: 4px 5px !important; align-items: center;
+      }
+      .context-bar > div, .context-bar .seg-group, .context-bar .seg-btn, .context-bar button, .context-bar span, .context-bar label { flex-shrink: 0; white-space: nowrap; }
+      #ctxEraserGroup input[type="range"], #ctxBrushGroup input[type="range"] { flex: 1 1 52px; width: auto; min-width: 44px; height: 18px; }
+      #ctxEraserGroup .field-val, #ctxBrushGroup .field-val { min-width: 30px; font-size: 10px; }
+      #ctxLassoGroup { padding: 0; gap: 4px 3px !important; }
+      #ctxLassoGroup #lassoModeGroup { flex: 1 1 100%; display: flex; gap: 3px; }
+      #ctxLassoGroup #lassoModeGroup .seg-btn { flex: 1 1 0; text-align: center; padding: 3px 4px !important; font-size: 10px !important; }
+      #ctxLassoGroup #wandTolBox { flex: 1 1 100%; min-width: 0; margin: 0; gap: 4px; }
+      #ctxLassoGroup #wandTolBox input[type="range"] { flex: 1 1 auto; width: auto; min-width: 0; height: 18px; }
+      #ctxLassoGroup #wandTolBox span { font-size: 10px; }
+      #ctxLassoGroup #wandTolBox #valWandTol { flex: 0 0 46px; width: 46px; max-width: 46px; }
+      #ctxLassoGroup #btnClearInside, #ctxLassoGroup #btnClearOutside, #ctxLassoGroup #btnMaskFromSel, #ctxLassoGroup #btnCancelLasso {
+        flex: 1 1 0; min-width: 0; font-size: 10px; padding: 4px 2px; letter-spacing: -0.3px; line-height: 1.25; text-align: center; justify-content: center;
+      }
+      #ctxEyedropperGroup #eyeTargetGroup { flex: 0 1 auto; display: inline-flex; gap: 2px; }
+      #ctxEyedropperGroup #eyeTargetGroup .seg-btn { padding: 3px 5px !important; font-size: 10px !important; }
+      #ctxEyedropperGroup .eye-hsl-row { flex: 1 1 100%; display: flex; align-items: center; gap: 4px; min-width: 0; }
+      #ctxEyedropperGroup .eye-hsl-row input[type="range"] { flex: 1 1 36px; width: auto !important; min-width: 32px; height: 18px; }
+      #ctxEyedropperGroup .eye-hsl-row span { font-size: 10px; flex-shrink: 0; }
+      #ctxCavityGroup #cavityModeGroup {
+        flex: 1 1 100%; max-width: 100%; display: flex; flex-wrap: nowrap;
+        overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 2px;
+      }
+      #ctxCavityGroup #cavityModeGroup::-webkit-scrollbar { display: none; }
+      #ctxCavityGroup #cavityModeGroup .seg-btn { flex: 0 0 auto; padding: 3px 6px !important; font-size: 10px !important; white-space: nowrap; }
+      #ctxCavityGroup .active-six-bar { gap: 4px; flex-wrap: nowrap; }
+      #ctxCavityGroup .active-six-bar .six-dot { width: 22px; height: 22px; }
+      #ctxCavityGroup #ctxFillBrushBox { order: 4; flex: 1 1 100%; display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+      #ctxCavityGroup #ctxFillBrushBox input[type="range"] { flex: 1 1 60px; width: auto !important; min-width: 48px; height: 18px; }
+      .eye-hint { display: none; }
       .layer-list { max-height: 150px; }
       .style-grid { max-height: 155px; }
     }
+
+    .eye-hsl-row { display: inline-flex; align-items: center; gap: 5px; flex-wrap: nowrap; }
+
+    /* 新手使用说明 */
+    .guide-mask {
+      position: fixed; inset: 0; z-index: 120;
+      display: none; background: rgba(4, 6, 10, 0.78);
+      align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .guide-mask.show { display: flex; }
+    .guide-card {
+      width: min(430px, 94vw);
+      max-height: min(82vh, 720px);
+      max-height: min(82dvh, 720px);
+      overflow: hidden;
+      background: #141822;
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+      padding: 14px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .guide-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; }
+    .guide-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .guide-close {
+      border: 0; background: none; color: var(--muted);
+      font-size: 17px; line-height: 1; cursor: pointer; padding: 2px 7px; border-radius: 6px;
+    }
+    .guide-close:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+    .guide-body {
+      font-size: 12.5px; line-height: 1.7; color: #c9d3e4;
+      display: flex; flex-direction: column; gap: 7px;
+      flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    }
+    .guide-body b { color: #e8eeff; }
+    .guide-tip { font-size: 11.5px; line-height: 1.6; color: #9fe6c9; border-top: 1px dashed var(--border-strong); padding-top: 9px; flex-shrink: 0; }
+    .guide-ok { align-self: flex-start; flex-shrink: 0; }
+
+    /* 手机端/微信高清成品长按保存弹窗 */
+    .export-mask {
+      position: fixed; inset: 0; z-index: 220;
+      display: none; background: rgba(4, 6, 10, 0.84);
+      align-items: center; justify-content: center;
+      padding: 14px;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    }
+    .export-mask.show { display: flex; }
+    .export-card {
+      width: min(420px, 92vw);
+      max-height: 88vh;
+      max-height: 88dvh;
+      background: #141822;
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+      padding: 14px;
+      display: flex; flex-direction: column; gap: 10px;
+      overflow: hidden;
+    }
+    .export-stage {
+      display: flex; align-items: center; justify-content: center;
+      background-color: #191d28;
+      background-image: linear-gradient(45deg, #222736 25%, transparent 25%),
+        linear-gradient(-45deg, #222736 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #222736 75%),
+        linear-gradient(-45deg, transparent 75%, #222736 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      min-height: 140px;
+      overflow: hidden;
+    }
+    .export-img {
+      max-width: 100%;
+      max-height: 54vh;
+      max-height: 54dvh;
+      object-fit: contain;
+      display: block;
+      -webkit-touch-callout: default;
+      user-select: none;
+    }
+    .export-hint { font-size: 12px; color: #9fe6c9; text-align: center; line-height: 1.45; }
+    .export-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+    /* 长按弹出的文字说明气泡 */
+    .title-tip {
+      position: fixed; z-index: 300; display: none;
+      max-width: 240px; padding: 6px 9px; border-radius: 8px;
+      background: rgba(18, 22, 32, 0.97);
+      border: 1px solid var(--border-strong);
+      color: #dbe4f5; font-size: 12px; line-height: 1.5;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      pointer-events: none; white-space: normal; word-break: break-word;
+    }
+    button, .tool-btn, .seg-btn, .tab-btn { -webkit-touch-callout: none; }
   </style>
 </head>
 <body>
@@ -673,20 +941,49 @@
         <button class="seg-btn active" data-bg="blurred">模糊底图</button>
         <button class="seg-btn" data-bg="transparent">透明底</button>
       </div>
-      <div class="bg-blur-inline" id="bgBlurInline" title="单独调节模糊底图的模糊程度">
+      <div class="bg-blur-inline" id="bgBlurInline" title="单独调节模糊底图的模糊程度与改色">
         <span>模糊度</span>
         <input type="range" id="rngBgBlur" min="0" max="80" step="1" value="22" />
         <span id="valBgBlur" class="field-val" style="min-width:30px;">22px</span>
+        <span class="bg-tint-inline" style="display:inline-flex;align-items:center;gap:5px;">
+          <span style="opacity:0.3;">|</span>
+          <span>底图改色</span>
+          <input type="color" id="colBgTint" value="#ffd6e5" title="选择模糊底图染色颜色" style="width:24px;height:22px;padding:1px;border-radius:4px;" />
+          <input type="range" id="rngBgTint" min="0" max="100" step="1" value="0" title="模糊底图改色浓度（0%为原色）" style="width:58px;" />
+          <span id="valBgTint" class="field-val" style="min-width:28px;">0%</span>
+        </span>
       </div>
     </div>
 
     <div class="header-actions">
+      <button class="btn" id="btnOffline" title="把这个工作室存成本地单文件（电脑上双击可用；iPhone 打不开本地 HTML，手机上请直接用网址）">⬇ 存离线版</button>
       <button class="btn" id="btnAboutModal" title="查看本地离线与算法合规声明">ℹ️ 关于与声明</button>
       <button class="btn" id="btnFullscreen" title="切换全屏大画布 (F)">⛶ 全屏画布</button>
       <button class="btn btn-mint" id="btnExportTransparent" title="仅导出透明底效果图案">导出透明图案</button>
       <button class="btn btn-primary" id="btnExportPNG" title="按当前底图模式导出高清 PNG">一键导出 PNG</button>
     </div>
   </header>
+
+  <!-- 手机端：点「模糊底图」后弹出的放大模糊度与改色拉条 -->
+  <div class="bg-blur-pop" id="bgBlurPop">
+    <button class="bbp-step" id="bbpMinus" title="模糊度减 1">−</button>
+    <button class="bbp-step" id="bbpPlus" title="模糊度加 1">＋</button>
+    <span class="bbp-num-wrap"><input id="bbpNum" type="number" min="0" max="80" step="1" inputmode="numeric" value="22" /><i>px</i></span>
+    <button class="bbp-close" id="bbpClose">完成</button>
+    <div class="bbp-tint-row">
+      <span style="font-size:11px;color:#b8c2d8;font-weight:600;">底图改色</span>
+      <input type="color" id="bbpColTint" value="#ffd6e5" style="width:28px;height:24px;padding:1px;border-radius:5px;" />
+      <input type="range" id="bbpRngTint" min="0" max="100" step="1" value="0" style="flex:1;min-width:70px;" />
+      <span id="bbpValTint" class="field-val" style="min-width:32px;font-size:11px;">0%</span>
+      <div class="bbp-tint-presets" id="bbpTintPresets">
+        <button type="button" class="bg-tint-chip" data-tint="reset">原色</button>
+        <button type="button" class="bg-tint-chip" data-tint="#fff5f8" data-alpha="55"><i style="background:#fff5f8"></i>奶白</button>
+        <button type="button" class="bg-tint-chip" data-tint="#ffc6da" data-alpha="55"><i style="background:#ffc6da"></i>樱粉</button>
+        <button type="button" class="bg-tint-chip" data-tint="#b8dbff" data-alpha="55"><i style="background:#b8dbff"></i>雾蓝</button>
+        <button type="button" class="bg-tint-chip" data-tint="#1b2030" data-alpha="65"><i style="background:#1b2030"></i>暗夜</button>
+      </div>
+    </div>
+  </div>
 
   <div class="workspace">
     <!-- Left Tool Rail -->
@@ -697,8 +994,14 @@
       <button class="tool-btn" id="toolLasso" title="套索选区工具 (L)：支持连续多次套索累加，可清除或建蒙版">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 22a5 5 0 0 1-2-4"/><path d="M7 16.93c.96.43 1.96.74 2.99.91"/><path d="M3.34 14A6.8 6.8 0 0 1 2 10c0-4.42 4.48-8 10-8s10 3.58 10 8a7.19 7.19 0 0 1-.33 2"/><path d="M5 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M14.33 22h-.09a.35.35 0 0 1-.24-.32v-10a.34.34 0 0 1 .33-.34c.08 0 .15.03.21.08l7.34 6a.33.33 0 0 1-.21.59h-4.49l-2.57 3.85a.35.35 0 0 1-.28.14z"/></svg>
       </button>
+      <button class="tool-btn" id="toolWand" title="魔棒工具 (W)：点一下选中相近颜色的连续区域，可清除选区内/外或转成蒙版" style="color:#ffd875;">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2m0 14v-2M8 9h2m10 0h2m-4.2 5.2 1.4 1.4M10.8 4.8l1.4 1.4m5.6-1.4-1.4 1.4" stroke="#ffd875"/><path d="m3 21 9.5-9.5" stroke-width="2.4"/><path d="M15 7l2 2-2 2-2-2 2-2z" fill="#ffd875"/></svg>
+      </button>
       <button class="tool-btn" id="toolEraser" title="橡皮擦工具 (E)：擦除当前图层或蒙版">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+      </button>
+      <button class="tool-btn" id="toolBrush" title="画笔工具 (B)：自由手绘上色，可调粗细、硬/柔边与透明度（支持在蒙版上画白还原）">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg>
       </button>
       <button class="tool-btn" id="toolCavity" title="多色填色与空洞工具 (K)：支持6色卡点填、10%柔边喷枪、硬边画笔、单块开关">🎨</button>
       <button class="tool-btn" id="toolEyedropper" title="画布吸管吸色 (I)：手机/电脑通用，点底图吸取色卡颜色">
@@ -713,6 +1016,8 @@
       <div class="tool-sep"></div>
       <button class="tool-btn" id="toolCompare" title="按住或点击对比原图">◐</button>
       <button class="tool-btn" id="toolFit" title="适应窗口大小">⊡</button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" id="btnGuide" title="新手使用说明" style="color:#a8d0ff;font-weight:700;">?</button>
     </aside>
 
     <!-- Center Stage -->
@@ -728,12 +1033,31 @@
           <span class="field-val" id="valEraserSoft">25%</span>
           <button class="btn btn-sm" id="btnCloseEraserBar" style="margin-left:4px;">完成 ✕</button>
         </div>
+        <div id="ctxBrushGroup" class="row" style="display:none;flex-wrap:wrap;gap:5px;">
+          <input type="color" id="colBrushColor" value="#000000" title="画笔颜色" style="width:28px;height:24px;padding:1px;border-radius:5px;" />
+          <button class="btn btn-sm" id="btnBrushPick" style="padding:3px 7px;font-size:11px;" title="从画布吸色到画笔">吸色</button>
+          <span>粗细</span>
+          <input type="range" id="rngBrushSize" min="2" max="240" value="24" />
+          <span class="field-val" id="valBrushSize">24px</span>
+          <span>柔边</span>
+          <input type="range" id="rngBrushSoft" min="0" max="100" value="0" />
+          <span class="field-val" id="valBrushSoft">0%</span>
+          <span>浓度</span>
+          <input type="range" id="rngBrushOpacity" min="5" max="100" value="100" />
+          <span class="field-val" id="valBrushOpacity">100%</span>
+          <button class="btn btn-sm" id="btnCloseBrushBar" style="margin-left:4px;">完成 ✕</button>
+        </div>
         <div id="ctxLassoGroup" class="row" style="display:none;flex-wrap:wrap;">
           <div class="seg-group" id="lassoModeGroup">
             <button class="seg-btn active" data-lmode="add" style="padding:3px 7px;font-size:11px;">＋累加套索</button>
             <button class="seg-btn" data-lmode="sub" style="padding:3px 7px;font-size:11px;">－减去</button>
             <button class="seg-btn" data-lmode="new" style="padding:3px 7px;font-size:11px;">新选区</button>
           </div>
+          <span id="wandTolBox" style="display:none;align-items:center;gap:4px;">
+            <span>魔棒容差</span>
+            <input type="range" id="rngWandTol" min="0" max="150" value="40" style="width:80px;" />
+            <input type="number" id="valWandTol" class="ctx-num" min="0" max="150" step="1" value="40" title="可直接填数值" />
+          </span>
           <button class="btn btn-sm" id="btnClearInside" style="color:#ff9ba9;">清除选区内 (Del)</button>
           <button class="btn btn-sm" id="btnClearOutside">清除选区外</button>
           <button class="btn btn-sm" id="btnMaskFromSel" style="color:#a8d0ff;">转为蒙版</button>
@@ -743,15 +1067,19 @@
           <div class="seg-group" id="eyeTargetGroup">
             <button class="seg-btn active" data-etarget="card1" style="padding:3px 7px;font-size:11px;">色卡1</button>
             <button class="seg-btn" data-etarget="card2" style="padding:3px 7px;font-size:11px;">色卡2</button>
+            <button class="seg-btn" data-etarget="brush" style="padding:3px 7px;font-size:11px;">画笔</button>
             <button class="seg-btn" data-etarget="grad1" style="padding:3px 7px;font-size:11px;">渐变A</button>
             <button class="seg-btn" data-etarget="grad2" style="padding:3px 7px;font-size:11px;">渐变B</button>
           </div>
           <span id="eyeSwatch" style="width:18px;height:18px;border-radius:50%;border:1px solid #fff;display:inline-block;background:#a31c24;"></span>
           <span id="eyeHex" class="field-val">#a31c24</span>
-          <span style="color:var(--muted);">点画布吸色 / 调色：</span>
-          <span>色相</span><input type="range" id="rngEyeH" min="0" max="360" value="356" style="width:68px;" />
-          <span>饱和</span><input type="range" id="rngEyeS" min="0" max="100" value="71" style="width:52px;" />
-          <span>明度</span><input type="range" id="rngEyeL" min="5" max="98" value="37" style="width:52px;" />
+          <span class="eye-hint" style="color:var(--muted);">点画布吸色 / 调色：</span>
+          <div class="eye-hsl-row">
+            <span>色相</span><input type="range" id="rngEyeH" min="0" max="360" value="356" style="width:68px;" />
+            <span>饱和</span><input type="range" id="rngEyeS" min="0" max="100" value="71" style="width:52px;" />
+            <span>明度</span><input type="range" id="rngEyeL" min="5" max="98" value="37" style="width:52px;" />
+          </div>
+          <button class="btn btn-sm" id="btnEyeMin" style="padding:2px 8px;" title="收起面板，直接点画布吸色">收起 ⌃</button>
           <button class="btn btn-sm btn-primary" id="btnCloseEyeBar" style="padding:2px 8px;">完成 ✕</button>
         </div>
         <div id="ctxCavityGroup" class="row" style="display:none;flex-wrap:wrap;gap:6px;">
@@ -773,6 +1101,7 @@
           <button class="btn btn-sm" id="btnClearCustomFill" style="color:#ff9ba9;">重置手填</button>
           <button class="btn btn-sm btn-primary" id="btnCloseCavityBar" style="padding:2px 8px;">完成 ✕</button>
         </div>
+        <button class="ctx-close" id="btnCloseCtxBar" title="关闭工具条" aria-label="关闭">✕</button>
       </div>
 
       <div class="viewport mode-move" id="viewport">
@@ -801,6 +1130,7 @@
           <button class="offline-pill" id="btnFooterAbout" title="查看本地离线与原创声明">🔒 纯本地离线 · 支持飞行模式自证</button>
         </div>
       </div>
+      <div class="row-drag" id="rowDrag" title="拖动可调整上下比例"><span></span></div>
     </main>
 
     <!-- Right Inspector -->
@@ -810,8 +1140,9 @@
         <button class="tab-btn" data-tab="effect">效果</button>
         <button class="tab-btn" data-tab="export">画布与导出</button>
       </div>
-      <div class="safety-banner" style="padding:6px 12px;background:rgba(82,199,160,0.10);border-bottom:1px solid rgba(82,199,160,0.28);color:#b8f3dc;font-size:11px;line-height:1.45;flex-shrink:0;">
-        🛡️ <b>纯前端本地离线运行</b>：无后端服务器、无图片上传，支持断网 / 飞行模式自证；基于标准前端 Canvas &amp; WebGL2 图像算法独立实现。
+      <div class="safety-banner" style="padding:6px 12px;background:rgba(82,199,160,0.10);border-bottom:1px solid rgba(82,199,160,0.28);color:#b8f3dc;font-size:11px;line-height:1.45;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+        <span>🛡️ <b>纯前端本地离线</b>：无后端/无上传，支持飞行模式自证。</span>
+        <button class="btn btn-sm" id="btnSafetyAbout" style="padding:2px 7px;font-size:10.5px;flex-shrink:0;border-color:rgba(82,199,160,0.45);color:#96eed0;">关于与声明</button>
       </div>
 
       <!-- TAB 1: Layers & Fullscreen Watermark -->
@@ -819,7 +1150,7 @@
         <div class="card">
           <div class="card-title">
             <span>导入素材 / 新建图层</span>
-            <span class="card-sub">支持多图层叠加</span>
+            <button class="btn btn-sm" id="btnOfflineTopCard" style="color:#ffd98e;border-color:rgba(230,185,110,0.45);" title="把这个工作室存成本地单文件 HTML（传电脑双击打开，断网也能用）">⬇ 存离线版</button>
           </div>
           <div class="grid-2">
             <button class="btn btn-primary" id="btnAddWatermark">+ 导入黑素/贴图</button>
@@ -827,13 +1158,14 @@
             <button class="btn" id="btnImportBg">更换底图</button>
             <button class="btn" id="btnResetDemo">载入示例字素</button>
           </div>
+          <button class="btn btn-sm" id="btnCloneBgToBlurLayer" style="color:#a8dcff;justify-content:center;" title="把当前底图克隆为一层独立模糊底图层放到原底图上方（可直接用橡皮/蒙版擦出清晰主体，或在「效果」调模糊度）">✦ 克隆当前底图为模糊层（原图在下 + 模糊层在上）</button>
           <input type="file" id="fileWatermark" accept="image/*" multiple hidden />
           <input type="file" id="fileBg" accept="image/*" hidden />
         </div>
 
         <div class="card">
           <div class="card-title">
-            <span>图层列表（可拖入文件夹）</span>
+            <span>图层列表<span class="desktop-only">（可拖入文件夹）</span></span>
             <div class="row" style="gap:4px;">
               <button class="btn btn-sm" id="btnNewFolder" title="新建图层文件夹" style="color:#f5d796;">📁+</button>
               <button class="btn btn-sm" id="btnMergeDown" title="向下合并图层（选中文件夹时合并文件夹内所有层）" style="color:#96eed0;">合并</button>
@@ -858,7 +1190,7 @@
 
           <!-- Folder assignment & Selection / Mask actions -->
           <div id="folderAssignRow" class="field">
-            <div class="field-head"><span>所属文件夹（也可直接拖拽图层到文件夹）</span></div>
+            <div class="field-head"><span>所属文件夹<span class="desktop-only">（也可直接拖拽图层到文件夹）</span></span></div>
             <select id="selParentFolder">
               <option value="">根目录（不在文件夹内）</option>
             </select>
@@ -965,6 +1297,7 @@
             <button class="btn btn-sm" id="btnSetAsBg" title="将当前图片图层直接设为画布底图">设为底图</button>
             <button class="btn btn-sm" id="btnBakeEffect" style="color:#96eed0;" title="将当前效果写入图层像素，之后可继续叠加下一层效果（支持 Ctrl+Z 撤销）">应用效果到图层</button>
           </div>
+          <button class="btn btn-sm" id="btnCloneBlurBase" style="color:#a8dcff;justify-content:center;" title="一键克隆当前图层并套用高斯模糊放到原图上方（可到「效果」调模糊度，点 ↓ 可移到下方）">✦ 克隆模糊底图层</button>
           </div>
 
           <div class="grid-2">
@@ -1239,10 +1572,10 @@
             </div>
             <div class="row-between">
               <div class="active-six-bar" id="inspectorSixSwatches"></div>
-              <label class="btn btn-sm" style="cursor:pointer;gap:5px;padding:3px 8px;" title="打开系统调色板，手动修改当前选中圆点的颜色">
-                <input type="color" id="colInspectorSwatch" value="#F7C6D4" style="width:16px;height:16px;padding:0;border:none;background:none;cursor:pointer;" />
-                <span>自选改色</span>
-              </label>
+              <div class="row" style="gap:5px;align-items:center;">
+                <input type="color" id="colInspectorSwatch" value="#F7C6D4" title="点击修改当前选中圆点的颜色" style="width:32px;height:26px;padding:1px;border-radius:6px;" />
+                <span style="font-size:11px;color:#c8d4ec;">改当前格</span>
+              </div>
             </div>
 
             <div class="field">
@@ -1385,6 +1718,7 @@
           <div style="display:flex;flex-direction:column;gap:8px;">
             <button class="btn btn-primary" id="btnExportPNG2">一键导出当前画面 PNG</button>
             <button class="btn btn-mint" id="btnExportTransparent2">仅导出透明底效果图案 PNG</button>
+            <button class="btn" id="btnOffline2" style="justify-content:center;color:#ffd98e;border-color:rgba(230,185,110,0.45);">⬇ 保存离线版单文件 (.html · 传电脑/存档)</button>
           </div>
           <div style="font-size:11px;color:var(--muted);line-height:1.55;">
             · <b>原底图</b>：保留清晰原背景 + 效果主体。<br/>
@@ -1397,28 +1731,6 @@
   </div>
 
   <div class="toast" id="toast"></div>
-
-  <div class="modal-backdrop" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3 id="aboutModalTitle">关于隐私与原创说明</h3>
-        <button class="btn btn-sm" id="btnCloseAbout">关闭 ✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="modal-box">
-          <strong>1. 纯前端本地离线运行（支持飞行模式自证）</strong><br/>
-          本工具为单文件纯前端网页应用，基于 HTML5 Canvas 与 WebGL2 技术在本地浏览器内完成全部渲染与导出。无后端服务器、无数据库、无任何外部 CDN 请求与图片上传行为。您可断开网络或开启手机飞行模式直接打开本页面验证。
-        </div>
-        <div class="modal-box">
-          <strong>2. 基于标准前端图像算法独立实现</strong><br/>
-          内置的填色、掐丝、折光、浮雕、全屏叠加及各类材质滤镜效果，均基于标准前端图像处理、混合模式与光学渲染参数独立编写调校，不涉及生成式 AI，仅供学习交流与本地安全出图参考。
-        </div>
-        <div style="font-size:11px;color:var(--muted);">
-          字体说明：内置字体仅调用系统默认本地字体栈，同时支持用户自行导入本地 <code>.ttf / .otf / .woff2</code> 字体文件在浏览器内存中即时渲染。
-        </div>
-      </div>
-    </div>
-  </div>
 
   <script>
     // ==================== EMBEDDED WEBGL2 GPU FILTER ENGINE (折光原生引擎) ====================
@@ -1718,6 +2030,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       height: 2000,
       bgMode: "blurred", // original | blurred | transparent
       bgBlurR: 22, // independent blurred-background radius
+      bgTintColor: "#ffd6e5",
+      bgTintAlpha: 0,
       bgImg: null,
       auxImg: null,
       layers: [],
@@ -1726,6 +2040,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       compareRaw: false,
       view: { zoom: 0.35, panX: 0, panY: 0, spaceDown: false },
       eraser: { size: 48, softness: 25 },
+      brush: { color: "#000000", size: 24, softness: 0, opacity: 100 },
       eyeTarget: "card1", // card1 | card2 | grad1 | grad2
       lasso: { shapes: [], activePoints: [], mode: "add", alphaMask: null },
       undoStack: [],
@@ -1834,8 +2149,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
     let bgCacheKey = "";
     let displayBlurKey = "";
-    // Mobile preview renders at lightweight <=800px resolution to eliminate GPU OOM black screens;
-    // PNG export ALWAYS switches activeRenderScale = 1 for full 2000x2000 HD output!
+    // Mobile / iOS preview renders at lightweight 960px resolution to eliminate GPU OOM & stutter;
+    // PNG export / bake / merge ALWAYS switch activeRenderScale = 1 for full 2000x2000 HD output!
+    const isIOS = /iP(hone|od|ad)/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isMobileDevice = isIOS || /Android|Mobile|HarmonyOS/i.test(navigator.userAgent) || window.innerWidth <= 900;
     let activeRenderScale = 1;
     function getRenderDim() {
       const rw = Math.max(128, Math.round(state.width * activeRenderScale));
@@ -1843,7 +2160,28 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       return { rw, rh, rs: activeRenderScale };
     }
     function getPreviewScale() {
+      const maxDim = Math.max(state.width, state.height);
+      if (isIOS || isMobileDevice || window.innerWidth <= 900) return Math.min(1, 960 / maxDim);
       return 1;
+    }
+    function runAtFullResolution(fn) {
+      clearTimeout(renderTimer);
+      if (typeof renderRafId !== "undefined" && renderRafId) {
+        cancelAnimationFrame(renderRafId);
+        renderRafId = 0;
+      }
+      const prevScale = activeRenderScale;
+      activeRenderScale = 1;
+      bgCacheKey = "";
+      displayBlurKey = "";
+      ensureBackgroundCache();
+      try {
+        return fn();
+      } finally {
+        activeRenderScale = prevScale;
+        bgCacheKey = "";
+        displayBlurKey = "";
+      }
     }
 
     function freeCanvas(c) {
@@ -1908,10 +2246,22 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
     function ensureDisplayBlurCache() {
       const { rw, rh, rs } = getRenderDim();
-      const key = `${rw}x${rh}|${state.bgImg ? state.bgImg._uid : "demo"}|${state.bgBlurR}`;
+      const key = `${rw}x${rh}|${state.bgImg ? state.bgImg._uid : "demo"}|${state.bgBlurR}|${state.bgTintColor}|${state.bgTintAlpha}`;
       if (displayBlurKey === key) return;
       displayBlurKey = key;
       blurCanvasExact1to1(bgCanvas, displayBlurBgCanvas, displayBlurBgCtx, state.bgBlurR * rs);
+      if (state.bgTintAlpha > 0) {
+        const a = Math.max(0, Math.min(1, state.bgTintAlpha / 100));
+        displayBlurBgCtx.save();
+        displayBlurBgCtx.globalCompositeOperation = "color";
+        displayBlurBgCtx.globalAlpha = Math.min(1, a * 0.9);
+        displayBlurBgCtx.fillStyle = state.bgTintColor || "#ffd6e5";
+        displayBlurBgCtx.fillRect(0, 0, rw, rh);
+        displayBlurBgCtx.globalCompositeOperation = "source-over";
+        displayBlurBgCtx.globalAlpha = a * 0.42;
+        displayBlurBgCtx.fillRect(0, 0, rw, rh);
+        displayBlurBgCtx.restore();
+      }
     }
 
     function showToast(msg) {
@@ -1961,12 +2311,18 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
       bgCanvas.width = w; bgCanvas.height = h;
       if (state.bgImg) {
-        // cover fit
         const iw = state.bgImg.naturalWidth || state.bgImg.width;
         const ih = state.bgImg.naturalHeight || state.bgImg.height;
-        const scale = Math.max(w / iw, h / ih);
+        const ratioDiff = Math.abs(Math.log((iw / ih) / (w / h)));
+        // 比例接近：铺满画布（最多裁一点点）；比例差很多（长图 / 长条）：整图完整显示，绝不裁上下
+        const fitContain = ratioDiff > 0.07;
+        const scale = fitContain ? Math.min(w / iw, h / ih) : Math.max(w / iw, h / ih);
         const dw = iw * scale, dh = ih * scale;
         bgCtx.clearRect(0, 0, w, h);
+        if (fitContain) {
+          bgCtx.fillStyle = "#12141a";
+          bgCtx.fillRect(0, 0, w, h);
+        }
         bgCtx.drawImage(state.bgImg, (w - dw) / 2, (h - dh) / 2, dw, dh);
       } else {
         drawDefaultBackground(bgCtx, w, h);
@@ -1999,7 +2355,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       g.fillText("仅作", 195, 855);
       g.fillText("预览", 195, 1045);
 
-      // Small enclosed badge ("禁二传")
+      // Small enclosed badge ("禁止二传")
       g.lineWidth = 12;
       g.beginPath();
       g.roundRect(120, 490, 120, 195, 50);
@@ -2097,6 +2453,20 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
     function getEffectiveScale(layer) {
       return (layer.baseScale || 1) * layer.scale;
+    }
+
+    // 画布坐标 → 图层本地像素坐标（橡皮擦 / 套索 / 填色都要用；之前缺失导致橡皮擦点了没反应）
+    function canvasPtToLayerLocal(layer, pt) {
+      const sc = getEffectiveScale(layer) || 1;
+      const fx = layer.flipX ? -1 : 1, fy = layer.flipY ? -1 : 1;
+      let dx = pt.x - (layer.x || 0), dy = pt.y - (layer.y || 0);
+      const rad = -((layer.rotation || 0) * Math.PI) / 180;
+      const rx = dx * Math.cos(rad) - dy * Math.sin(rad);
+      const ry = dx * Math.sin(rad) + dy * Math.cos(rad);
+      return {
+        x: rx / (sc * fx) + (layer.srcW || 0) / 2,
+        y: ry / (sc * fy) + (layer.srcH || 0) / 2
+      };
     }
 
     function addLayerFromSource(name, source, opts = {}) {
@@ -2598,7 +2968,14 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         _temps.push(c);
         return c;
       };
-      const cleanupTemps = () => { while (_temps.length) freeCanvas(_temps.pop()); };
+      let _freehandApplied = false;
+      const cleanupTemps = () => {
+        if (!_freehandApplied && !state.fillClipSilhouette && state.hasFreehandPaint && fx.cavityEnable && fx.version !== "fs_bold" && (!atnRecCheck || atnRecCheck.cat !== "全屏")) {
+          _freehandApplied = true;
+          drawFreehandOutsideCavities(outCtx);
+        }
+        while (_temps.length) freeCanvas(_temps.pop());
+      };
 
       // Build helper canvases (all tracked for instant GPU cleanup)
       const cHBlack = mkAlpha(H, 0, 0, 0);
@@ -2628,22 +3005,41 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
       const drawFreehandOutsideCavities = (targetCtx) => {
         if (!state.hasFreehandPaint || !state.fillPaintCanvas) return;
-        const fpC = document.createElement("canvas");
-        fpC.width = w; fpC.height = h;
-        _temps.push(fpC);
-        const fpCtx = fpC.getContext("2d");
-        fpCtx.drawImage(state.fillPaintCanvas, 0, 0, w, h);
+        const maskC = document.createElement("canvas");
+        maskC.width = w; maskC.height = h;
+        const enamelC = document.createElement("canvas");
+        enamelC.width = w; enamelC.height = h;
+        _temps.push(maskC, enamelC);
+        const mCtx = maskC.getContext("2d");
+        mCtx.drawImage(state.fillPaintCanvas, 0, 0, w, h);
         // Remove areas already drawn inside cavAlpha & under H strokes
         if (compCount > 0) {
           const cCavTmp = mkAlpha(cavAlpha, 0, 0, 0);
-          fpCtx.globalCompositeOperation = "destination-out";
-          fpCtx.drawImage(cCavTmp, 0, 0);
+          mCtx.globalCompositeOperation = "destination-out";
+          mCtx.drawImage(cCavTmp, 0, 0);
         }
-        fpCtx.globalCompositeOperation = "destination-out";
-        fpCtx.drawImage(cHBlack, 0, 0);
+        mCtx.globalCompositeOperation = "destination-out";
+        mCtx.drawImage(cHBlack, 0, 0);
+
+        // Refract blurred background + blend hand-painted enamel color so it matches auto-detected cavities!
+        const eCtx = enamelC.getContext("2d");
+        eCtx.drawImage(maskC, 0, 0);
+        eCtx.globalCompositeOperation = "source-in";
+        eCtx.drawImage(blurBgCanvas, 0, 0);
+        eCtx.globalCompositeOperation = "multiply";
+        eCtx.globalAlpha = 0.75;
+        eCtx.drawImage(maskC, 0, 0);
+        eCtx.globalCompositeOperation = "source-over";
+        eCtx.globalAlpha = 0.62;
+        eCtx.drawImage(maskC, 0, 0);
+        eCtx.globalCompositeOperation = "destination-in";
+        eCtx.globalAlpha = 1;
+        eCtx.drawImage(maskC, 0, 0);
+
         targetCtx.save();
-        targetCtx.globalAlpha = (fx.card1Alpha / 100) * 0.88;
-        targetCtx.drawImage(fpC, 0, 0);
+        targetCtx.globalCompositeOperation = "destination-over";
+        targetCtx.globalAlpha = Math.min(1, (fx.card1Alpha / 100) * 0.95);
+        targetCtx.drawImage(enamelC, 0, 0);
         targetCtx.restore();
       };
 
@@ -4205,6 +4601,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           for (let i = 0; i < total; i++) workMaskArr[i] = Math.max(H[i], eL[i], eR[i], eU[i], eD[i]);
         }
         const cWorkMask = makeSolidAlphaCanvas(workMaskArr, w, h, 0, 0, 0);
+        _temps.push(cWorkMask);
 
         // (a) Drop Shadow
         if (atnRec.hasDropShadow || fx.dropShadow) {
@@ -4221,6 +4618,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         if (atnRec.hasOuterGlow || tr.outerGlowForce) {
           const ogC = document.createElement("canvas");
           ogC.width = w; ogC.height = h;
+          _temps.push(ogC);
           const ogCtx = ogC.getContext("2d");
           ogCtx.drawImage(cWorkMask, 0, 0);
           ogCtx.globalCompositeOperation = "source-in";
@@ -4238,6 +4636,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           const cCavMask = makeSolidAlphaCanvas(cavAlpha, w, h, 0, 0, 0);
           const cavL = document.createElement("canvas");
           cavL.width = w; cavL.height = h;
+          _temps.push(cCavMask, cavL);
           const cCtx = cavL.getContext("2d");
           cCtx.drawImage(cCavMask, 0, 0);
           cCtx.globalCompositeOperation = "source-in";
@@ -4252,6 +4651,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         // (d) Main Body (White-line / Glass / Chrome / Jade / Blurred Silver)
         const bodyL = document.createElement("canvas");
         bodyL.width = w; bodyL.height = h;
+        _temps.push(bodyL);
         const bCtx = bodyL.getContext("2d");
 
         if (tr.isWhiteOutline) {
@@ -4285,6 +4685,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
             wave: 52, phase: 15, angle: 135, color: fx.card2 || "#eef4ff", mix: 100
           }, false, true);
           if (chromeC) {
+            _temps.push(chromeC);
             outCtx.drawImage(chromeC, 0, 0);
           } else {
             outCtx.drawImage(cHWhite, 0, 0);
@@ -4330,22 +4731,20 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         }
 
         if (atnRec.hasGlass) {
-          // WebGL2 waterdrop refraction shader when WebGL2 is available
           const gpuW = runGpuFilterCanvas("water", cWorkMask, blurBgCanvas, {
             distance: tr.isTemperedGlass ? 6 : 12, flat: 65, height: 18, round: 14,
             smooth: tr.isMatte ? 8 : 3.5,
             refract: 136, shine: tr.isMatteExact ? 45 : 95, shineSize: 12,
             bottom: 35, shadow: 12, light: 135, mask: "alpha", threshold: 50, mix: 100
           }, true, true);
-          if (gpuW) bCtx.drawImage(gpuW, 0, 0);
-          else bCtx.drawImage(makeWaterdropCanvas(workMaskArr, w, h, blurBgCanvas, 70, 90), 0, 0);
+          if (gpuW) { _temps.push(gpuW); bCtx.drawImage(gpuW, 0, 0); }
+          else { const wf = makeWaterdropCanvas(workMaskArr, w, h, blurBgCanvas, 70, 90); _temps.push(wf); bCtx.drawImage(wf, 0, 0); }
         } else if (atnRec.hasWave || tr.useChromeGpu) {
-          // WebGL2 chrome shader for metallic/chrome presets
           const gpuCh = runGpuFilterCanvas("chrome", cWorkMask, blurBgCanvas, {
             detail: 3.2, smooth: 2.2, slope: 75, black: 12, white: 86, mid: 50,
             wave: 48, phase: 22, angle: 135, color: fx.card2 || "#e4eeff", mix: 100
           }, true, true);
-          if (gpuCh) bCtx.drawImage(gpuCh, 0, 0);
+          if (gpuCh) { _temps.push(gpuCh); bCtx.drawImage(gpuCh, 0, 0); }
           else {
             bCtx.drawImage(cWorkMask, 0, 0);
             bCtx.globalCompositeOperation = "source-in";
@@ -4397,6 +4796,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         // Inner Glow
         if (atnRec.hasInnerGlow || tr.innerGlowForce) {
           const igW = makeSolidAlphaCanvas(innerWire, w, h, 255, 255, 248);
+          _temps.push(igW);
           bCtx.save();
           bCtx.filter = `blur(${Math.max(4, atnRec.innerGlowSize || 7)}px)`;
           bCtx.globalCompositeOperation = "screen";
@@ -4409,6 +4809,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         if (atnRec.hasSatin) {
           const satA = makeSatinWireAlpha(H, w, h, Math.max(2, Math.min(5, atnRec.satinDist || 3)));
           const cSatW = makeSolidAlphaCanvas(satA, w, h, 255, 255, 255);
+          _temps.push(cSatW);
           bCtx.save();
           bCtx.filter = "blur(1.6px)";
           bCtx.globalCompositeOperation = "lighter";
@@ -4453,6 +4854,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         if (atnRec.hasBevel || atnRec.hasEmboss || fx.bevelEnable) {
           const bDepth = Math.min(100, Math.max(35, fx.bevelDepth + (atnRec.hasEmboss ? 30 : 15)));
           const bevC = makeInnerBevelCanvas(H, w, h, fx.bevelAngle, bDepth);
+          _temps.push(bevC);
           bCtx.globalCompositeOperation = "source-over";
           bCtx.globalAlpha = 0.92;
           bCtx.drawImage(bevC, 0, 0);
@@ -4845,7 +5247,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (hasSelection()) {
         const selMask = buildSelectionMaskCanvas();
         overlayCtx.save();
-        overlayCtx.globalAlpha = 0.16;
+        overlayCtx.globalAlpha = 0.32;
         // Tint selected area soft blue
         const tint = document.createElement("canvas");
         tint.width = w; tint.height = h;
@@ -4892,13 +5294,14 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         overlayCtx.restore();
       }
 
-      // 2. Draw Eraser brush preview circle
-      if (state.tool === "eraser" && hoverCanvasPt) {
+      // 2. Draw Eraser / Brush preview circle
+      if ((state.tool === "eraser" || state.tool === "brush") && hoverCanvasPt) {
+        const previewSize = state.tool === "brush" ? state.brush.size : state.eraser.size;
         overlayCtx.save();
         overlayCtx.beginPath();
-        overlayCtx.arc(hoverCanvasPt.x, hoverCanvasPt.y, state.eraser.size / 2, 0, Math.PI * 2);
+        overlayCtx.arc(hoverCanvasPt.x, hoverCanvasPt.y, previewSize / 2, 0, Math.PI * 2);
         overlayCtx.lineWidth = Math.max(1.2, 1.8 / state.view.zoom);
-        overlayCtx.strokeStyle = "rgba(255,255,255,0.92)";
+        overlayCtx.strokeStyle = state.tool === "brush" ? (state.brush.color || "#ffffff") : "rgba(255,255,255,0.92)";
         overlayCtx.stroke();
         overlayCtx.lineWidth = Math.max(1, 1 / state.view.zoom);
         overlayCtx.strokeStyle = "rgba(0,0,0,0.65)";
@@ -5075,6 +5478,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         bgCacheKey = "";
         displayBlurKey = "";
         document.querySelectorAll("#bgModeGroup .seg-btn").forEach(b => b.classList.toggle("active", b.dataset.bg === state.bgMode));
+        if (typeof syncBgBlurUI === "function") syncBgBlurUI();
         syncLayerUI();
         drawOverlayHandles();
         scheduleRender(0);
@@ -5205,6 +5609,117 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       g.restore();
     }
 
+    function paintBrushAtPoint(layer, pt) {
+      const hex = state.brush.color || "#000000";
+      const cr = parseInt(hex.slice(1, 3), 16) || 0;
+      const cg = parseInt(hex.slice(3, 5), 16) || 0;
+      const cb = parseInt(hex.slice(5, 7), 16) || 0;
+      const alpha = Math.max(0.05, Math.min(1, (state.brush.opacity ?? 100) / 100));
+      const soft = (state.brush.softness || 0) / 100;
+
+      if (layer.type === "folder" || layer.maskCanvas) {
+        const mask = ensureLayerMask(layer);
+        const g = mask.getContext("2d");
+        const r = Math.max(1, (state.brush.size || 24) / 2);
+        g.save();
+        g.globalCompositeOperation = "source-over";
+        g.globalAlpha = alpha;
+        if (soft > 0.02) {
+          const grad = g.createRadialGradient(pt.x, pt.y, r * (1 - soft), pt.x, pt.y, r);
+          grad.addColorStop(0, "rgba(255,255,255,1)");
+          grad.addColorStop(1, "rgba(255,255,255,0)");
+          g.fillStyle = grad;
+        } else {
+          g.fillStyle = "rgba(255,255,255,1)";
+        }
+        g.beginPath(); g.arc(pt.x, pt.y, r, 0, Math.PI * 2); g.fill();
+        g.restore();
+        return;
+      }
+
+      const src = ensureEditableSource(layer);
+      const g = src.getContext("2d");
+      const effScale = getEffectiveScale(layer);
+      const localPt = canvasPtToLayerLocal(layer, pt);
+      const r = Math.max(1, ((state.brush.size || 24) / 2) / Math.max(0.05, effScale));
+
+      g.save();
+      if (state.lasso.shapes.length > 0) {
+        g.beginPath();
+        for (const sh of state.lasso.shapes) {
+          if (sh.op === "sub" || sh.points.length < 3) continue;
+          sh.points.forEach((p, idx) => {
+            const lp = canvasPtToLayerLocal(layer, p);
+            if (idx === 0) g.moveTo(lp.x, lp.y);
+            else g.lineTo(lp.x, lp.y);
+          });
+          g.closePath();
+        }
+        g.clip();
+      }
+      g.globalCompositeOperation = "source-over";
+      g.globalAlpha = alpha;
+      if (soft > 0.02) {
+        const grad = g.createRadialGradient(localPt.x, localPt.y, r * (1 - soft), localPt.x, localPt.y, r);
+        grad.addColorStop(0, `rgba(${cr},${cg},${cb},1)`);
+        grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+        g.fillStyle = grad;
+      } else {
+        g.fillStyle = `rgb(${cr},${cg},${cb})`;
+      }
+      g.beginPath();
+      g.arc(localPt.x, localPt.y, r, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+    }
+
+    // 魔棒清除后清掉本次选区，但保持留在魔棒工具，方便继续点下一块连续清除！
+    function finishWandAfterClear() {
+      if (state.tool !== "wand") return;
+      state.lasso.alphaMask = null;
+      state.lasso.shapes = [];
+      state.lasso.activePoints = [];
+      lastWandBaseMask = null;
+      updateContextBar();
+      drawOverlayHandles();
+    }
+
+    // 效果层被清除前先按 1:1 满画质烘焙成像素（否则清的是看不见的原始像素，画面不会变）
+    function bakeLayerEffectInline(l) {
+      if (!l || l.type === "folder" || !l.qiasi) return false;
+      try {
+        const baked = runAtFullResolution(() => {
+          if (l.effectId === "layer_blur") {
+            const rawC = renderSingleLayerToCanvas(l, false);
+            const bc = document.createElement("canvas");
+            blurCanvasExact1to1(rawC, bc, bc.getContext("2d"), state.fx.layerBlurR || 0);
+            freeCanvas(rawC);
+            return bc;
+          } else if (GPU_FILTER_SPECS[l.effectId]) {
+            const spec = GPU_FILTER_SPECS[l.effectId];
+            const rawC = renderSingleLayerToCanvas(l, false);
+            const refC = state.bgMode === "blurred" ? displayBlurBgCanvas : bgCanvas;
+            const res = runGpuFilterCanvas(spec.fn, rawC, refC, gpuParamState[l.effectId], spec.useRef, true) || rawC;
+            if (res !== rawC) freeCanvas(rawC);
+            return res;
+          } else {
+            const maskC = renderSingleLayerToCanvas(l, true);
+            const res = renderEffectForMask(maskC, l.effectId);
+            freeCanvas(maskC);
+            return res;
+          }
+        });
+        if (!baked) return false;
+        l.source = baked;
+        l.srcW = baked.width; l.srcH = baked.height;
+        l.x = state.width / 2; l.y = state.height / 2;
+        l.baseScale = 1; l.scale = 1; l.rotation = 0; l.flipX = false; l.flipY = false;
+        l.qiasi = false;
+        l.maskCanvas = null;
+        return true;
+      } catch (err) { return false; }
+    }
+
     function clearByLasso(invert = false) {
       const layer = getSelectedLayer();
       if (!layer) { showToast("请先选择一个图层或文件夹"); return; }
@@ -5213,6 +5728,15 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         return;
       }
       const selMask = buildSelectionMaskCanvas();
+
+      // 镀色/特效层：先把效果烘焙成真实像素，之后清除才会真的擦掉画面上的颜色
+      if (layer.type !== "folder" && layer.qiasi) {
+        pushUndoSnapshot(layer, false);
+        if (bakeLayerEffectInline(layer)) {
+          syncLayerUI();
+          showToast("该层有特效：已先烘焙成像素，再清除选区");
+        }
+      }
 
       // If folder or masked layer, punch out on its maskCanvas non-destructively!
       if (layer.type === "folder" || layer.maskCanvas) {
@@ -5226,6 +5750,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         syncLayerUI();
         scheduleRender(0);
         showToast(invert ? "已在蒙版上仅保留选区内" : "已在蒙版上清除选区内");
+        finishWandAfterClear();
         return;
       }
 
@@ -5257,6 +5782,116 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       syncLayerUI();
       scheduleRender(0);
       showToast(invert ? "已清除选区外的内容" : "已清除选区内的内容");
+      finishWandAfterClear();
+    }
+
+    // ==================== 魔棒选区 ====================
+    let wandTolerance = 40;
+    let lastWandSeed = null;   // 上次点的画面位置，改容差时就地重选
+    let lastWandBaseMask = null; // 累加/减去模式下保留之前的选区底版
+
+    function wandSelectAt(cx, cy, silent) {
+      let layer = getSelectedLayer();
+      if (!layer) {
+        // 没选图层时自动选最上面那个可见图层，避免「点了没反应」
+        layer = [...state.layers].reverse().find(l => l.type !== "folder" && l.visible) || null;
+        if (layer) { state.selectedLayerId = layer.id; syncLayerUI(); }
+      }
+      if (!layer) { showToast("魔棒需要一个图层：先导入图片，或先在右侧选一个图层"); return; }
+      if (layer.type === "folder") { showToast("魔棒请选单个图层（文件夹请先选里面的图层）"); return; }
+      // 取色完全按「当前画面」：点哪个颜色就选哪个颜色（红块、白边、镀色都能选）
+      const srcC = mainCanvas;
+      const w = srcC.width, h = srcC.height;
+      let img;
+      try { img = srcC.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, w, h); }
+      catch (err) { showToast("选区失败，请重试"); return; }
+      const data = img.data;
+      const sx = Math.min(w - 1, Math.max(0, Math.round(cx * (w / state.width))));
+      const sy = Math.min(h - 1, Math.max(0, Math.round(cy * (h / state.height))));
+      const si = (sy * w + sx) * 4;
+      if (data[si + 3] < 8) { showToast("这里是空白区域，换个位置点"); return; }
+      if (!silent) lastWandSeed = { x: cx, y: cy };
+      const r0 = data[si], g0 = data[si + 1], b0 = data[si + 2];
+      const tol = wandTolerance;
+      const visited = new Uint8Array(w * h);
+      const out = new ImageData(w, h);
+      const od = out.data;
+      const near = function (x, y) {
+        const i = (y * w + x) * 4;
+        return Math.abs(data[i] - r0) <= tol &&
+               Math.abs(data[i + 1] - g0) <= tol &&
+               Math.abs(data[i + 2] - b0) <= tol;
+      };
+
+      const stack = [sx, sy];
+      let count = 0;
+      while (stack.length) {
+        const y = stack.pop(), x = stack.pop();
+        const row = y * w;
+        if (visited[row + x]) continue;
+        if (!near(x, y)) continue;
+        let left = x, right = x;
+        while (left - 1 >= 0 && !visited[row + left - 1] && near(left - 1, y)) left--;
+        while (right + 1 < w && !visited[row + right + 1] && near(right + 1, y)) right++;
+        for (let i = left; i <= right; i++) {
+          visited[row + i] = 1;
+          const o = (row + i) * 4;
+          od[o] = 255; od[o + 1] = 255; od[o + 2] = 255; od[o + 3] = 255;
+          count++;
+        }
+        for (let k = 0; k < 2; k++) {
+          const ny = k === 0 ? y - 1 : y + 1;
+          if (ny < 0 || ny >= h) continue;
+          const nrow = ny * w;
+          let inSpan = false;
+          for (let i = left; i <= right; i++) {
+            if (!visited[nrow + i] && near(i, ny)) {
+              if (!inSpan) { stack.push(i, ny); inSpan = true; }
+            } else {
+              inSpan = false;
+            }
+          }
+        }
+      }
+
+      const mask = document.createElement("canvas");
+      mask.width = w; mask.height = h;
+      mask.getContext("2d").putImageData(out, 0, 0);
+      if (count === 0) {
+        freeCanvas(mask);
+        showToast(`没选中任何像素：把「魔棒容差」调大一点（当前 ${tol}）再点`);
+        return;
+      }
+      if (!silent) {
+        if (state.lasso.mode !== "new" && state.lasso.alphaMask) {
+          const baseCopy = document.createElement("canvas");
+          baseCopy.width = w; baseCopy.height = h;
+          baseCopy.getContext("2d").drawImage(state.lasso.alphaMask, 0, 0, w, h);
+          if (lastWandBaseMask) freeCanvas(lastWandBaseMask);
+          lastWandBaseMask = baseCopy;
+        } else {
+          if (lastWandBaseMask) { freeCanvas(lastWandBaseMask); lastWandBaseMask = null; }
+        }
+      }
+      if (lastWandBaseMask && state.lasso.mode !== "new") {
+        const merged = document.createElement("canvas");
+        merged.width = w; merged.height = h;
+        const mg = merged.getContext("2d");
+        mg.drawImage(lastWandBaseMask, 0, 0, w, h);
+        mg.globalCompositeOperation = state.lasso.mode === "sub" ? "destination-out" : "source-over";
+        mg.drawImage(mask, 0, 0, w, h);
+        freeCanvas(mask);
+        if (state.lasso.alphaMask && state.lasso.alphaMask !== lastWandBaseMask) freeCanvas(state.lasso.alphaMask);
+        state.lasso.alphaMask = merged;
+      } else {
+        if (state.lasso.alphaMask && state.lasso.alphaMask !== lastWandBaseMask) freeCanvas(state.lasso.alphaMask);
+        state.lasso.alphaMask = mask;
+      }
+      state.lasso.shapes = [];
+      state.lasso.activePoints = [];
+      updateContextBar();
+      drawOverlayHandles();
+      if (!silent) showToast(`魔棒已${state.lasso.mode === "sub" ? "减去" : (lastWandBaseMask ? "累加选中" : "选中")}区域（可连续点多块再一键清除）`);
     }
 
     function createSelectionFromSelectedAlpha() {
@@ -5330,21 +5965,60 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       showToast(`已清空图层「${layer.name}」（可 Ctrl+Z 撤销）`);
     }
 
+    function syncMobileCtxDock() {
+      const bar = document.getElementById("contextBar");
+      if (!bar) return;
+      const dockNow = bar.classList.contains("show");
+      const wasDock = document.body.classList.contains("ctx-bar-docked");
+      document.body.classList.toggle("ctx-bar-docked", dockNow);
+      const wasFitted = Math.abs((state.view.zoom || 0) - (lastFitZoom || 0)) < 0.005;
+      if (dockNow && window.innerWidth <= 900) {
+        const applyDockPad = () => {
+          if (!document.body.classList.contains("ctx-bar-docked") || window.innerWidth > 900) return;
+          const bh = bar.offsetHeight || 52;
+          viewport.style.paddingTop = (bh + 6) + "px";
+          if (wasFitted || dockNow !== wasDock) fitViewport();
+        };
+        applyDockPad();
+        requestAnimationFrame(applyDockPad);
+      } else {
+        viewport.style.paddingTop = "";
+        if (dockNow !== wasDock && wasFitted) {
+          setTimeout(() => { try { fitViewport(); } catch (e) {} }, 40);
+        }
+      }
+    }
+
     function updateContextBar() {
       const bar = document.getElementById("contextBar");
       const er = document.getElementById("ctxEraserGroup");
+      const br = document.getElementById("ctxBrushGroup");
       const la = document.getElementById("ctxLassoGroup");
       const ey = document.getElementById("ctxEyedropperGroup");
       const cv = document.getElementById("ctxCavityGroup");
       const showEr = state.tool === "eraser";
-      const showLa = state.tool === "lasso" || hasSelection();
+      const showBr = state.tool === "brush";
+      const showLa = state.tool === "lasso" || state.tool === "wand" || hasSelection();
       const showEy = state.tool === "eyedropper";
       const showCv = state.tool === "cavity";
       er.style.display = showEr ? "flex" : "none";
+      if (br) br.style.display = showBr ? "flex" : "none";
       la.style.display = showLa ? "flex" : "none";
+      const wandBox = document.getElementById("wandTolBox");
+      if (wandBox) wandBox.style.display = state.tool === "wand" ? "inline-flex" : "none";
+      const lassoMode = document.getElementById("lassoModeGroup");
+      if (lassoMode) lassoMode.style.display = "";
+      la.classList.toggle("wand-two-row", state.tool === "wand");
+      const wandVal = document.getElementById("valWandTol");
+      if (wandVal) {
+        if (wandVal.type === "number") wandVal.value = String(wandTolerance);
+        else wandVal.textContent = String(wandTolerance);
+      }
       ey.style.display = showEy ? "flex" : "none";
       if (cv) cv.style.display = showCv ? "flex" : "none";
-      bar.classList.toggle("show", showEr || showLa || showEy || showCv);
+      bar.classList.toggle("show", (showEr || showBr || showLa || showEy || showCv) && !(showEy && state.eyeBarHidden));
+      // 手机端把工具条上方占用的高度动态让出来，避免挡画布
+      syncMobileCtxDock();
     }
 
     function getActiveFillColor() {
@@ -5507,6 +6181,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
       if (state.eyeTarget === "card1") return state.fx.card1;
       if (state.eyeTarget === "card2") return state.fx.card2;
+      if (state.eyeTarget === "brush") return state.brush.color;
       if (state.eyeTarget === "grad1") return state.fx.gradColor1;
       return state.fx.gradColor2;
     }
@@ -5535,22 +6210,28 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         state.fx.card1 = hex; document.getElementById("colCard1").value = hex;
       } else if (state.eyeTarget === "card2") {
         state.fx.card2 = hex; document.getElementById("colCard2").value = hex;
+      } else if (state.eyeTarget === "brush") {
+        state.brush.color = hex;
+        const cb = document.getElementById("colBrushColor");
+        if (cb) cb.value = hex;
       } else if (state.eyeTarget === "grad1") {
         state.fx.gradColor1 = hex; document.getElementById("colGrad1").value = hex;
       } else {
         state.fx.gradColor2 = hex; document.getElementById("colGrad2").value = hex;
       }
       syncEyeBarFromHex(hex);
-      if (doRender) scheduleRender(30);
+      if (doRender && state.eyeTarget !== "brush") scheduleRender(30);
     }
 
     function sampleCanvasColorAt(pt) {
       const { rw, rh, rs } = getRenderDim();
       const x = Math.max(0, Math.min(rw - 1, Math.floor(pt.x * rs)));
       const y = Math.max(0, Math.min(rh - 1, Math.floor(pt.y * rs)));
-      // Sample from original background canvas if available, otherwise mainCanvas
-      const srcCtx = state.bgMode === "transparent" ? mainCtx : bgCtx;
-      const px = srcCtx.getImageData(x, y, 1, 1).data;
+      // Sample directly from mainCtx (what you see on canvas is what you pick), fallback to bgCtx
+      let px = mainCtx.getImageData(x, y, 1, 1).data;
+      if (px[3] < 8 && state.bgMode !== "transparent") {
+        px = bgCtx.getImageData(x, y, 1, 1).data;
+      }
       const hex = rgbToHex(px[0], px[1], px[2]);
       applyColorToEyeTarget(hex, true);
       return hex;
@@ -5563,12 +6244,18 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       setBusy(true, "本地图层合成中…");
 
       try {
-        mainCanvas.width = rw;
-        mainCanvas.height = rh;
+        if (mainCanvas.width !== rw || mainCanvas.height !== rh) {
+          mainCanvas.width = rw;
+          mainCanvas.height = rh;
+        } else {
+          mainCtx.clearRect(0, 0, rw, rh);
+        }
         mainCanvas.style.width = `${state.width}px`;
         mainCanvas.style.height = `${state.height}px`;
-        overlayCanvas.width = rw;
-        overlayCanvas.height = rh;
+        if (overlayCanvas.width !== rw || overlayCanvas.height !== rh) {
+          overlayCanvas.width = rw;
+          overlayCanvas.height = rh;
+        }
 
         ensureBackgroundCache();
         compositeFinal(mainCtx);
@@ -5585,9 +6272,17 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
     }
 
+    let renderRafId = 0;
     function scheduleRender(delay = 35) {
       clearTimeout(renderTimer);
-      renderTimer = setTimeout(renderAll, delay);
+      if (renderRafId) { cancelAnimationFrame(renderRafId); renderRafId = 0; }
+      const effDelay = isIOS ? (delay > 0 ? Math.max(delay, 90) : 16) : (isMobileDevice && delay > 0 ? Math.max(delay, 60) : delay);
+      renderTimer = setTimeout(() => {
+        renderRafId = requestAnimationFrame(() => {
+          renderRafId = 0;
+          renderAll();
+        });
+      }, effDelay);
     }
 
     // ==================== VIEWPORT & INTERACTION ====================
@@ -5598,26 +6293,166 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (window.innerWidth > 900) return;
       const changed = document.body.classList.contains("mobile-canvas-max") !== expand;
       document.body.classList.toggle("mobile-canvas-max", expand);
+      // 手动拖拽的上下比例与「放大画布」互斥，切换时清掉，回到默认布局
+      const ws = document.querySelector(".workspace");
+      if (ws) ws.style.gridTemplateRows = "";
       const btn = document.getElementById("btnMobileTogglePanel");
       if (btn) btn.textContent = expand ? "展开面板 ▴" : "大画布 ▾";
       if (changed && refit) setTimeout(fitViewport, 40);
     }
 
-    function updateViewportTransform() {
-      canvasWrap.style.transform = `translate(${state.view.panX}px, ${state.view.panY}px) scale(${state.view.zoom})`;
-      document.getElementById("zoomBadge").textContent = `${Math.round(state.view.zoom * 100)}%`;
-      // Mobile auto-expand: zooming in past 1.18x of fit zoom automatically collapses bottom inspector!
-      if (window.innerWidth <= 900 && state.view.zoom > lastFitZoom * 1.18 && !document.body.classList.contains("mobile-canvas-max")) {
-        setMobileCanvasMax(true, false);
+    // ==================== 上下分栏拖拽（仅窄屏/手机：支持拖横条 + 拖页签栏上下拉动） ====================
+    const rowDragEl = document.getElementById("rowDrag");
+    const tabsBarEl = document.querySelector(".inspector .tabs");
+    const workspaceEl = document.querySelector(".workspace");
+    let rowDragActive = false;
+    let rowDragH = 0;
+
+    function clampRowHeight(h) {
+      if (!workspaceEl) return 0;
+      const wsH = workspaceEl.getBoundingClientRect().height || 0;
+      const minTop = 88;       // 允许把画布缩得很小，方便在手机上大屏浏览下方工具与效果列表
+      const minBottom = 110;   // 下方面板最小保留高度
+      const maxTop = Math.max(minTop, wsH - minBottom);
+      return Math.min(maxTop, Math.max(minTop, h));
+    }
+
+    function applyRowHeight(h) {
+      if (!workspaceEl) return;
+      if (document.body.classList.contains("mobile-canvas-max")) {
+        document.body.classList.remove("mobile-canvas-max");
+        const btn = document.getElementById("btnMobileTogglePanel");
+        if (btn) btn.textContent = "大画布 ▾";
       }
-      drawOverlayHandles();
+      rowDragH = clampRowHeight(h);
+      workspaceEl.style.gridTemplateRows = `${Math.round(rowDragH)}px minmax(0, 1fr)`;
+    }
+
+    function refitIfFitted() {
+      // 当前未手动放大时，边拖边重新适配；已手动缩放则保持缩放不动
+      if (state.view.zoom <= lastFitZoom * 1.05) fitViewport();
+    }
+
+    function rowCoord(e) {
+      if (e.touches && e.touches.length) return { y: e.touches[0].clientY };
+      if (e.changedTouches && e.changedTouches.length) return { y: e.changedTouches[0].clientY };
+      return { y: e.clientY };
+    }
+
+    function rowDragStart(e) {
+      if (window.innerWidth > 900) return;
+      if (e.pointerType === "mouse" && typeof e.button === "number" && e.button !== 0) return;
+      rowDragActive = true;
+      if (rowDragEl) rowDragEl.classList.add("dragging");
+      if (rowDragEl && rowDragEl.setPointerCapture && e.pointerId !== undefined) {
+        try { rowDragEl.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+      if (e.cancelable) e.preventDefault();
+    }
+
+    function rowDragMove(e) {
+      if (!rowDragActive || !workspaceEl) return;
+      const top = workspaceEl.getBoundingClientRect().top;
+      applyRowHeight(rowCoord(e).y - top);
+      refitIfFitted();
+      if (e.cancelable) e.preventDefault();
+    }
+
+    function rowDragEnd(e) {
+      if (!rowDragActive) return;
+      rowDragActive = false;
+      if (rowDragEl) rowDragEl.classList.remove("dragging");
+      if (e && e.pointerId !== undefined && rowDragEl && rowDragEl.releasePointerCapture) {
+        try { rowDragEl.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+      fitViewport();
+    }
+
+    if (rowDragEl) {
+      rowDragEl.addEventListener("pointerdown", rowDragStart);
+      document.addEventListener("pointermove", rowDragMove, { passive: false });
+      document.addEventListener("pointerup", rowDragEnd);
+      document.addEventListener("pointercancel", rowDragEnd);
+      // 老机型（不支持 PointerEvent）兜底：touch + mouse
+      if (!("PointerEvent" in window)) {
+        rowDragEl.addEventListener("touchstart", rowDragStart, { passive: false });
+        document.addEventListener("touchmove", rowDragMove, { passive: false });
+        document.addEventListener("touchend", rowDragEnd);
+        document.addEventListener("touchcancel", rowDragEnd);
+        rowDragEl.addEventListener("mousedown", rowDragStart);
+        document.addEventListener("mousemove", rowDragMove);
+        document.addEventListener("mouseup", rowDragEnd);
+      }
+    }
+
+    // 手机端：直接按住「图层与全屏 / 效果 / 画布与导出」页签栏上下滑动也能自由拉高/压低面板（点按仍正常切页签）
+    if (tabsBarEl) {
+      let tabTouchY0 = 0, tabStartRowH = 0, tabDragging = false;
+      tabsBarEl.addEventListener("touchstart", (e) => {
+        if (window.innerWidth > 900 || e.touches.length !== 1 || !workspaceEl) return;
+        tabTouchY0 = e.touches[0].clientY;
+        const stageRect = document.querySelector(".preview-stage").getBoundingClientRect();
+        tabStartRowH = stageRect.height;
+        tabDragging = false;
+      }, { passive: true });
+      tabsBarEl.addEventListener("touchmove", (e) => {
+        if (window.innerWidth > 900 || e.touches.length !== 1 || !workspaceEl) return;
+        const dy = e.touches[0].clientY - tabTouchY0;
+        if (!tabDragging && Math.abs(dy) > 9) {
+          tabDragging = true;
+          if (rowDragEl) rowDragEl.classList.add("dragging");
+        }
+        if (tabDragging) {
+          if (e.cancelable) e.preventDefault();
+          applyRowHeight(tabStartRowH + dy);
+          refitIfFitted();
+        }
+      }, { passive: false });
+      const endTabDrag = () => {
+        if (!tabDragging) return;
+        tabDragging = false;
+        if (rowDragEl) rowDragEl.classList.remove("dragging");
+        fitViewport();
+      };
+      tabsBarEl.addEventListener("touchend", endTabDrag);
+      tabsBarEl.addEventListener("touchcancel", endTabDrag);
+    }
+
+    let _vpRafId = 0;
+    function applyViewportTransformNow(skipOverlay = false) {
+      canvasWrap.style.transform = `translate3d(${state.view.panX}px, ${state.view.panY}px, 0) scale(${state.view.zoom})`;
+      document.getElementById("zoomBadge").textContent = `${Math.round(state.view.zoom * 100)}%`;
+      if (!skipOverlay) {
+        // Mobile auto-expand: zooming in past 1.18x of fit zoom automatically collapses bottom inspector!
+        if (window.innerWidth <= 900 && state.view.zoom > lastFitZoom * 1.18 && !document.body.classList.contains("mobile-canvas-max")) {
+          setMobileCanvasMax(true, false);
+        }
+        drawOverlayHandles();
+      }
+    }
+    function updateViewportTransform(fastGesture = false) {
+      if (fastGesture) {
+        if (_vpRafId) return;
+        _vpRafId = requestAnimationFrame(() => {
+          _vpRafId = 0;
+          applyViewportTransformNow(true);
+        });
+        return;
+      }
+      if (_vpRafId) { cancelAnimationFrame(_vpRafId); _vpRafId = 0; }
+      applyViewportTransformNow(false);
     }
 
     function fitViewport() {
       const rect = viewport.getBoundingClientRect();
+      const cs = getComputedStyle(viewport);
+      const padT = parseFloat(cs.paddingTop) || 0, padB = parseFloat(cs.paddingBottom) || 0;
+      const padL = parseFloat(cs.paddingLeft) || 0, padR2 = parseFloat(cs.paddingRight) || 0;
+      const innerW = Math.max(40, rect.width - padL - padR2);
+      const innerH = Math.max(40, rect.height - padT - padB);
       const pad = window.innerWidth <= 900 ? 16 : 48;
-      const z = Math.min((rect.width - pad) / state.width, (rect.height - pad) / state.height, 1);
-      state.view.zoom = Math.max(0.1, Number(z.toFixed(3)));
+      const z = Math.min((innerW - pad) / state.width, (innerH - pad) / state.height, 1);
+      state.view.zoom = Math.max(0.05, Number(z.toFixed(3)));
       lastFitZoom = state.view.zoom;
       state.view.panX = 0;
       state.view.panY = 0;
@@ -5652,7 +6487,15 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
 
       const pt = clientToCanvas(e.clientX, e.clientY);
-      if (state.tool !== "move" && (pt.x < 0 || pt.y < 0 || pt.x >= state.width || pt.y >= state.height)) return;
+      if (state.tool !== "move" && (pt.x < 0 || pt.y < 0 || pt.x >= state.width || pt.y >= state.height)) {
+        if (state.tool === "wand") showToast("要点在图片范围内（灰色空白处不算）");
+        return;
+      }
+
+      if (state.tool === "wand") {
+        wandSelectAt(pt.x, pt.y);
+        return;
+      }
 
       if (state.tool === "lasso") {
         if (state.lasso.mode === "new") {
@@ -5676,7 +6519,52 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         pushUndoSnapshot(layer, isMaskEdit);
         eraseAtPoint(layer, pt);
         dragState = { type: "eraser", layer, lastPt: pt };
-        scheduleRender(25);
+        if (isMobileDevice) {
+          const { rs } = getRenderDim();
+          overlayCtx.save();
+          overlayCtx.fillStyle = "rgba(255, 110, 140, 0.45)";
+          overlayCtx.beginPath();
+          overlayCtx.arc(pt.x * rs, pt.y * rs, (state.eraser.size / 2) * rs, 0, Math.PI * 2);
+          overlayCtx.fill();
+          overlayCtx.restore();
+        } else {
+          scheduleRender(25);
+        }
+        return;
+      }
+
+      if (state.tool === "brush") {
+        let layer = getSelectedLayer();
+        if (!layer) {
+          layer = [...state.layers].reverse().find(l => l.type !== "folder" && l.visible) || null;
+          if (!layer) {
+            const blank = document.createElement("canvas");
+            blank.width = state.width; blank.height = state.height;
+            layer = addLayerFromSource("画笔图层", blank, { qiasi: false });
+          } else {
+            state.selectedLayerId = layer.id; syncLayerUI();
+          }
+        }
+        const isMaskEdit = layer.type === "folder" || !!layer.maskCanvas;
+        if (!isMaskEdit && layer.layoutMode !== "single") {
+          showToast("全屏平铺模式下请先点「按选区/新建蒙版」用画笔编辑蒙版");
+          return;
+        }
+        pushUndoSnapshot(layer, isMaskEdit);
+        paintBrushAtPoint(layer, pt);
+        dragState = { type: "brush", layer, lastPt: pt };
+        if (isMobileDevice) {
+          const { rs } = getRenderDim();
+          overlayCtx.save();
+          overlayCtx.fillStyle = state.brush.color || "#000000";
+          overlayCtx.globalAlpha = Math.max(0.2, (state.brush.opacity ?? 100) / 100);
+          overlayCtx.beginPath();
+          overlayCtx.arc(pt.x * rs, pt.y * rs, Math.max(1, (state.brush.size / 2) * rs), 0, Math.PI * 2);
+          overlayCtx.fill();
+          overlayCtx.restore();
+        } else {
+          scheduleRender(25);
+        }
         return;
       }
 
@@ -5725,7 +6613,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const effScale = getEffectiveScale(layer);
         const hw = (layer.srcW * effScale) / 2;
         const hh = (layer.srcH * effScale) / 2;
-        const hitR = 16 / state.view.zoom;
+        const hitR = (window.innerWidth <= 900 ? 26 : 16) / state.view.zoom;
         const corners = [
           [-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh],
           [0, -hh], [hw, 0], [0, hh], [-hw, 0]
@@ -5765,7 +6653,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     });
 
     window.addEventListener("mousemove", (e) => {
-      if (state.tool === "eraser") {
+      if ((state.tool === "eraser" || state.tool === "brush") && !isMobileDevice) {
         hoverCanvasPt = clientToCanvas(e.clientX, e.clientY);
         drawOverlayHandles();
       }
@@ -5803,7 +6691,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (dragState.type === "pan") {
         state.view.panX = dragState.px + (e.clientX - dragState.sx);
         state.view.panY = dragState.py + (e.clientY - dragState.sy);
-        updateViewportTransform();
+        updateViewportTransform(true);
       } else if (dragState.type === "lasso") {
         const pt = clientToCanvas(e.clientX, e.clientY);
         const pts = state.lasso.activePoints;
@@ -5816,14 +6704,56 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const pt = clientToCanvas(e.clientX, e.clientY);
         const lp = dragState.lastPt;
         const dist = Math.hypot(pt.x - lp.x, pt.y - lp.y);
-        const step = Math.max(2, state.eraser.size * 0.22);
+        const step = Math.max(2, state.eraser.size * (isMobileDevice ? 0.3 : 0.22));
         const steps = Math.max(1, Math.ceil(dist / step));
         for (let s = 1; s <= steps; s++) {
           const t = s / steps;
           eraseAtPoint(dragState.layer, { x: lp.x + (pt.x - lp.x) * t, y: lp.y + (pt.y - lp.y) * t });
         }
+        if (isMobileDevice) {
+          // 60fps lightweight eraser stroke preview on overlayCanvas; full effect re-renders smoothly on finger lift!
+          const { rs } = getRenderDim();
+          overlayCtx.save();
+          overlayCtx.strokeStyle = "rgba(255, 110, 140, 0.45)";
+          overlayCtx.lineWidth = Math.max(2, state.eraser.size * rs);
+          overlayCtx.lineCap = "round";
+          overlayCtx.lineJoin = "round";
+          overlayCtx.beginPath();
+          overlayCtx.moveTo(lp.x * rs, lp.y * rs);
+          overlayCtx.lineTo(pt.x * rs, pt.y * rs);
+          overlayCtx.stroke();
+          overlayCtx.restore();
+        } else {
+          scheduleRender(45);
+        }
         dragState.lastPt = pt;
-        scheduleRender(45);
+      } else if (dragState.type === "brush") {
+        const pt = clientToCanvas(e.clientX, e.clientY);
+        const lp = dragState.lastPt;
+        const dist = Math.hypot(pt.x - lp.x, pt.y - lp.y);
+        const step = Math.max(1.5, state.brush.size * (isMobileDevice ? 0.28 : 0.2));
+        const steps = Math.max(1, Math.ceil(dist / step));
+        for (let s = 1; s <= steps; s++) {
+          const t = s / steps;
+          paintBrushAtPoint(dragState.layer, { x: lp.x + (pt.x - lp.x) * t, y: lp.y + (pt.y - lp.y) * t });
+        }
+        if (isMobileDevice) {
+          const { rs } = getRenderDim();
+          overlayCtx.save();
+          overlayCtx.strokeStyle = state.brush.color || "#000000";
+          overlayCtx.globalAlpha = Math.max(0.2, (state.brush.opacity ?? 100) / 100);
+          overlayCtx.lineWidth = Math.max(2, state.brush.size * rs);
+          overlayCtx.lineCap = "round";
+          overlayCtx.lineJoin = "round";
+          overlayCtx.beginPath();
+          overlayCtx.moveTo(lp.x * rs, lp.y * rs);
+          overlayCtx.lineTo(pt.x * rs, pt.y * rs);
+          overlayCtx.stroke();
+          overlayCtx.restore();
+        } else {
+          scheduleRender(40);
+        }
+        dragState.lastPt = pt;
       } else if (dragState.type === "scale") {
         const pt = clientToCanvas(e.clientX, e.clientY);
         const curDist = Math.max(10, Math.hypot(pt.x - dragState.layer.x, pt.y - dragState.layer.y));
@@ -5833,13 +6763,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         document.getElementById("rngLayerScale").value = Math.round(nextScale * 100);
         document.getElementById("valLayerScale").textContent = `${Math.round(nextScale * 100)}%`;
         drawOverlayHandles();
-        scheduleRender(55);
+        scheduleRender(isMobileDevice ? 180 : 55);
       } else if (dragState.type === "move") {
         const pt = clientToCanvas(e.clientX, e.clientY);
         dragState.layer.x = Math.round(dragState.lx + (pt.x - dragState.sx));
         dragState.layer.y = Math.round(dragState.ly + (pt.y - dragState.sy));
         drawOverlayHandles();
-        scheduleRender(40);
+        scheduleRender(isMobileDevice ? 180 : 40);
       }
     });
 
@@ -5859,7 +6789,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           drawOverlayHandles();
         }
       }
-      if (dragState && dragState.type === "eraser") {
+      if (dragState && (dragState.type === "eraser" || dragState.type === "brush")) {
         syncLayerUI();
         scheduleRender(0);
       }
@@ -5939,18 +6869,49 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
     // ==================== UI SYNC ====================
 
+    // 点一次启用，再点一次取消（回到移动工具）
+    function toggleTool(t) {
+      setTool(state.tool === t ? "move" : t);
+    }
+
+    function compactCtxLabels() {
+      const isMob = window.innerWidth <= 900;
+      const pairs = isMob ? [
+        ["btnClearInside", "清除选区内"],
+        ["btnClearOutside", "清除选区外"],
+        ["btnMaskFromSel", "转为蒙版"],
+        ["btnCancelLasso", "取消选区"]
+      ] : [
+        ["btnClearInside", "清除选区内 (Del)"],
+        ["btnClearOutside", "清除选区外"],
+        ["btnMaskFromSel", "转为蒙版"],
+        ["btnCancelLasso", "取消选区 (Ctrl+D)"]
+      ];
+      pairs.forEach(([id, full]) => {
+        const el = document.getElementById(id);
+        if (el && el.textContent !== full) el.textContent = full;
+      });
+      const tolSpan = document.querySelector('#wandTolBox > span');
+      if (tolSpan) tolSpan.textContent = "魔棒容差";
+    }
+
     function setTool(t) {
       state.tool = t;
       document.getElementById("toolMove").classList.toggle("active", t === "move");
       document.getElementById("toolLasso").classList.toggle("active", t === "lasso");
+      const wandBtn = document.getElementById("toolWand");
+      if (wandBtn) wandBtn.classList.toggle("active", t === "wand");
       document.getElementById("toolEraser").classList.toggle("active", t === "eraser");
+      const brushBtn = document.getElementById("toolBrush");
+      if (brushBtn) brushBtn.classList.toggle("active", t === "brush");
       document.getElementById("toolCavity").classList.toggle("active", t === "cavity");
       document.getElementById("toolEyedropper").classList.toggle("active", t === "eyedropper");
       document.getElementById("toolPan").classList.toggle("active", t === "pan");
-      viewport.classList.remove("mode-move", "mode-pan", "mode-cavity", "mode-lasso", "mode-eraser", "mode-eyedropper");
+      viewport.classList.remove("mode-move", "mode-pan", "mode-cavity", "mode-lasso", "mode-eraser", "mode-brush", "mode-eyedropper", "mode-wand");
       viewport.classList.add(`mode-${t}`);
-      if (t !== "eraser") hoverCanvasPt = null;
-      if (t === "eyedropper") syncEyeBarFromHex(getEyeTargetHex());
+      if (t !== "eraser" && t !== "brush") hoverCanvasPt = null;
+      if (t === "eyedropper") { state.eyeBarHidden = false; syncEyeBarFromHex(getEyeTargetHex()); }
+      compactCtxLabels();
       updateContextBar();
       drawOverlayHandles();
     }
@@ -6126,30 +7087,122 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
     }
 
+    let _exportModalUrl = "";
+    let _exportModalBound = false;
+    function closeExportModal() {
+      const mask = document.getElementById("exportPreviewMask");
+      if (mask) mask.classList.remove("show");
+      const img = document.getElementById("exportPreviewImg");
+      if (img) img.removeAttribute("src");
+      if (_exportModalUrl) {
+        try { URL.revokeObjectURL(_exportModalUrl); } catch (_) {}
+        _exportModalUrl = "";
+      }
+    }
+    function openExportModal(blob, objUrl, fname, width, height) {
+      const mask = document.getElementById("exportPreviewMask");
+      const img = document.getElementById("exportPreviewImg");
+      const title = document.getElementById("exportPreviewTitle");
+      const dlBtn = document.getElementById("btnExportModalDownload");
+      const shBtn = document.getElementById("btnExportModalShare");
+      if (!mask || !img) return false;
+      if (!_exportModalBound) {
+        _exportModalBound = true;
+        ["btnExportModalClose", "btnExportModalClose2"].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.onclick = closeExportModal;
+        });
+        mask.addEventListener("click", (e) => { if (e.target === mask) closeExportModal(); });
+      }
+      if (_exportModalUrl && _exportModalUrl !== objUrl) {
+        try { URL.revokeObjectURL(_exportModalUrl); } catch (_) {}
+      }
+      _exportModalUrl = objUrl;
+      if (title) title.textContent = `✅ 已生成高清成品 (${width}×${height})`;
+      img.src = objUrl;
+      if (dlBtn) {
+        dlBtn.onclick = () => {
+          const a = document.createElement("a");
+          a.download = fname;
+          a.href = objUrl;
+          a.click();
+          showToast(`已触发下载 ${fname}`);
+        };
+      }
+      if (shBtn) {
+        let canFileShare = false;
+        let shareFile = null;
+        try {
+          if (typeof File === "function" && navigator.canShare) {
+            shareFile = new File([blob], fname, { type: "image/png" });
+            canFileShare = navigator.canShare({ files: [shareFile] });
+          }
+        } catch (_) { canFileShare = false; }
+        shBtn.style.display = canFileShare ? "inline-flex" : "none";
+        shBtn.onclick = canFileShare ? async () => {
+          try { await navigator.share({ files: [shareFile], title: fname }); } catch (_) {}
+        } : null;
+      }
+      mask.classList.add("show");
+      return true;
+    }
+
     function exportPNG(forceTransparent = false) {
+      clearTimeout(renderTimer);
+      if (renderRafId) { cancelAnimationFrame(renderRafId); renderRafId = 0; }
       const prevScale = activeRenderScale;
       activeRenderScale = 1; // Always export at FULL original resolution (default 2000x2000)!
       bgCacheKey = "";
       displayBlurKey = "";
       ensureBackgroundCache();
 
+      const outW = state.width, outH = state.height;
       const out = document.createElement("canvas");
-      out.width = state.width; out.height = state.height;
+      out.width = outW; out.height = outH;
       const ctx = out.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
       compositeFinal(ctx, forceTransparent ? "transparent" : state.bgMode);
       const prefix = document.getElementById("inpExportName").value.trim() || "水印效果成品";
       const suffix = forceTransparent ? "_透明底" : `_${state.bgMode}`;
-      const a = document.createElement("a");
-      a.download = `${prefix}${suffix}.png`;
-      a.href = out.toDataURL("image/png");
-      a.click();
-      freeCanvas(out);
+      const fname = `${prefix}${suffix}.png`;
 
-      // Restore lightweight mobile preview scale
+      // Restore lightweight preview state immediately after drawing full-res composite
       activeRenderScale = prevScale;
       bgCacheKey = "";
       displayBlurKey = "";
-      showToast(`已按 ${state.width}×${state.height} 原画质导出 ${a.download}`);
+
+      const finishFallback = () => {
+        const a = document.createElement("a");
+        a.download = fname;
+        a.href = out.toDataURL("image/png");
+        a.click();
+        freeCanvas(out);
+        showToast(`已按 ${outW}×${outH} 原画质导出 ${fname}`);
+      };
+
+      if (typeof out.toBlob !== "function") {
+        finishFallback();
+        return;
+      }
+      out.toBlob((blob) => {
+        if (!blob) { finishFallback(); return; }
+        freeCanvas(out);
+        const objUrl = URL.createObjectURL(blob);
+        const ua = navigator.userAgent || "";
+        const isInApp = /MicroMessenger|Weibo|WebView/i.test(ua);
+        const isMobileExport = isInApp || /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth <= 900;
+        if (isMobileExport && openExportModal(blob, objUrl, fname, outW, outH)) {
+          showToast(`已生成 ${outW}×${outH} 高清成品 · 可长按图片保存`);
+          return;
+        }
+        const a = document.createElement("a");
+        a.download = fname;
+        a.href = objUrl;
+        a.click();
+        setTimeout(() => { try { URL.revokeObjectURL(objUrl); } catch (_) {} }, 30000);
+        showToast(`已按 ${outW}×${outH} 原画质导出 ${fname}`);
+      }, "image/png");
     }
 
     // ==================== EVENT WIRING ====================
@@ -6172,47 +7225,229 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     };
 
     // Bg Mode Switcher
+    // 手机端：三个按钮一行；模糊度改成点「模糊底图」后从底部弹出的大拉条（宽、好拖）
+    function setBgBlurPop(show) {
+      const pop = document.getElementById("bgBlurPop");
+      if (!pop) return;
+      const isMobile = window.matchMedia("(max-width: 900px)").matches;
+      pop.classList.toggle("show", !!show && isMobile);
+      if (show && isMobile) {
+        const r0 = document.getElementById("rngBgBlur");
+        const n0 = document.getElementById("bbpNum");
+        if (r0 && n0) n0.value = r0.value;
+      }
+      // 浮层一打开就先把前景合成好（放空闲时做），这样第一次拖就不会卡手
+      if (show && isMobile) setTimeout(() => { try { ensureBgDragFg(); } catch (e) {} }, 400);
+    }
+    function syncBgBlurUI() {
+      const blurInline = document.getElementById("bgBlurInline");
+      const g = document.getElementById("bgModeGroup");
+      const isBlur = state.bgMode === "blurred";
+      const isMobile = window.matchMedia("(max-width: 900px)").matches;
+      if (g) g.classList.toggle("mode-not-blur", !isBlur);
+      if (blurInline) {
+        if (!isMobile) blurInline.style.display = isBlur ? "inline-flex" : "none";
+        else blurInline.style.display = "flex";
+      }
+      if (!isBlur || !isMobile) setBgBlurPop(false);
+    }
     document.querySelectorAll("#bgModeGroup .seg-btn").forEach((btn) => {
       btn.onclick = () => {
+        if (state.bgMode === btn.dataset.bg) {
+          if (btn.dataset.bg === "blurred") setBgBlurPop(true);
+          return;
+        }
         document.querySelectorAll("#bgModeGroup .seg-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         state.bgMode = btn.dataset.bg;
-        document.getElementById("bgBlurInline").style.display = state.bgMode === "blurred" ? "inline-flex" : "none";
-        compositeFinal(mainCtx);
+        syncBgBlurUI();
+        if (state.bgMode === "blurred") setBgBlurPop(true);
         showToast(`底图已切换为：${btn.textContent}`);
+        // 合成较重（含各层特效），放到下一帧异步跑，按钮先亮、界面不卡
+        scheduleRender(0);
       };
     });
+    const bbpCloseBtn = document.getElementById("bbpClose");
+    if (bbpCloseBtn) bbpCloseBtn.onclick = () => setBgBlurPop(false);
 
-    // Independent Blurred Background Slider (60fps smooth: caches foreground once on drag start so background blur never re-renders effects!)
+    // Blurred background tint color & opacity bindings (desktop + mobile 2-way sync)
+    const syncBgTintControls = () => {
+      const c1 = document.getElementById("colBgTint"), c2 = document.getElementById("bbpColTint");
+      const r1 = document.getElementById("rngBgTint"), r2 = document.getElementById("bbpRngTint");
+      const v1 = document.getElementById("valBgTint"), v2 = document.getElementById("bbpValTint");
+      if (c1) c1.value = state.bgTintColor;
+      if (c2) c2.value = state.bgTintColor;
+      if (r1) r1.value = state.bgTintAlpha;
+      if (r2) r2.value = state.bgTintAlpha;
+      if (v1) v1.textContent = `${state.bgTintAlpha}%`;
+      if (v2) v2.textContent = `${state.bgTintAlpha}%`;
+    };
+    const onBgTintColor = (hex) => {
+      state.bgTintColor = hex;
+      if (state.bgTintAlpha === 0) state.bgTintAlpha = 45;
+      syncBgTintControls();
+      displayBlurKey = "";
+      scheduleRender(25);
+    };
+    const onBgTintAlpha = (val) => {
+      state.bgTintAlpha = Math.max(0, Math.min(100, parseInt(val, 10) || 0));
+      syncBgTintControls();
+      displayBlurKey = "";
+      scheduleRender(25);
+    };
+    ["colBgTint", "bbpColTint"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.oninput = (e) => onBgTintColor(e.target.value);
+    });
+    ["rngBgTint", "bbpRngTint"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.oninput = (e) => onBgTintAlpha(e.target.value);
+    });
+    document.querySelectorAll("#bbpTintPresets .bg-tint-chip").forEach((btn) => {
+      btn.onclick = () => {
+        if (btn.dataset.tint === "reset") {
+          state.bgTintAlpha = 0;
+        } else {
+          state.bgTintColor = btn.dataset.tint;
+          state.bgTintAlpha = parseInt(btn.dataset.alpha || "55", 10);
+        }
+        syncBgTintControls();
+        displayBlurKey = "";
+        scheduleRender(0);
+      };
+    });
+    const vpForPop = document.getElementById("viewport");
+    if (vpForPop) vpForPop.addEventListener("pointerdown", () => setBgBlurPop(false), true);
+    syncBgBlurUI();
+
+    // Independent Blurred Background Slider
+    // 关键：按下时不重合成（2000×2000 合成会卡住手指），拖动期间按 130ms 节流重绘，松手再走完整渲染
     let _bgBlurDragFg = null;
+    let _bgBlurTimer = null;
+    let _bgBlurFinalTimer = null;
     const rngBgBlurEl = document.getElementById("rngBgBlur");
-    rngBgBlurEl.onpointerdown = () => {
-      if (state.bgMode !== "blurred") return;
+    function ensureBgDragFg() {
+      if (_bgBlurDragFg) return;
       const { rw, rh } = getRenderDim();
       const c = document.createElement("canvas");
       c.width = rw; c.height = rh;
       compositeFinal(c.getContext("2d"), "transparent");
       _bgBlurDragFg = c;
-    };
+    }
+    function _bgBlurLiveRedraw() {
+      if (state.bgMode !== "blurred") return;
+      ensureBgDragFg();
+      const { rw, rh } = getRenderDim();
+      // 拖动期间用「降采样再放大」的廉价模糊做实时预览（真模糊留给松手那一次），保证手指跟得上
+      const r = Math.max(0, state.bgBlurR);
+      const div = Math.max(1, Math.min(16, Math.round(r / 4) + 1));
+      const sw = Math.max(1, Math.round(rw / div));
+      const sh = Math.max(1, Math.round(rh / div));
+      if (!_bgCheapC || _bgCheapC.width !== sw || _bgCheapC.height !== sh) {
+        _bgCheapC = document.createElement("canvas");
+        _bgCheapC.width = sw; _bgCheapC.height = sh;
+      }
+      const sg = _bgCheapC.getContext("2d");
+      sg.clearRect(0, 0, sw, sh);
+      sg.drawImage(bgCanvas, 0, 0, sw, sh);
+      mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+      mainCtx.imageSmoothingEnabled = true;
+      mainCtx.drawImage(_bgCheapC, 0, 0, rw, rh);
+      mainCtx.drawImage(_bgBlurDragFg, 0, 0);
+    }
+    let _bgCheapC = null;
     rngBgBlurEl.oninput = (e) => {
       state.bgBlurR = parseInt(e.target.value, 10);
       document.getElementById("valBgBlur").textContent = `${state.bgBlurR}px`;
       displayBlurKey = "";
-      if (state.bgMode === "blurred") {
-        ensureDisplayBlurCache();
-        if (_bgBlurDragFg) {
-          mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-          mainCtx.drawImage(displayBlurBgCanvas, 0, 0);
-          mainCtx.drawImage(_bgBlurDragFg, 0, 0);
-        } else {
-          scheduleRender(40);
-        }
-      }
+      if (state.bgMode !== "blurred") return;
+      if (_bgBlurTimer) return;           // 本帧已排好，别重复重绘
+      _bgBlurTimer = setTimeout(() => {
+        _bgBlurTimer = null;
+        try { _bgBlurLiveRedraw(); } catch (err) {}
+      }, 130);
     };
     rngBgBlurEl.onchange = () => {
+      if (_bgBlurTimer) { clearTimeout(_bgBlurTimer); _bgBlurTimer = null; }
       if (_bgBlurDragFg) { freeCanvas(_bgBlurDragFg); _bgBlurDragFg = null; }
-      if (state.bgMode === "blurred") scheduleRender(0);
+      if (state.bgMode !== "blurred") return;
+      // 松手后延后再做完整合成，先把界面还给手指（同时「完成」按钮能立刻响应）
+      if (_bgBlurFinalTimer) clearTimeout(_bgBlurFinalTimer);
+      _bgBlurFinalTimer = setTimeout(() => {
+        _bgBlurFinalTimer = null;
+        displayBlurKey = "";
+        scheduleRender(0);
+      }, 300);
     };
+
+    // 自绘拖动：手机原生 range 在浮层里不好按，改成整条轨道都能拖（点哪跳到哪）
+    (function () {
+      const el = rngBgBlurEl;
+      let dragging = false, pid = null;
+      const applyFromEvent = (e) => {
+        const max = parseInt(el.max, 10) || 80;
+        const min = parseInt(el.min, 10) || 0;
+        const r = el.getBoundingClientRect();
+        const pct = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)));
+        const v = Math.round(min + pct * (max - min));
+        if (String(v) === el.value) return;
+        el.value = String(v);
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      };
+      el.addEventListener("pointerdown", (e) => {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        dragging = true; pid = e.pointerId;
+        try { el.setPointerCapture(pid); } catch (err) {}
+        applyFromEvent(e);
+        e.preventDefault();
+      });
+      el.addEventListener("pointermove", (e) => { if (dragging && e.pointerId === pid) applyFromEvent(e); });
+      const end = (e) => {
+        if (!dragging) return;
+        dragging = false;
+        try { el.releasePointerCapture(pid); } catch (err) {}
+        pid = null;
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      };
+      el.addEventListener("pointerup", end);
+      el.addEventListener("pointercancel", end);
+    })();
+
+    // 数值输入 + ± 微调（拉条太粗时用这个精确设定）
+    const bbpNumEl = document.getElementById("bbpNum");
+    const bbpMinusEl = document.getElementById("bbpMinus");
+    const bbpPlusEl = document.getElementById("bbpPlus");
+    function setBgBlurValue(v, commit) {
+      v = Math.max(0, Math.min(80, Math.round(Number(v) || 0)));
+      rngBgBlurEl.value = String(v);
+      if (bbpNumEl) bbpNumEl.value = String(v);
+      rngBgBlurEl.dispatchEvent(new Event("input", { bubbles: true }));
+      if (commit) rngBgBlurEl.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    rngBgBlurEl.addEventListener("input", () => { if (bbpNumEl) bbpNumEl.value = rngBgBlurEl.value; });
+    if (bbpNumEl) {
+      bbpNumEl.addEventListener("change", () => setBgBlurValue(bbpNumEl.value, true));
+      bbpNumEl.addEventListener("keydown", (e) => { if (e.key === "Enter") bbpNumEl.blur(); });
+    }
+    function bindBlurStep(btn, dir) {
+      if (!btn) return;
+      let holdT = null, holdI = null;
+      const nudge = (commit) => setBgBlurValue((parseInt(rngBgBlurEl.value, 10) || 0) + dir, commit);
+      const stop = () => { clearTimeout(holdT); clearInterval(holdI); holdT = holdI = null; };
+      btn.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        nudge(false);
+        holdT = setTimeout(() => { holdI = setInterval(() => nudge(false), 90); }, 400);
+      });
+      btn.addEventListener("pointerup", () => {
+        stop();
+        rngBgBlurEl.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      btn.addEventListener("pointercancel", stop);
+      btn.addEventListener("pointerleave", stop);
+    }
+    bindBlurStep(bbpMinusEl, -1);
+    bindBlurStep(bbpPlusEl, 1);
 
     // Dynamic Effect Library UI (core + preset effects with category filter & search)
     let activeEffectCat = "all";
@@ -6399,11 +7634,47 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
     // Left tools
     document.getElementById("toolMove").onclick = () => setTool("move");
-    document.getElementById("toolLasso").onclick = () => setTool("lasso");
-    document.getElementById("toolEraser").onclick = () => setTool("eraser");
-    document.getElementById("toolCavity").onclick = () => setTool("cavity");
-    document.getElementById("toolEyedropper").onclick = () => setTool("eyedropper");
+    document.getElementById("toolLasso").onclick = () => toggleTool("lasso");
+    const toolWandBtn = document.getElementById("toolWand");
+    if (toolWandBtn) toolWandBtn.onclick = () => toggleTool("wand");
+    document.getElementById("toolEraser").onclick = () => toggleTool("eraser");
+    const toolBrushBtn = document.getElementById("toolBrush");
+    if (toolBrushBtn) toolBrushBtn.onclick = () => toggleTool("brush");
+    document.getElementById("toolCavity").onclick = () => toggleTool("cavity");
+    document.getElementById("toolEyedropper").onclick = () => toggleTool("eyedropper");
     document.getElementById("toolPan").onclick = () => setTool("pan");
+    const ctxCloseBtn = document.getElementById("btnCloseCtxBar");
+    if (ctxCloseBtn) ctxCloseBtn.onclick = () => setTool("move");
+    const rngWandTolEl = document.getElementById("rngWandTol");
+    const inpWandTolEl = document.getElementById("valWandTol");
+    let wandTolRetryT = 0;
+    function applyWandTolerance(val, fromInput) {
+      wandTolerance = Math.min(150, Math.max(0, Math.round(Number(val) || 0)));
+      if (rngWandTolEl) rngWandTolEl.value = String(wandTolerance);
+      if (inpWandTolEl && fromInput !== "input") inpWandTolEl.value = String(wandTolerance);
+      // 已经点过魔棒时，改容差就地重选，不用再点一次画面
+      if (state.tool === "wand" && lastWandSeed) {
+        clearTimeout(wandTolRetryT);
+        wandTolRetryT = setTimeout(() => {
+          if (state.tool === "wand" && lastWandSeed) wandSelectAt(lastWandSeed.x, lastWandSeed.y, true);
+        }, 140);
+      }
+    }
+    if (rngWandTolEl) {
+      rngWandTolEl.addEventListener("input", () => applyWandTolerance(rngWandTolEl.value, "input"));
+    }
+    if (inpWandTolEl) {
+      inpWandTolEl.addEventListener("input", () => {
+        const raw = inpWandTolEl.value;
+        if (raw === "" || raw === "-") return;      // 允许清空后重新输入
+        applyWandTolerance(raw, "input");
+      });
+      inpWandTolEl.addEventListener("change", () => {
+        applyWandTolerance(inpWandTolEl.value, "change");
+        inpWandTolEl.value = String(wandTolerance);   // 越界值回填成合法值
+      });
+      inpWandTolEl.addEventListener("blur", () => { inpWandTolEl.value = String(wandTolerance); });
+    }
 
     // Eyedropper & Mobile HSL Color Adjuster bindings
     function openEyedropperFor(target) {
@@ -6430,7 +7701,38 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     document.getElementById("btnPickCard1").onclick = () => openEyedropperFor("card1");
     document.getElementById("btnPickCard2").onclick = () => openEyedropperFor("card2");
     document.getElementById("btnCloseEyeBar").onclick = () => setTool("move");
+    document.getElementById("btnEyeMin").onclick = () => {
+      state.eyeBarHidden = true;
+      updateContextBar();
+      showToast("吸色面板已收起 · 直接点画布吸色；再点左侧吸管图标即可重新展开");
+    };
     document.getElementById("btnCloseEraserBar").onclick = () => setTool("move");
+    const colBrushEl = document.getElementById("colBrushColor");
+    if (colBrushEl) {
+      const onBrushCol = (e) => { state.brush.color = e.target.value; drawOverlayHandles(); };
+      colBrushEl.addEventListener("input", onBrushCol);
+      colBrushEl.addEventListener("change", onBrushCol);
+    }
+    const btnBrushPickEl = document.getElementById("btnBrushPick");
+    if (btnBrushPickEl) btnBrushPickEl.onclick = () => openEyedropperFor("brush");
+    const rngBrushSizeEl = document.getElementById("rngBrushSize");
+    if (rngBrushSizeEl) rngBrushSizeEl.oninput = (e) => {
+      state.brush.size = parseInt(e.target.value, 10) || 24;
+      document.getElementById("valBrushSize").textContent = `${state.brush.size}px`;
+      drawOverlayHandles();
+    };
+    const rngBrushSoftEl = document.getElementById("rngBrushSoft");
+    if (rngBrushSoftEl) rngBrushSoftEl.oninput = (e) => {
+      state.brush.softness = parseInt(e.target.value, 10) || 0;
+      document.getElementById("valBrushSoft").textContent = `${state.brush.softness}%`;
+    };
+    const rngBrushOpEl = document.getElementById("rngBrushOpacity");
+    if (rngBrushOpEl) rngBrushOpEl.oninput = (e) => {
+      state.brush.opacity = parseInt(e.target.value, 10) || 100;
+      document.getElementById("valBrushOpacity").textContent = `${state.brush.opacity}%`;
+    };
+    const btnCloseBrushBarEl = document.getElementById("btnCloseBrushBar");
+    if (btnCloseBrushBarEl) btnCloseBrushBarEl.onclick = () => setTool("move");
     document.getElementById("toolUndo").onclick = performUndo;
     document.getElementById("toolClearLayer").onclick = clearSelectedLayerPixels;
     document.getElementById("toolFit").onclick = fitViewport;
@@ -6541,21 +7843,22 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     document.getElementById("btnMergeDown").onclick = () => {
       const cur = getSelectedLayer();
       if (!cur) { showToast("请先选择一个图层或文件夹"); return; }
-      ensureBackgroundCache();
       const w = state.width, h = state.height;
 
-      // Case 1: Selected item is a Folder -> flatten folder into a single layer!
+      // Case 1: Selected item is a Folder -> flatten folder into a single layer at FULL 1:1 resolution!
       if (cur.type === "folder") {
         const children = state.layers.filter(c => c.parentId === cur.id && c.type !== "folder");
         if (!children.length) { showToast("该文件夹为空"); return; }
-        const mergedC = renderNodeForMerge(cur);
-        // Apply folder opacity onto flattened canvas if < 100
-        const finalC = document.createElement("canvas");
-        finalC.width = w; finalC.height = h;
-        const fg = finalC.getContext("2d");
-        fg.globalAlpha = cur.opacity / 100;
-        fg.drawImage(mergedC, 0, 0);
-        freeCanvas(mergedC);
+        const finalC = runAtFullResolution(() => {
+          const mergedC = renderNodeForMerge(cur);
+          const fc = document.createElement("canvas");
+          fc.width = w; fc.height = h;
+          const fg = fc.getContext("2d");
+          fg.globalAlpha = cur.opacity / 100;
+          fg.drawImage(mergedC, 0, 0);
+          freeCanvas(mergedC);
+          return fc;
+        });
 
         // Remove children and convert folder to an image layer
         state.layers = state.layers.filter(c => c.parentId !== cur.id);
@@ -6581,28 +7884,30 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const lower = siblings[sIdx - 1];
       pushUndoSnapshot(lower, false);
 
-      const merged = document.createElement("canvas");
-      merged.width = w; merged.height = h;
-      const mg = merged.getContext("2d");
-
-      if (lower.visible) {
-        const lowC = renderNodeForMerge(lower);
-        mg.save();
-        mg.globalAlpha = lower.qiasi ? (lower.opacity / 100) : 1;
-        mg.globalCompositeOperation = "source-over";
-        mg.drawImage(lowC, 0, 0);
-        mg.restore();
-        freeCanvas(lowC);
-      }
-      if (cur.visible) {
-        const topC = renderNodeForMerge(cur);
-        mg.save();
-        mg.globalAlpha = cur.qiasi ? (cur.opacity / 100) : 1;
-        mg.globalCompositeOperation = cur.blendMode || "source-over";
-        mg.drawImage(topC, 0, 0);
-        mg.restore();
-        freeCanvas(topC);
-      }
+      const merged = runAtFullResolution(() => {
+        const mc = document.createElement("canvas");
+        mc.width = w; mc.height = h;
+        const mg = mc.getContext("2d");
+        if (lower.visible) {
+          const lowC = renderNodeForMerge(lower);
+          mg.save();
+          mg.globalAlpha = lower.qiasi ? (lower.opacity / 100) : 1;
+          mg.globalCompositeOperation = "source-over";
+          mg.drawImage(lowC, 0, 0);
+          mg.restore();
+          freeCanvas(lowC);
+        }
+        if (cur.visible) {
+          const topC = renderNodeForMerge(cur);
+          mg.save();
+          mg.globalAlpha = cur.qiasi ? (cur.opacity / 100) : 1;
+          mg.globalCompositeOperation = cur.blendMode || "source-over";
+          mg.drawImage(topC, 0, 0);
+          mg.restore();
+          freeCanvas(topC);
+        }
+        return mc;
+      });
 
       lower.source = merged;
       lower.srcW = w; lower.srcH = h;
@@ -6647,6 +7952,49 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     document.getElementById("btnZoom100").onclick = () => { state.view.zoom = 1; state.view.panX = 0; state.view.panY = 0; updateViewportTransform(); };
 
     // Export buttons
+    // 存离线单文件：把当前这份 HTML 原样存到本地硬盘，电脑上双击打开、断网也能出图
+    async function downloadOfflineStudio() {
+      showToast("正在打包离线单文件…");
+      let html = "";
+      if (location.protocol === "http:" || location.protocol === "https:") {
+        try {
+          const res = await fetch(location.href, { cache: "no-store" });
+          if (res && res.ok) html = await res.text();
+        } catch (_) { html = ""; }
+      }
+      if (!html || html.length < 50000) {
+        html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      }
+      const fname = "水印效果工作室_离线版.html";
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      // On iOS / mobile browsers where <a download> on blob URLs is ignored, invoke native Share / Save to Files sheet!
+      if (isIOS && typeof File === "function" && navigator.canShare) {
+        try {
+          const f = new File([blob], fname, { type: "text/html" });
+          if (navigator.canShare({ files: [f] })) {
+            await navigator.share({ files: [f], title: fname });
+            showToast("已呼出系统分享 · 可选「存储到“文件”」或发给电脑");
+            return;
+          }
+        } catch (err) {
+          if (err && err.name === "AbortError") return;
+        }
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      showToast("已下载「水印效果工作室_离线版.html」· 电脑双击打开断网可用");
+    }
+    document.getElementById("btnOffline").onclick = downloadOfflineStudio;
+    const btnOffline2El = document.getElementById("btnOffline2");
+    if (btnOffline2El) btnOffline2El.onclick = downloadOfflineStudio;
+    const btnOfflineTopCardEl = document.getElementById("btnOfflineTopCard");
+    if (btnOfflineTopCardEl) btnOfflineTopCardEl.onclick = downloadOfflineStudio;
     document.getElementById("btnExportPNG").onclick = () => exportPNG(false);
     document.getElementById("btnExportPNG2").onclick = () => exportPNG(false);
     document.getElementById("btnExportTransparent").onclick = () => exportPNG(true);
@@ -6661,17 +8009,105 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       e.target.value = "";
     };
 
+    // 长图 / 长条底图适配：画布比例与底图差得多时，自动把画布改成同比例，避免整图被裁掉
+    function fitCanvasToBgImage(img) {
+      if (!img) return false;
+      const iw = img.naturalWidth || img.width;
+      const ih = img.naturalHeight || img.height;
+      if (!iw || !ih) return false;
+      const ratioImg = iw / ih, ratioDoc = state.width / state.height;
+      if (Math.abs(Math.log(ratioImg / ratioDoc)) <= 0.07) return false;
+      const TARGET_LONG = 2000, MAX_LONG = 2400, MIN_SHORT = 480;
+      const longSide = Math.max(iw, ih);
+      const targetL = Math.max(TARGET_LONG, Math.min(MAX_LONG, longSide));
+      let k = targetL / longSide;
+      let w = Math.round(iw * k), h = Math.round(ih * k);
+      if (Math.min(w, h) < MIN_SHORT) {
+        const k2 = MIN_SHORT / Math.min(iw, ih);
+        w = Math.round(iw * k2); h = Math.round(ih * k2);
+      }
+      w = Math.max(200, Math.min(3600, w));
+      h = Math.max(200, Math.min(3600, h));
+      state.width = w; state.height = h;
+      state.layers.forEach(l => {
+        l.baseScale = computeBaseScale(l.srcW, l.srcH);
+        l.x = w / 2; l.y = h / 2;
+      });
+      state.disabledCavities.clear();
+      const iwEl = document.getElementById("inpCanvasW"), ihEl = document.getElementById("inpCanvasH");
+      if (iwEl) iwEl.value = w;
+      if (ihEl) ihEl.value = h;
+      bgCacheKey = "";
+      displayBlurKey = "";
+      scheduleRender(0);
+      setTimeout(fitViewport, 60);
+      return true;
+    }
+
     document.getElementById("btnImportBg").onclick = () => document.getElementById("fileBg").click();
+    const btnCloneBgToBlurLayer = document.getElementById("btnCloneBgToBlurLayer");
+    if (btnCloneBgToBlurLayer) {
+      btnCloneBgToBlurLayer.onclick = () => {
+        const bgCopy = runAtFullResolution(() => {
+          const c = document.createElement("canvas");
+          c.width = state.width;
+          c.height = state.height;
+          c.getContext("2d").drawImage(bgCanvas, 0, 0, state.width, state.height);
+          return c;
+        });
+        // Switch backdrop to sharp original so erasing/masking the blurred layer reveals the crisp original underneath!
+        state.bgMode = "original";
+        document.querySelectorAll("#bgModeGroup .seg-btn").forEach(b => b.classList.toggle("active", b.dataset.bg === "original"));
+        syncBgBlurUI();
+
+        const layer = {
+          id: nextLayerId++,
+          name: "底图 · 模糊层",
+          type: "image",
+          parentId: null,
+          collapsed: false,
+          maskCanvas: null,
+          source: bgCopy,
+          srcW: bgCopy.width,
+          srcH: bgCopy.height,
+          visible: true,
+          qiasi: true,
+          effectId: "layer_blur",
+          layoutMode: "single",
+          x: state.width / 2,
+          y: state.height / 2,
+          baseScale: 1,
+          scale: 1,
+          rotation: 0,
+          flipX: false,
+          flipY: false,
+          opacity: 100,
+          blendMode: "source-over",
+          tileGapX: 60,
+          tileGapY: 60
+        };
+        // Place at bottom of layer stack (above original background, below all watermarks)
+        state.layers.unshift(layer);
+        state.selectedLayerId = layer.id;
+        state.fx.version = "layer_blur";
+        document.getElementById("blurLayerExtraBox").style.display = "flex";
+        updateEffectPanelVisibility("layer_blur");
+        syncLayerUI();
+        scheduleRender(0);
+        showToast("已克隆「底图 · 模糊层」在原图上方（可直接用橡皮擦出清晰主体，或到「效果」调模糊度）");
+      };
+    }
     document.getElementById("fileBg").onchange = (e) => {
       const f = e.target.files[0];
       if (!f) return;
       loadImageFile(f, (img) => {
         pushBgUndo("更换底图");
         state.bgImg = img;
+        const fitted = fitCanvasToBgImage(img);
         bgCacheKey = "";
         displayBlurKey = "";
         scheduleRender(0);
-        showToast("底图已更新");
+        showToast(fitted ? `长图已完整适配画布 ${state.width} × ${state.height}` : "底图已更新");
       });
       e.target.value = "";
     };
@@ -6711,6 +8147,34 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       state.selectedLayerId = copy.id;
       syncLayerUI(); scheduleRender(0);
     };
+    const btnCloneBlurBase = document.getElementById("btnCloneBlurBase");
+    if (btnCloneBlurBase) {
+      btnCloneBlurBase.onclick = () => {
+        const cur = getSelectedLayer();
+        if (!cur || cur.type === "folder") {
+          // No normal layer selected -> seamlessly clone the current background image as a blurred layer!
+          if (btnCloneBgToBlurLayer) btnCloneBgToBlurLayer.click();
+          return;
+        }
+        const idx = state.layers.findIndex(l => l.id === cur.id);
+        const blurCopy = {
+          ...cur,
+          id: nextLayerId++,
+          name: `${cur.name} · 模糊底`,
+          qiasi: true,
+          effectId: "layer_blur",
+          maskCanvas: null
+        };
+        state.layers.splice(idx + 1, 0, blurCopy);
+        state.selectedLayerId = blurCopy.id;
+        state.fx.version = "layer_blur";
+        document.getElementById("blurLayerExtraBox").style.display = "flex";
+        updateEffectPanelVisibility("layer_blur");
+        syncLayerUI();
+        scheduleRender(0);
+        showToast(`已克隆「${blurCopy.name}」到原图上方（可切到「效果」调模糊度，点 ↓ 可移到下方）`);
+      };
+    }
     document.getElementById("btnLayerDel").onclick = () => {
       const idx = state.layers.findIndex(l => l.id === state.selectedLayerId);
       if (idx < 0) return;
@@ -6815,6 +8279,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       pushBgUndo("设为底图");
       state.bgImg = l.source;
       if (!state.bgImg._uid) state.bgImg._uid = Math.random().toString(36).slice(2);
+      const fittedAsBg = fitCanvasToBgImage(state.bgImg);
       // Remove from overlay layers so it doesn't double-draw
       const idx = state.layers.findIndex(x => x.id === l.id);
       if (idx >= 0) state.layers.splice(idx, 1);
@@ -6823,27 +8288,33 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       displayBlurKey = "";
       syncLayerUI();
       scheduleRender(0);
-      showToast(`已将「${l.name}」设为画布底图`);
+      showToast(`已将「${l.name}」设为画布底图` + (fittedAsBg ? `，并完整适配画布 ${state.width} × ${state.height}` : ""));
     };
     document.getElementById("btnBakeEffect").onclick = () => {
       const l = getSelectedLayer();
       if (!l || l.type === "folder" || !l.qiasi) { showToast("请先选中一个已启用效果的普通图层"); return; }
       pushUndoSnapshot(l, false);
-      ensureBackgroundCache();
-      let baked;
-      if (l.effectId === "layer_blur") {
-        const rawC = renderSingleLayerToCanvas(l, false);
-        baked = document.createElement("canvas");
-        blurCanvasExact1to1(rawC, baked, baked.getContext("2d"), state.fx.layerBlurR || 0);
-      } else if (GPU_FILTER_SPECS[l.effectId]) {
-        const spec = GPU_FILTER_SPECS[l.effectId];
-        const rawC = renderSingleLayerToCanvas(l, false);
-        const refC = state.bgMode === "blurred" ? displayBlurBgCanvas : bgCanvas;
-        baked = runGpuFilterCanvas(spec.fn, rawC, refC, gpuParamState[l.effectId], spec.useRef, true) || rawC;
-      } else {
-        const maskC = renderSingleLayerToCanvas(l, true);
-        baked = renderEffectForMask(maskC, l.effectId);
-      }
+      const baked = runAtFullResolution(() => {
+        if (l.effectId === "layer_blur") {
+          const rawC = renderSingleLayerToCanvas(l, false);
+          const bc = document.createElement("canvas");
+          blurCanvasExact1to1(rawC, bc, bc.getContext("2d"), state.fx.layerBlurR || 0);
+          freeCanvas(rawC);
+          return bc;
+        } else if (GPU_FILTER_SPECS[l.effectId]) {
+          const spec = GPU_FILTER_SPECS[l.effectId];
+          const rawC = renderSingleLayerToCanvas(l, false);
+          const refC = state.bgMode === "blurred" ? displayBlurBgCanvas : bgCanvas;
+          const res = runGpuFilterCanvas(spec.fn, rawC, refC, gpuParamState[l.effectId], spec.useRef, true) || rawC;
+          if (res !== rawC) freeCanvas(rawC);
+          return res;
+        } else {
+          const maskC = renderSingleLayerToCanvas(l, true);
+          const res = renderEffectForMask(maskC, l.effectId);
+          freeCanvas(maskC);
+          return res;
+        }
+      });
       l.source = baked;
       l.srcW = baked.width; l.srcH = baked.height;
       l.x = state.width / 2; l.y = state.height / 2;
@@ -7124,6 +8595,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         state.cavityToolMode = btn.dataset.cmode;
         const showBr = ["airbrush", "brush", "eraser"].includes(state.cavityToolMode);
         document.getElementById("ctxFillBrushBox").style.display = showBr ? "flex" : "none";
+        if (state.cavityToolMode === "brush") {
+          state.fillClipSilhouette = false;
+          const chk = document.getElementById("chkFillClip");
+          if (chk) chk.checked = false;
+          showToast("硬边填色笔：可直接手涂未封闭或未识别的框内区域（自动压在银丝下方）");
+        }
+        syncMobileCtxDock();
       };
     });
     bindColor("colActiveFill", (e) => {
@@ -7150,6 +8628,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     };
     document.getElementById("chkFillClip").onchange = (e) => {
       state.fillClipSilhouette = e.target.checked;
+      scheduleRender(0);
     };
     const resetAllCustomFills = () => {
       state.disabledCavities.clear();
@@ -7185,8 +8664,19 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     });
     document.getElementById("btnFitBgSize").onclick = () => {
       if (!state.bgImg) { showToast("请先导入底图"); return; }
-      document.getElementById("inpCanvasW").value = state.bgImg.naturalWidth;
-      document.getElementById("inpCanvasH").value = state.bgImg.naturalHeight;
+      let w = state.bgImg.naturalWidth || state.bgImg.width;
+      let h = state.bgImg.naturalHeight || state.bgImg.height;
+      const maxDim = Math.max(w, h);
+      if (maxDim > 3600) {
+        const k = 3600 / maxDim;
+        w = Math.round(w * k);
+        h = Math.round(h * k);
+      }
+      w = Math.max(200, Math.min(3600, w));
+      h = Math.max(200, Math.min(3600, h));
+      document.getElementById("inpCanvasW").value = w;
+      document.getElementById("inpCanvasH").value = h;
+      document.getElementById("btnApplySize").click();
     };
     document.getElementById("btnApplySize").onclick = () => {
       const w = Math.max(200, Math.min(3600, parseInt(document.getElementById("inpCanvasW").value, 10) || 2000));
@@ -7224,7 +8714,9 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (e.code === "Space") { state.view.spaceDown = true; viewport.classList.add("mode-pan"); e.preventDefault(); }
       else if (e.key.toLowerCase() === "v") setTool("move");
       else if (e.key.toLowerCase() === "l") setTool("lasso");
+      else if (e.key.toLowerCase() === "w") setTool("wand");
       else if (e.key.toLowerCase() === "e") setTool("eraser");
+      else if (e.key.toLowerCase() === "b") setTool("brush");
       else if (e.key.toLowerCase() === "k") setTool("cavity");
       else if (e.key.toLowerCase() === "i") setTool("eyedropper");
       else if (e.key.toLowerCase() === "h") setTool("pan");
@@ -7257,6 +8749,16 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     window.addEventListener("resize", () => {
       clearTimeout(window._fitResizeT);
       window._fitResizeT = setTimeout(fitViewport, 120);
+      compactCtxLabels();
+      syncMobileCtxDock();
+      // 拖拽比例只在窄屏上下布局里有效；切到宽屏左右布局必须清掉，否则会串成两行
+      if (workspaceEl) {
+        if (window.innerWidth > 900) {
+          workspaceEl.style.gridTemplateRows = "";
+        } else if (workspaceEl.style.gridTemplateRows && rowDragH) {
+          applyRowHeight(rowDragH);
+        }
+      }
     });
 
     // Touch support for mobile phones: single-finger tool + two-finger pinch zoom & pan
@@ -7264,11 +8766,18 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     viewport.addEventListener("touchstart", (e) => {
       if (e.touches.length === 2) {
         dragState = null;
+        viewport.classList.remove("dragging");
         const t0 = e.touches[0], t1 = e.touches[1];
+        const rect = viewport.getBoundingClientRect();
+        const cs = getComputedStyle(viewport);
+        const padT = parseFloat(cs.paddingTop) || 0, padB = parseFloat(cs.paddingBottom) || 0;
+        const padL = parseFloat(cs.paddingLeft) || 0, padR = parseFloat(cs.paddingRight) || 0;
         pinchState = {
           dist: Math.max(10, Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY)),
           cx: (t0.clientX + t1.clientX) / 2,
           cy: (t0.clientY + t1.clientY) / 2,
+          vcx: rect.left + padL + (rect.width - padL - padR) / 2,
+          vcy: rect.top + padT + (rect.height - padT - padB) / 2,
           zoom: state.view.zoom,
           panX: state.view.panX,
           panY: state.view.panY
@@ -7278,6 +8787,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
       if (e.touches.length === 1) {
         pinchState = null;
+        e.preventDefault();
         const t = e.touches[0];
         viewport.dispatchEvent(new MouseEvent("mousedown", { clientX: t.clientX, clientY: t.clientY, button: 0, bubbles: true }));
       }
@@ -7290,10 +8800,16 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const dist = Math.max(10, Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY));
         const cx = (t0.clientX + t1.clientX) / 2;
         const cy = (t0.clientY + t1.clientY) / 2;
-        state.view.zoom = Math.max(0.08, Math.min(4, pinchState.zoom * (dist / pinchState.dist)));
-        state.view.panX = pinchState.panX + (cx - pinchState.cx);
-        state.view.panY = pinchState.panY + (cy - pinchState.cy);
-        updateViewportTransform();
+        const newZoom = Math.max(0.08, Math.min(4, pinchState.zoom * (dist / pinchState.dist)));
+        const ratio = newZoom / pinchState.zoom;
+        const mx0 = pinchState.cx - pinchState.vcx;
+        const my0 = pinchState.cy - pinchState.vcy;
+        const mx1 = cx - pinchState.vcx;
+        const my1 = cy - pinchState.vcy;
+        state.view.zoom = newZoom;
+        state.view.panX = mx1 - (mx0 - pinchState.panX) * ratio;
+        state.view.panY = my1 - (my0 - pinchState.panY) * ratio;
+        updateViewportTransform(true);
         return;
       }
       if (e.touches.length === 1 && dragState) {
@@ -7304,27 +8820,47 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     }, { passive: false });
 
     window.addEventListener("touchend", (e) => {
-      if (e.touches.length < 2) pinchState = null;
+      if (e.touches.length < 2 && pinchState) {
+        pinchState = null;
+        updateViewportTransform(false);
+      }
       if (e.touches.length === 0 && dragState) {
+        if (dragState.type === "pan") updateViewportTransform(false);
         window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
       }
     });
 
-    // About / Compliance Modal
-    const aboutModal = document.getElementById("aboutModal");
-    const openAboutModal = () => aboutModal && aboutModal.classList.add("show");
-    const closeAboutModal = () => aboutModal && aboutModal.classList.remove("show");
+    window.addEventListener("touchcancel", () => {
+      pinchState = null;
+      if (dragState) {
+        window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+      }
+    });
+
+    // About / Compliance Modal (dynamic lookup because #aboutModal is declared right after <script>)
+    let _aboutModalBound = false;
+    const getAboutModal = () => {
+      const m = document.getElementById("aboutModal");
+      if (m && !_aboutModalBound) {
+        _aboutModalBound = true;
+        const c = document.getElementById("btnCloseAbout");
+        if (c) c.onclick = () => m.classList.remove("show");
+        m.addEventListener("click", (e) => {
+          if (e.target === m) m.classList.remove("show");
+        });
+      }
+      return m;
+    };
+    const openAboutModal = () => {
+      const m = getAboutModal();
+      if (m) m.classList.add("show");
+    };
     const btnAboutModal = document.getElementById("btnAboutModal");
     const btnFooterAbout = document.getElementById("btnFooterAbout");
-    const btnCloseAbout = document.getElementById("btnCloseAbout");
+    const btnSafetyAbout = document.getElementById("btnSafetyAbout");
     if (btnAboutModal) btnAboutModal.onclick = openAboutModal;
     if (btnFooterAbout) btnFooterAbout.onclick = openAboutModal;
-    if (btnCloseAbout) btnCloseAbout.onclick = closeAboutModal;
-    if (aboutModal) {
-      aboutModal.addEventListener("click", (e) => {
-        if (e.target === aboutModal) closeAboutModal();
-      });
-    }
+    if (btnSafetyAbout) btnSafetyAbout.onclick = openAboutModal;
 
     // Local Font File Loader (100% offline via FontFace API)
     const btnImportFont = document.getElementById("btnImportFont");
@@ -7370,5 +8906,240 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     addLayerFromSource("示例水印 · LOCAL STUDIO", createDemoLayerCanvas(), { qiasi: true });
     setTimeout(fitViewport, 60);
   </script>
+
+  <div class="modal-backdrop" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="aboutModalTitle">关于隐私与原创说明</h3>
+        <button class="btn btn-sm" id="btnCloseAbout">关闭 ✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-box">
+          <strong>1. 纯前端本地离线运行（支持飞行模式自证）</strong><br/>
+          本工具为单文件纯前端网页应用，基于 HTML5 Canvas 与 WebGL2 技术在本地浏览器内完成全部渲染与导出。无后端服务器、无数据库、无任何外部 CDN 请求与图片上传行为。您可断开网络或开启手机飞行模式直接打开本页面验证。
+        </div>
+        <div class="modal-box">
+          <strong>2. 基于标准前端图像算法独立实现</strong><br/>
+          内置的填色、掐丝、亚克力、折光、浮雕、全屏叠加及各类材质滤镜效果，均基于标准前端图像处理、混合模式与光学渲染参数独立编写调校，不涉及生成式 AI，仅供学习交流与本地安全出图参考。
+        </div>
+        <div style="font-size:11px;color:var(--muted);">
+          字体说明：内置字体仅调用系统默认本地字体栈，同时支持用户自行导入本地 <code>.ttf / .otf / .woff2</code> 字体文件在浏览器内存中即时渲染。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-mask" id="guideMask">
+    <div class="guide-card">
+      <div class="guide-head">
+        <span class="guide-title">📖 新手使用说明</span>
+        <button class="guide-close" id="btnGuideClose" title="关闭">✕</button>
+      </div>
+      <div class="guide-body">
+        <div><b>① 界面怎么分</b>：左边竖条是工具（移动 V / 套索 L / 魔棒 W / 橡皮 E / 填色 K / 吸管 I / 抓手 H / 撤销 / 清空图层 / 对比 / 适应窗口 / ? 说明）；中间是画布；右边三个页签依次是「图层与全屏」「效果」「画布与导出」；底部一行是缩放、大画布、分区数。</div>
+        <div><b>② 导入素材</b>：左面板「导入黑素/贴图」可一次选多张，也可以直接把图片拖进画布；「添加文字层」生成文字。素材是透明黑素最省事，白底图先用「透明底」再看效果。</div>
+        <div><b>③ 底图</b>：右上三种模式——<b>原底图</b>（直接用原图）、<b>模糊底图</b>（默认，模糊度滑块能调 0–80）、<b>透明底</b>（不要背景，只要图案）。底图有「更换底图」和「设为底图」，长图会自动把画布改成同比例，不会被裁掉。</div>
+        <div><b>④ 图层</b>：「图层列表」支持拖到文件夹里分组，能合并、上移下移、复制、删除；每个图层可单独调位置、缩放、旋转、翻转和透明度，「启用效果」控制这一层吃不吃特效。</div>
+        <div><b>⑤ 修整</b>：橡皮有大小和柔边，按住涂抹即可；套索支持累加/减去/新选区，圈好后可「清除选区内」「清除选区外」或「转成蒙版」；<b>魔棒（W）</b>点一下就能选中一片相近颜色的连通区域（容差在顶部拖条调，数值越大选得越多），再去清除或转蒙版，比手圈快；<b>Ctrl+Z</b> 能撤销擦除和清除。</div>
+        <div><b>⑥ 吸色</b>：选吸管（I）点底图任意位置，直接吸到「色卡1/色卡2/渐变A/渐变B」里，还能拉色相/饱和/明度微调；吸色面板挡住画面时点「收起 ⌃」。</div>
+        <div><b>⑦ 加效果</b>：右边「效果」页签挑样式，再调颜色、透明度、光泽之类；换样式随时可在同一层对比。</div>
+        <div><b>⑧ 6 色分区填色</b>：「分区：N」就是识别出的封闭色块数。填色工具里五种模式：点填色块、10% 柔边喷枪、硬边笔、擦填色、开关空洞；勾「防出界」只会涂在色块内部。</div>
+        <div><b>⑨ 导出</b>：右上「一键导出 PNG」按当前底图模式出高清图；「导出透明图案」只出透明底图案；「存离线版」把整个工作室存成单文件（仅电脑可用，iPhone 打不开本地 HTML）。</div>
+        <div><b>⑩ 手机上</b>：画布和面板中间那条横线能上下拖，往上拖面板变大、画布变小；点「大画布 ▾」面板收起；任何按钮<b>长按约半秒</b>会弹出它的用途说明，不会误点。</div>
+      </div>
+      <div class="guide-tip">🛡️ 全程在你自己浏览器里计算，图片不上传服务器、断网也能用，没有底图泄漏这回事。</div>
+      <button class="btn btn-primary guide-ok" id="btnGuideOk">知道了，开始用</button>
+    </div>
+  </div>
+
+  <div class="export-mask" id="exportPreviewMask">
+    <div class="export-card">
+      <div class="guide-head">
+        <span class="guide-title" id="exportPreviewTitle">✅ 已生成高清成品</span>
+        <button class="guide-close" id="btnExportModalClose" title="关闭">✕</button>
+      </div>
+      <div class="export-stage">
+        <img id="exportPreviewImg" class="export-img" alt="导出成品预览" />
+      </div>
+      <div class="export-hint" id="exportPreviewHint">📱 手机/微信用户：长按上方图片即可「保存到相册」</div>
+      <div class="export-actions">
+        <button class="btn btn-primary" id="btnExportModalDownload">下载原图 PNG</button>
+        <button class="btn btn-mint" id="btnExportModalShare" style="display:none;">系统分享 / 存相册</button>
+        <button class="btn" id="btnExportModalClose2">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var mask = document.getElementById("guideMask");
+      if (!mask) return;
+      var KEY = "effectStudio_guideSeen_v1";
+      function openGuide() { mask.classList.add("show"); }
+      function closeGuide() {
+        mask.classList.remove("show");
+        try { localStorage.setItem(KEY, "1"); } catch (e) {}
+      }
+      var btnGuide = document.getElementById("btnGuide");
+      if (btnGuide) btnGuide.addEventListener("click", openGuide);
+      var c1 = document.getElementById("btnGuideClose");
+      var c2 = document.getElementById("btnGuideOk");
+      if (c1) c1.addEventListener("click", closeGuide);
+      if (c2) c2.addEventListener("click", closeGuide);
+      mask.addEventListener("mousedown", function (e) { if (e.target === mask) closeGuide(); });
+      mask.addEventListener("click", function (e) { if (e.target === mask) closeGuide(); });
+      var seen = false;
+      try { seen = !!localStorage.getItem(KEY); } catch (e) {}
+      if (!seen) setTimeout(openGuide, 600);
+    })();
+
+    // ==================== 长按弹出文字说明 ====================
+    (function () {
+      var tip = null, timer = null, shown = false, curEl = null, hideTimer = null;
+      var startX = 0, startY = 0, suppressClick = false;
+
+      function ensureTip() {
+        if (!tip) {
+          tip = document.createElement("div");
+          tip.className = "title-tip";
+          document.body.appendChild(tip);
+        }
+        return tip;
+      }
+
+      function showTip(el) {
+        var txt = el.getAttribute("title") || el.getAttribute("data-tip");
+        if (!txt) return;
+        var t = ensureTip();
+        el.setAttribute("data-tip-saved", txt);
+        el.removeAttribute("title");   // 避免系统原生 tooltip 一起冒出来
+        t.textContent = txt;
+        t.style.display = "block";
+        t.style.left = "0px";
+        t.style.top = "0px";
+        var r = el.getBoundingClientRect();
+        var tw = t.offsetWidth, th = t.offsetHeight;
+        var left = r.left + r.width / 2 - tw / 2;
+        left = Math.max(6, Math.min(window.innerWidth - tw - 6, left));
+        var top = r.top - th - 8;
+        if (top < 6) top = Math.min(window.innerHeight - th - 6, r.bottom + 8);
+        t.style.left = Math.round(left) + "px";
+        t.style.top = Math.round(Math.max(6, top)) + "px";
+        shown = true;
+        curEl = el;
+        suppressClick = true;
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(hideTip, 2400);
+      }
+
+      function hideTip() {
+        if (!tip) return;
+        tip.style.display = "none";
+        if (curEl) {
+          var saved = curEl.getAttribute("data-tip-saved");
+          if (saved) {
+            if (!curEl.getAttribute("title")) curEl.setAttribute("title", saved);
+            curEl.removeAttribute("data-tip-saved");
+          }
+        }
+        shown = false;
+        curEl = null;
+      }
+
+      function cancelTimer() {
+        clearTimeout(timer);
+        timer = null;
+      }
+
+      function findTipEl(node) {
+        if (node && node.tagName && /^(INPUT|SELECT|TEXTAREA|OPTION|LABEL)$/i.test(node.tagName)) return null;
+        while (node && node.nodeType === 1) {
+          if (node.id === "bgBlurPop" || node.id === "bgBlurInline" || (node.closest && (node.closest("#bgBlurPop") || node.closest("#bgBlurInline")))) return null;
+          if (node.getAttribute && (node.getAttribute("title") || node.getAttribute("data-tip"))) return node;
+          node = node.parentElement;
+        }
+        return null;
+      }
+
+      document.addEventListener("pointerdown", function (e) {
+        suppressClick = false;
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        var el = findTipEl(e.target);
+        cancelTimer();
+        if (!el) { if (shown) hideTip(); return; }
+        startX = e.clientX;
+        startY = e.clientY;
+        timer = setTimeout(function () { showTip(el); }, 780);
+      }, true);
+
+      document.addEventListener("pointermove", function (e) {
+        if (timer && (Math.abs(e.clientX - startX) > 8 || Math.abs(e.clientY - startY) > 8)) cancelTimer();
+      }, true);
+
+      document.addEventListener("pointerup", function () {
+        cancelTimer();
+        if (shown) {
+          clearTimeout(hideTimer);
+          hideTimer = setTimeout(hideTip, 900);
+        }
+      }, true);
+
+      document.addEventListener("pointercancel", function () { cancelTimer(); hideTip(); }, true);
+
+      document.addEventListener("scroll", function () { if (shown) hideTip(); }, true);
+
+      document.addEventListener("touchstart", function (e) {
+        if (window.PointerEvent) return;   // 老机型兜底
+        var el = findTipEl(e.target);
+        if (!el) return;
+        cancelTimer();
+        timer = setTimeout(function () { showTip(el); }, 480);
+      }, { capture: true, passive: true });
+
+      document.addEventListener("touchend", function () {
+        if (window.PointerEvent) return;
+        cancelTimer();
+        if (shown) setTimeout(hideTip, 900);
+      }, true);
+
+      // 长按后松手不要顺带触发按钮本身的功能
+      document.addEventListener("click", function (e) {
+        if (suppressClick) {
+          suppressClick = false;
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+
+      // 长按已弹出说明时，屏蔽系统上下文菜单
+      document.addEventListener("contextmenu", function (e) {
+        if (findTipEl(e.target)) e.preventDefault();
+      }, true);
+
+      window.addEventListener("resize", function () { if (shown) hideTip(); });
+    })();
+
+    // ==================== 手机端：模糊度滑块跟随模糊底图 ====================
+    (function () {
+      var mq = window.matchMedia("(max-width: 900px)");
+      var center = document.querySelector(".header-center");
+      var group = document.getElementById("bgModeGroup");
+      var pop = document.getElementById("bgBlurPop");
+      var blur = document.getElementById("bgBlurInline");
+      if (!center || !blur) return;
+      function sync() {
+        if (mq.matches) {
+          if (pop && blur.parentElement !== pop) pop.insertBefore(blur, pop.firstChild);
+        } else {
+          if (blur.parentElement !== center) center.appendChild(blur);
+        }
+        if (typeof syncBgBlurUI === "function") syncBgBlurUI();
+      }
+      if (mq.addEventListener) mq.addEventListener("change", sync);
+      else if (mq.addListener) mq.addListener(sync);
+      sync();
+    })();
+  </script>
 </body>
 </html>
+
