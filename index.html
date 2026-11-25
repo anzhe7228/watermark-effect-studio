@@ -1951,15 +1951,15 @@
       <!-- TAB 3: Canvas & Export -->
       <section class="tab-panel" id="tab-export">
         <div class="card">
-          <div class="card-title"><span>画布尺寸</span></div>
+          <div class="card-title"><span>画布尺寸</span><span class="card-sub" id="curCanvasSizeBadge">当前 2000 × 2000</span></div>
           <div class="grid-2">
             <div class="field">
               <div class="field-head"><span>宽度 (px)</span></div>
-              <input type="number" id="inpCanvasW" value="2000" min="200" max="3600" />
+              <input type="number" id="inpCanvasW" value="2000" min="100" max="6000" />
             </div>
             <div class="field">
               <div class="field-head"><span>高度 (px)</span></div>
-              <input type="number" id="inpCanvasH" value="2000" min="200" max="3600" />
+              <input type="number" id="inpCanvasH" value="2000" min="100" max="6000" />
             </div>
           </div>
           <div class="grid-2">
@@ -1969,6 +1969,36 @@
             <button class="btn btn-sm" id="btnFitBgSize">跟随底图尺寸</button>
           </div>
           <button class="btn btn-primary" id="btnApplySize">应用画布尺寸</button>
+        </div>
+
+        <div class="card" id="presetShareCard">
+          <div class="card-title">
+            <span>🎨 效果与配色预设（分享 / 导入）</span>
+            <span class="card-sub" id="presetCurrentSummary">当前效果</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5;">
+            仅打包当前<b>水印效果、参数与配色方案</b>（不含底图和水印原图）。别人导入后可直接套用在自己的水印上，还能去「效果」页自由改色和微调全部参数。
+          </div>
+          <div class="field">
+            <div class="field-head"><span>预设方案名称（可选）</span></div>
+            <input type="text" id="inpPresetName" placeholder="例如：清透冰晶粉蓝配色" maxlength="40" />
+          </div>
+          <div class="grid-2">
+            <button class="btn btn-primary" id="btnCopyPresetCode" style="justify-content:center;" title="生成简短配方口令并复制，可直接发微信/小红书/QQ">📋 复制配方口令</button>
+            <button class="btn" id="btnExportPresetFile" style="justify-content:center;color:#a8dcff;border-color:rgba(125,166,255,0.42);" title="导出为 .json 预设文件，方便存档或发文件">📤 导出预设 (.json)</button>
+          </div>
+          <input type="file" id="fileImportPreset" accept=".json,application/json,.txt" hidden />
+          <div class="grid-2">
+            <button class="btn btn-mint" id="btnTogglePastePreset" style="justify-content:center;" title="粘贴别人分享的 WMS1 配方口令一键套用">✨ 粘贴口令导入</button>
+            <button class="btn" id="btnImportPresetFile" style="justify-content:center;" title="从手机或电脑导入 .json 预设文件">📥 导入文件 (.json)</button>
+          </div>
+          <div id="boxPastePreset" style="display:none;flex-direction:column;gap:6px;padding:8px;border-radius:8px;background:rgba(0,0,0,0.28);border:1px solid var(--border-strong);">
+            <textarea id="txtPresetCode" rows="3" placeholder="长按此处粘贴别人分享的【水印配方】口令（含 WMS1:... 整段文字均可直接识别）" style="width:100%;resize:vertical;background:var(--surface);color:var(--text);border:1px solid var(--border-strong);border-radius:6px;padding:6px 8px;font-size:11px;line-height:1.45;font-family:inherit;"></textarea>
+            <div class="grid-2">
+              <button class="btn btn-mint btn-sm" id="btnApplyPresetCode" style="justify-content:center;">✅ 立即套用该配方</button>
+              <button class="btn btn-sm" id="btnCancelPresetCode" style="justify-content:center;">收起</button>
+            </div>
+          </div>
         </div>
 
         <div class="card">
@@ -2496,12 +2526,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       return 1;
     }
     function getExportRenderScale() {
-      // On iOS Safari / in-app WKWebView, cap export pixel side to 1800px to stay well below WebKit's ~288MB Jetsam limit
-      if (isIOS) {
-        const maxSide = Math.max(state.width, state.height);
-        return Math.min(1, 1800 / Math.max(1, maxSide));
+      const maxSide = Math.max(1, state.width, state.height);
+      // Cap heavy morphological / BFS / multi-blur buffers to 1600px on mobile/iOS (~10MB per buffer, <300ms, zero freeze/OOM);
+      // final exported PNG still outputs exact state.width × state.height with crisp native background photo!
+      if (isIOS || isMobileDevice) {
+        return Math.min(1, 1600 / maxSide);
       }
-      return 1;
+      return Math.min(1, 3000 / maxSide);
     }
 
     function releaseHeavyRenderCaches(releaseGpu = false) {
@@ -8330,7 +8361,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       img.onload = () => {
         const iw = img.naturalWidth || img.width;
         const ih = img.naturalHeight || img.height;
-        const maxDim = isIOS ? 2048 : (isMobileDevice ? 2400 : 3600);
+        const maxDim = isIOS ? 3200 : (isMobileDevice ? 4096 : 6000);
         if (Math.max(iw, ih) > maxDim && iw > 0 && ih > 0) {
           const k = maxDim / Math.max(iw, ih);
           const tw = Math.max(1, Math.round(iw * k));
@@ -8349,17 +8380,19 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
               if (!blob) return;
               const smallUrl = trackBlobUrl(URL.createObjectURL(blob));
               const smallImg = new Image();
-              smallImg.onload = () => { smallImg._uid = Math.random().toString(36).slice(2); cb(smallImg); };
+              smallImg.onload = () => { smallImg._uid = Math.random().toString(36).slice(2); smallImg._origW = iw; smallImg._origH = ih; cb(smallImg); };
               smallImg.src = smallUrl;
             }, "image/png");
             return;
           }
           tmp._uid = Math.random().toString(36).slice(2);
+          tmp._origW = iw; tmp._origH = ih;
           cb(tmp);
           return;
         }
         trackBlobUrl(rawUrl);
         img._uid = Math.random().toString(36).slice(2);
+        img._origW = iw; img._origH = ih;
         cb(img);
       };
       img.onerror = () => {
@@ -8768,73 +8801,174 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       return true;
     }
 
-    function exportPNG(forceTransparent = false) {
-      clearTimeout(renderTimer);
-      if (renderRafId) { cancelAnimationFrame(renderRafId); renderRafId = 0; }
-      const prevScale = activeRenderScale;
-      activeRenderScale = getExportRenderScale();
-      bgCacheKey = "";
-      displayBlurKey = "";
-      ensureBackgroundCache();
-
-      const { rw: outW, rh: outH } = getRenderDim();
-      const out = document.createElement("canvas");
-      out.width = outW; out.height = outH;
-      const ctx = out.getContext("2d");
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
-      try {
-        compositeFinal(ctx, forceTransparent ? "transparent" : state.bgMode);
-      } finally {
-        // Immediately shed full-res bg/blur caches & WebGL FBOs BEFORE PNG encoding to prevent iOS Jetsam tab reload!
-        activeRenderScale = prevScale;
-        releaseHeavyRenderCaches(isIOS || isMobileDevice);
-      }
-
-      const prefix = document.getElementById("inpExportName").value.trim() || "水印效果成品";
-      const suffix = forceTransparent ? "_透明底" : `_${state.bgMode}`;
-      const fname = `${prefix}${suffix}.png`;
-
-      const restorePreviewSoon = () => {
-        scheduleRender(isIOS ? 120 : 40);
-      };
-
-      const finishFallback = () => {
-        try {
-          const a = document.createElement("a");
-          a.download = fname;
-          a.href = out.toDataURL("image/png");
-          a.click();
-          showToast(`已按 ${outW}×${outH} 高清导出 ${fname}`);
-        } finally {
-          freeCanvas(out);
-          restorePreviewSoon();
+    function drawBgAtExactRes(ctx, w, h) {
+      if (state.bgImg) {
+        const iw = state.bgImg.naturalWidth || state.bgImg.width;
+        const ih = state.bgImg.naturalHeight || state.bgImg.height;
+        const ratioDiff = Math.abs(Math.log((iw / ih) / (w / h)));
+        const fitContain = ratioDiff > 0.07;
+        const scale = fitContain ? Math.min(w / iw, h / ih) : Math.max(w / iw, h / ih);
+        const dw = iw * scale, dh = ih * scale;
+        ctx.clearRect(0, 0, w, h);
+        if (fitContain) {
+          ctx.fillStyle = "#12141a";
+          ctx.fillRect(0, 0, w, h);
         }
-      };
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(state.bgImg, (w - dw) / 2, (h - dh) / 2, dw, dh);
+      } else {
+        drawDefaultBackground(ctx, w, h);
+      }
+      if (state.bgTintAlpha > 0) {
+        applyBgTintToCtx(ctx, w, h);
+      }
+    }
 
-      if (typeof out.toBlob !== "function") {
-        finishFallback();
+    function canCompositeNativeSharpBg(forceTransparent) {
+      if (forceTransparent || state.bgMode !== "original") return false;
+      if (getBgLayerPos() !== 0) return false;
+      for (const l of state.layers) {
+        if (!l.visible) continue;
+        if (l.type !== "folder" && l.parentId) continue;
+        if (l.blendMode && l.blendMode !== "source-over") return false;
+      }
+      return true;
+    }
+
+    let _isExportingPng = false;
+    function setExportButtonsDisabled(dis) {
+      ["btnExportPNG", "btnExportPNG2", "btnExportTransparent", "btnExportTransparent2"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = dis;
+      });
+    }
+
+    function exportPNG(forceTransparent = false) {
+      if (_isExportingPng) {
+        showToast("⏳ 正在生成高清图中，请稍候…");
         return;
       }
-      out.toBlob((blob) => {
-        if (!blob) { finishFallback(); return; }
-        freeCanvas(out);
-        restorePreviewSoon();
-        const objUrl = URL.createObjectURL(blob);
-        const ua = navigator.userAgent || "";
-        const isInApp = /MicroMessenger|Weibo|WebView|xhsdiscover/i.test(ua);
-        const isMobileExport = isInApp || /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth <= 900;
-        if (isMobileExport && openExportModal(blob, objUrl, fname, outW, outH)) {
-          showToast(`已生成 ${outW}×${outH} 高清成品 · 可长按图片保存`);
-          return;
-        }
-        const a = document.createElement("a");
-        a.download = fname;
-        a.href = objUrl;
-        a.click();
-        setTimeout(() => { try { URL.revokeObjectURL(objUrl); } catch (_) {} }, 30000);
-        showToast(`已按 ${outW}×${outH} 原画质导出 ${fname}`);
-      }, "image/png");
+      if (typeof flushPendingCanvasSize === "function") flushPendingCanvasSize();
+      clearTimeout(renderTimer);
+      if (typeof renderFallbackTimer !== "undefined" && renderFallbackTimer) {
+        clearTimeout(renderFallbackTimer);
+        renderFallbackTimer = 0;
+      }
+      if (renderRafId) { cancelAnimationFrame(renderRafId); renderRafId = 0; }
+
+      const targetW = state.width, targetH = state.height;
+      _isExportingPng = true;
+      setExportButtonsDisabled(true);
+      setBusy(true, `正在生成 ${targetW}×${targetH} 高清成品…`);
+      showToast(`⏳ 正在导出 ${targetW}×${targetH} 高清图，请稍候…`);
+
+      // Yield a paint frame first (with 55ms fallback if rAF is throttled) so mobile UI shows feedback immediately!
+      let _expStarted = false;
+      const runExportWork = () => {
+        if (_expStarted) return;
+        _expStarted = true;
+        const prevScale = activeRenderScale;
+          activeRenderScale = getExportRenderScale();
+          bgCacheKey = "";
+          displayBlurKey = "";
+          const { rw: renderW, rh: renderH } = getRenderDim();
+          const needScaleUp = (renderW !== targetW || renderH !== targetH);
+          const useSharpBg = needScaleUp && canCompositeNativeSharpBg(forceTransparent);
+
+          let renderC = null;
+          try {
+            ensureBackgroundCache();
+            renderC = document.createElement("canvas");
+            renderC.width = renderW; renderC.height = renderH;
+            const rCtx = renderC.getContext("2d");
+            rCtx.imageSmoothingEnabled = true;
+            rCtx.imageSmoothingQuality = "high";
+            compositeFinal(rCtx, (forceTransparent || useSharpBg) ? "transparent" : state.bgMode);
+          } catch (err) {
+            console.error("exportPNG render error:", err);
+            if (renderC) freeCanvas(renderC);
+            activeRenderScale = prevScale;
+            releaseHeavyRenderCaches(isIOS || isMobileDevice);
+            _isExportingPng = false;
+            setExportButtonsDisabled(false);
+            setBusy(false, "导出异常，请重试");
+            showToast("导出出错，可适当调小尺寸后重试");
+            return;
+          } finally {
+            // Immediately shed intermediate bg/blur caches & WebGL FBOs BEFORE allocating target canvas!
+            activeRenderScale = prevScale;
+            releaseHeavyRenderCaches(isIOS || isMobileDevice);
+          }
+
+          // Yield one micro-slice before final upscale + asynchronous PNG encoding
+          setTimeout(() => {
+            let out = renderC;
+            if (needScaleUp) {
+              out = document.createElement("canvas");
+              out.width = targetW;
+              out.height = targetH;
+              const oCtx = out.getContext("2d");
+              oCtx.imageSmoothingEnabled = true;
+              oCtx.imageSmoothingQuality = "high";
+              if (useSharpBg) {
+                drawBgAtExactRes(oCtx, targetW, targetH);
+              }
+              oCtx.drawImage(renderC, 0, 0, targetW, targetH);
+              freeCanvas(renderC);
+            }
+            const outW = targetW, outH = targetH;
+            const prefix = document.getElementById("inpExportName").value.trim() || "水印效果成品";
+            const suffix = forceTransparent ? "_透明底" : `_${state.bgMode}`;
+            const fname = `${prefix}${suffix}.png`;
+
+            const finishClean = () => {
+              _isExportingPng = false;
+              setExportButtonsDisabled(false);
+              scheduleRender(isIOS ? 150 : 60);
+            };
+
+            const finishFallback = () => {
+              try {
+                const a = document.createElement("a");
+                a.download = fname;
+                a.href = out.toDataURL("image/png");
+                a.click();
+                showToast(`已按 ${outW}×${outH} 高清导出 ${fname}`);
+              } finally {
+                freeCanvas(out);
+                finishClean();
+              }
+            };
+
+            if (typeof out.toBlob !== "function") {
+              finishFallback();
+              return;
+            }
+            setBusy(true, `正在编码 ${outW}×${outH} PNG 文件…`);
+            out.toBlob((blob) => {
+              if (!blob) { finishFallback(); return; }
+              freeCanvas(out);
+              finishClean();
+              const objUrl = URL.createObjectURL(blob);
+              const ua = navigator.userAgent || "";
+              const isInApp = /MicroMessenger|Weibo|WebView|xhsdiscover/i.test(ua);
+              const isMobileExport = isMobileDevice || isIOS || isInApp || /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth <= 900;
+              if (isMobileExport && openExportModal(blob, objUrl, fname, outW, outH)) {
+                showToast(`✅ 已生成 ${outW}×${outH} 高清成品`);
+                return;
+              }
+              const a = document.createElement("a");
+              a.download = fname;
+              a.href = objUrl;
+              a.click();
+              setTimeout(() => { try { URL.revokeObjectURL(objUrl); } catch (_) {} }, 30000);
+              showToast(`已按 ${outW}×${outH} 原画质导出 ${fname}`);
+            }, "image/png");
+          }, 16);
+      };
+      requestAnimationFrame(() => setTimeout(runExportWork, 20));
+      setTimeout(runExportWork, 55);
     }
 
     // ==================== 批量套底图（同水印多底图 + 零依赖 ZIP 打包） ====================
@@ -9092,10 +9226,15 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         showToast("请先选择多张要套用的底图照片");
         return;
       }
+      if (typeof flushPendingCanvasSize === "function") flushPendingCanvasSize();
       _batchRunning = true;
       _batchCancelled = false;
       clearBatchResults();
       clearTimeout(renderTimer);
+      if (typeof renderFallbackTimer !== "undefined" && renderFallbackTimer) {
+        clearTimeout(renderFallbackTimer);
+        renderFallbackTimer = 0;
+      }
       if (renderRafId) { cancelAnimationFrame(renderRafId); renderRafId = 0; }
 
       const colorMode = (document.getElementById("selBatchColorMode") || {}).value || "auto_bg";
@@ -9171,17 +9310,34 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
             }
           }
 
-          const { rw: outW, rh: outH } = getRenderDim();
-          const out = document.createElement("canvas");
-          out.width = outW; out.height = outH;
-          const ctx = out.getContext("2d");
+          const targetW = state.width, targetH = state.height;
+          const { rw: renderW, rh: renderH } = getRenderDim();
+          const needScaleUp = (renderW !== targetW || renderH !== targetH);
+          const useSharpBg = needScaleUp && canCompositeNativeSharpBg(false);
+          const renderC = document.createElement("canvas");
+          renderC.width = renderW; renderC.height = renderH;
+          const ctx = renderC.getContext("2d");
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = "high";
           try {
-            compositeFinal(ctx, state.bgMode);
+            compositeFinal(ctx, useSharpBg ? "transparent" : state.bgMode);
           } finally {
             releaseHeavyRenderCaches(isIOS || isMobileDevice);
           }
+          let out = renderC;
+          if (needScaleUp) {
+            out = document.createElement("canvas");
+            out.width = targetW; out.height = targetH;
+            const oCtx = out.getContext("2d");
+            oCtx.imageSmoothingEnabled = true;
+            oCtx.imageSmoothingQuality = "high";
+            if (useSharpBg) {
+              drawBgAtExactRes(oCtx, targetW, targetH);
+            }
+            oCtx.drawImage(renderC, 0, 0, targetW, targetH);
+            freeCanvas(renderC);
+          }
+          const outW = targetW, outH = targetH;
 
           const blob = await new Promise((res) => {
             if (typeof out.toBlob === "function") out.toBlob(res, "image/png");
@@ -9679,10 +9835,12 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       setFlex("fsExtraBox", isFsEditable);
       const supportsCustomTint = typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || verId.startsWith("a0"));
       setFlex("fsCustomTintBox", supportsCustomTint);
+      const curEfObj = ALL_EFFECTS.find(e => e.id === verId);
+      const presetSumEl = document.getElementById("presetCurrentSummary");
+      if (presetSumEl) presetSumEl.textContent = curEfObj ? curEfObj.label : verId;
       if (supportsCustomTint) {
-        const efObj = ALL_EFFECTS.find(e => e.id === verId);
         const lbl = document.getElementById("lblFsTintTitle");
-        if (lbl) lbl.textContent = `🎨 给「${efObj ? efObj.label : "当前效果"}」改色`;
+        if (lbl) lbl.textContent = `🎨 给「${curEfObj ? curEfObj.label : "当前效果"}」改色`;
       }
       if (typeof syncMultiVsSingleColorUI === "function") syncMultiVsSingleColorUI();
     }
@@ -10136,6 +10294,396 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     if (btnOffline2El) btnOffline2El.onclick = downloadOfflineStudio;
     const btnOfflineTopCardEl = document.getElementById("btnOfflineTopCard");
     if (btnOfflineTopCardEl) btnOfflineTopCardEl.onclick = downloadOfflineStudio;
+
+    // ==================== 效果与配色预设（导出分享 / 导入后自由改色调参） ====================
+    const INITIAL_FX_DEFAULTS = JSON.parse(JSON.stringify(state.fx));
+    if (INITIAL_FX_DEFAULTS.customStrokeEnable === undefined) {
+      Object.assign(INITIAL_FX_DEFAULTS, {
+        customStrokeEnable: false,
+        customStrokeColor: "#ffffff",
+        customStrokeW: 2.5,
+        customStrokeAlpha: 100,
+        fsTintEnable: false,
+        fsTint1: "#ff66b2",
+        fsTint2: "#5ce1ff",
+        fsTintAlpha: 85
+      });
+    }
+
+    function utf8ToB64Url(str) {
+      const bytes = new TextEncoder().encode(str);
+      let bin = "";
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    }
+
+    function b64UrlToUtf8(b64u) {
+      let b64 = b64u.replace(/-/g, "+").replace(/_/g, "/");
+      while (b64.length % 4) b64 += "=";
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
+
+    async function copyTextUniversal(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (_) {}
+      }
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-9999px";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch (_) { ok = false; }
+      document.body.removeChild(ta);
+      return ok;
+    }
+
+    function buildEffectPresetObject(compact = false) {
+      const verId = state.fx.version || "m01_silver_gloss";
+      const efObj = ALL_EFFECTS.find(e => e.id === verId);
+      const rawName = (document.getElementById("inpPresetName").value || "").trim();
+      const presetName = rawName || (efObj ? `${efObj.label}配色方案` : "水印效果配色");
+      const curLayer = getSelectedLayer();
+      const layerStyle = (curLayer && curLayer.type !== "folder") ? {
+        opacity: curLayer.opacity ?? 100,
+        blendMode: curLayer.blendMode || "source-over"
+      } : undefined;
+      const gpuSpec = GPU_FILTER_SPECS[verId];
+      const gpu = gpuSpec && gpuParamState[verId] ? { ...gpuParamState[verId] } : undefined;
+
+      if (!compact) {
+        return {
+          schema: "watermark-studio-preset-v1",
+          name: presetName,
+          effectLabel: efObj ? efObj.label : verId,
+          exportedAt: new Date().toISOString(),
+          fx: JSON.parse(JSON.stringify(state.fx)),
+          ...(gpu ? { gpu } : {}),
+          ...(layerStyle ? { layerStyle } : {})
+        };
+      }
+      // Compact delta encoding for short shareable口令 (only keys differing from INITIAL_FX_DEFAULTS + version)
+      const fxDelta = { version: verId };
+      for (const [k, v] of Object.entries(state.fx)) {
+        if (k === "version") continue;
+        if (JSON.stringify(v) !== JSON.stringify(INITIAL_FX_DEFAULTS[k])) {
+          fxDelta[k] = v;
+        }
+      }
+      const mini = { v: 1, n: presetName, f: fxDelta };
+      if (gpu) mini.g = gpu;
+      if (layerStyle && (layerStyle.opacity !== 100 || layerStyle.blendMode !== "source-over")) mini.l = layerStyle;
+      return mini;
+    }
+
+    function syncAllFxControlsFromState() {
+      const fx = state.fx;
+      const verId = fx.version || "m01_silver_gloss";
+      const rangeSpecs = [
+        ["rngSilverBright", "valSilverBright", "silverBright", "%"],
+        ["rngSatinDist", "valSatinDist", "satinDist", " px"],
+        ["rngAddBlur", "valAddBlur", "addBlur", " px"],
+        ["rngOvBlur", "valOvBlur", "ovBlur", " px"],
+        ["rngDarkWireAlpha", "valDarkWireAlpha", "darkWireAlpha", "%"],
+        ["rngGradAngle", "valGradAngle", "gradAngle", "°"],
+        ["rngGradMid", "valGradMid", "gradMid", "%"],
+        ["rngWireGoldAlpha", "valWireGoldAlpha", "wireGoldAlpha", "%"],
+        ["rngGradGlass", "valGradGlass", "gradGlass", "%"],
+        ["rngWaterRefract", "valWaterRefract", "waterRefract", "%"],
+        ["rngWaterSpec", "valWaterSpec", "waterSpec", "%"],
+        ["rngGlassReliefRim", "valGlassReliefRim", "glassReliefRim", "%"],
+        ["rngThickSatin", "valThickSatin", "thickSatin", " px"],
+        ["rngThickBlur", "valThickBlur", "thickBlur", " px"],
+        ["rngThickDepth", "valThickDepth", "thickDepth", "%"],
+        ["rngWaterWireSilk", "valWaterWireSilk", "waterWireSilkAlpha", "%"],
+        ["rngWaterWireNoise", "valWaterWireNoise", "waterWireNoise", "%"],
+        ["rngWaterWireEcho", "valWaterWireEcho", "waterWireEcho", "%"],
+        ["rngWaterWireGlitch", "valWaterWireGlitch", "waterWireGlitchPx", " px"],
+        ["rngLayerBlurR", "valLayerBlurR", "layerBlurR", " px"],
+        ["rngCard1Alpha", "valCard1Alpha", "card1Alpha", "%"],
+        ["rngCavityShadow", "valCavityShadow", "cavityShadow", "%"],
+        ["rngEnamelSheen", "valEnamelSheen", "enamelSheen", "%"],
+        ["rngCard2Alpha", "valCard2Alpha", "card2Alpha", "%"],
+        ["rngStrokeW", "valStrokeW", "strokeW", " px"],
+        ["rngBlurR", "valBlurR", "blurR", " px"],
+        ["rngSpecStrength", "valSpecStrength", "specStrength", "%"],
+        ["rngTexOpacity", "valTexOpacity", "texOpacity", "%"],
+        ["rngBevelDepth", "valBevelDepth", "bevelDepth", "%"],
+        ["rngBevelAngle", "valBevelAngle", "bevelAngle", "°"],
+        ["rngGlowRadius", "valGlowRadius", "glowRadius", " px"],
+        ["rngFillAirbrush", "valFillAirbrush", "fillAirbrush", "%"],
+        ["rngCustomStrokeW", "valCustomStrokeW", "customStrokeW", " px"],
+        ["rngCustomStrokeAlpha", "valCustomStrokeAlpha", "customStrokeAlpha", "%"]
+      ];
+      for (const [rId, vId, key, suf] of rangeSpecs) {
+        const rEl = document.getElementById(rId);
+        const vEl = document.getElementById(vId);
+        if (rEl && fx[key] !== undefined) rEl.value = fx[key];
+        if (vEl && fx[key] !== undefined) vEl.textContent = `${fx[key]}${suf}`;
+      }
+      const colorSpecs = [
+        ["colCard1", "card1"],
+        ["colCard2", "card2"],
+        ["colOuterGlow", "glowColor"],
+        ["colGrad1", "gradColor1"],
+        ["colGrad2", "gradColor2"],
+        ["colWireGold", "wireGold"],
+        ["colWaterWireSilk", "waterWireSilk"],
+        ["colCustomStroke", "customStrokeColor"]
+      ];
+      for (const [cId, key] of colorSpecs) {
+        const cEl = document.getElementById(cId);
+        if (cEl && typeof fx[key] === "string" && /^#[0-9a-fA-F]{6}$/.test(fx[key])) cEl.value = fx[key];
+      }
+      const chkSpecs = [
+        ["chkMultiColorEnable", "multiColorEnable"],
+        ["chkCavityEnable", "cavityEnable"],
+        ["chkBevel", "bevelEnable"],
+        ["chkOuterGlow", "outerGlow"],
+        ["chkWaterWireGlitch", "waterWireGlitch"],
+        ["chkCustomStroke", "customStrokeEnable"]
+      ];
+      for (const [chkId, key] of chkSpecs) {
+        const el = document.getElementById(chkId);
+        if (el) el.checked = Boolean(fx[key]);
+      }
+      syncFsControlsUI();
+      if (typeof syncShadowControlsUI === "function") syncShadowControlsUI();
+      if (typeof syncFsTintUI === "function") syncFsTintUI();
+      buildGpuParamsUI(verId);
+      updateEffectPanelVisibility(verId);
+      renderEffectLibraryUI();
+      renderSixPalettesUI();
+      renderActiveSixSwatchesUI();
+    }
+
+    function applyImportedPresetPayload(rawObj) {
+      if (!rawObj || typeof rawObj !== "object") {
+        showToast("预设格式无效，请检查文件内容或口令是否完整");
+        return false;
+      }
+      const srcFx = rawObj.fx || rawObj.f;
+      if (!srcFx || typeof srcFx !== "object") {
+        showToast("未识别到有效的水印效果参数");
+        return false;
+      }
+      const verId = String(srcFx.version || "m01_silver_gloss");
+      const knownEffect = ALL_EFFECTS.some(e => e.id === verId) || Boolean(FILTER_PRESET_MAP[verId]) || Boolean(GPU_FILTER_SPECS[verId]) || verId === "layer_blur";
+      if (!knownEffect) {
+        showToast(`未找到对应效果类型 (${verId})，请刷新到最新版网页后再试`);
+        return false;
+      }
+
+      pushFxUndo("导入效果预设");
+
+      // Start from clean baseline defaults so recipient's previous unrelated toggles don't pollute imported recipe
+      const mergedFx = JSON.parse(JSON.stringify(INITIAL_FX_DEFAULTS));
+      if (FS_PRESET_DEFAULTS[verId]) {
+        Object.assign(mergedFx, FS_PRESET_DEFAULTS[verId]);
+      }
+      for (const [k, v] of Object.entries(srcFx)) {
+        if (k === "sixColors") {
+          if (Array.isArray(v) && v.length === 6 && v.every(c => typeof c === "string" && /^#[0-9a-fA-F]{6}$/.test(c))) {
+            mergedFx.sixColors = [...v];
+          }
+        } else if (typeof INITIAL_FX_DEFAULTS[k] === "boolean") {
+          mergedFx[k] = Boolean(v);
+        } else if (typeof INITIAL_FX_DEFAULTS[k] === "number") {
+          const num = Number(v);
+          if (Number.isFinite(num)) mergedFx[k] = num;
+        } else if (typeof INITIAL_FX_DEFAULTS[k] === "string") {
+          if (typeof v === "string" && v.length <= 40) mergedFx[k] = v;
+        }
+      }
+      mergedFx.version = verId;
+      state.fx = mergedFx;
+
+      const srcGpu = rawObj.gpu || rawObj.g;
+      if (srcGpu && typeof srcGpu === "object" && GPU_FILTER_SPECS[verId] && gpuParamState[verId]) {
+        for (const [gk, gv] of Object.entries(srcGpu)) {
+          if (gk in gpuParamState[verId]) {
+            const defV = gpuParamState[verId][gk];
+            if (typeof defV === "number") {
+              const n = Number(gv);
+              if (Number.isFinite(n)) gpuParamState[verId][gk] = n;
+            } else if (typeof gv === "string" && gv.length <= 32) {
+              gpuParamState[verId][gk] = gv;
+            }
+          }
+        }
+      }
+
+      // Apply to currently selected watermark layer (or auto-pick top visible watermark layer if __bg__ was selected)
+      let targetLayer = getSelectedLayer();
+      if (!targetLayer) {
+        const candidates = state.layers.filter(l => l.visible && l.type !== "folder");
+        if (candidates.length) {
+          targetLayer = candidates[candidates.length - 1];
+          state.selectedLayerId = targetLayer.id;
+        }
+      }
+      const srcLayerStyle = rawObj.layerStyle || rawObj.l;
+      if (targetLayer) {
+        targetLayer.effectId = verId;
+        targetLayer.qiasi = true;
+        if (srcLayerStyle && typeof srcLayerStyle === "object") {
+          if (Number.isFinite(Number(srcLayerStyle.opacity))) {
+            targetLayer.opacity = Math.max(0, Math.min(100, Math.round(Number(srcLayerStyle.opacity))));
+          }
+          if (typeof srcLayerStyle.blendMode === "string" && srcLayerStyle.blendMode.length <= 24) {
+            targetLayer.blendMode = srcLayerStyle.blendMode;
+          }
+        }
+      }
+
+      const presetName = String(rawObj.name || rawObj.n || "导入的配色方案").slice(0, 40);
+      const nameInp = document.getElementById("inpPresetName");
+      if (nameInp) nameInp.value = presetName;
+
+      bgCacheKey = "";
+      syncAllFxControlsFromState();
+      syncLayerUI();
+      loadDefaultAuxTex();
+      scheduleRender(0);
+      showToast(`✨ 已套用预设「${presetName}」！可切到「效果」页自由改色与微调参数`);
+      return true;
+    }
+
+    function parsePresetFromText(rawText) {
+      const txt = String(rawText || "").trim();
+      if (!txt) return null;
+      const m = txt.match(/WMS1:([A-Za-z0-9_-]+)/);
+      if (m) {
+        try {
+          return JSON.parse(b64UrlToUtf8(m[1]));
+        } catch (_) {
+          return null;
+        }
+      }
+      try {
+        return JSON.parse(txt);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    document.getElementById("btnCopyPresetCode").onclick = async () => {
+      const mini = buildEffectPresetObject(true);
+      const code = `【水印配方·${mini.n}】WMS1:${utf8ToB64Url(JSON.stringify(mini))}【复制整段到水印工作室→导出页粘贴导入】`;
+      const ok = await copyTextUniversal(code);
+      const box = document.getElementById("boxPastePreset");
+      const ta = document.getElementById("txtPresetCode");
+      if (ok) {
+        showToast(`✅ 已复制「${mini.n}」配方口令！可直接发给别人粘贴导入`);
+      } else if (box && ta) {
+        box.style.display = "flex";
+        ta.value = code;
+        ta.focus();
+        ta.select();
+        showToast("已生成配方口令，请长按输入框全选复制");
+      }
+    };
+
+    document.getElementById("btnExportPresetFile").onclick = async () => {
+      const fullObj = buildEffectPresetObject(false);
+      const safeName = (fullObj.name || "水印效果预设").replace(/[\\/:*?"<>|]+/g, "_");
+      const fname = `${safeName}.wms.json`;
+      const jsonStr = JSON.stringify(fullObj, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
+      if (isIOS && typeof File === "function" && navigator.canShare) {
+        try {
+          const f = new File([blob], fname, { type: "application/json" });
+          if (navigator.canShare({ files: [f] })) {
+            await navigator.share({ files: [f], title: fname });
+            return;
+          }
+        } catch (_) {}
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.download = fname;
+      a.href = url;
+      a.click();
+      setTimeout(() => { try { URL.revokeObjectURL(url); } catch (_) {} }, 15000);
+      showToast(`📤 已导出预设文件：${fname}`);
+    };
+
+    const boxPastePresetEl = document.getElementById("boxPastePreset");
+    const txtPresetCodeEl = document.getElementById("txtPresetCode");
+    document.getElementById("btnTogglePastePreset").onclick = async () => {
+      const isHidden = boxPastePresetEl.style.display === "none";
+      if (!isHidden) {
+        if (txtPresetCodeEl.value.trim()) {
+          const parsed = parsePresetFromText(txtPresetCodeEl.value);
+          if (parsed && applyImportedPresetPayload(parsed)) {
+            boxPastePresetEl.style.display = "none";
+            txtPresetCodeEl.value = "";
+            return;
+          }
+        }
+      }
+      boxPastePresetEl.style.display = "flex";
+      if (navigator.clipboard && window.isSecureContext && navigator.clipboard.readText) {
+        try {
+          const clip = await navigator.clipboard.readText();
+          if (clip && (clip.includes("WMS1:") || clip.trim().startsWith("{"))) {
+            const parsed = parsePresetFromText(clip);
+            if (parsed && applyImportedPresetPayload(parsed)) {
+              boxPastePresetEl.style.display = "none";
+              txtPresetCodeEl.value = "";
+              return;
+            }
+          }
+        } catch (_) {}
+      }
+      txtPresetCodeEl.focus();
+      showToast("请将配方口令粘贴到下方输入框，再点「立即套用该配方」");
+    };
+    document.getElementById("btnCancelPresetCode").onclick = () => {
+      boxPastePresetEl.style.display = "none";
+    };
+    document.getElementById("btnApplyPresetCode").onclick = () => {
+      const parsed = parsePresetFromText(txtPresetCodeEl.value);
+      if (!parsed) {
+        showToast("未识别到有效配方口令，请确认完整复制了 WMS1:... 内容");
+        return;
+      }
+      if (applyImportedPresetPayload(parsed)) {
+        boxPastePresetEl.style.display = "none";
+        txtPresetCodeEl.value = "";
+      }
+    };
+
+    const fileImportPresetEl = document.getElementById("fileImportPreset");
+    document.getElementById("btnImportPresetFile").onclick = () => fileImportPresetEl.click();
+    fileImportPresetEl.onchange = async (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      try {
+        const text = await f.text();
+        const parsed = parsePresetFromText(text);
+        if (!parsed) {
+          showToast("预设文件解析失败，请选择有效的 .json 预设文件");
+        } else {
+          applyImportedPresetPayload(parsed);
+        }
+      } catch (_) {
+        showToast("读取预设文件失败，请重试");
+      } finally {
+        fileImportPresetEl.value = "";
+      }
+    };
     document.getElementById("btnExportPNG").onclick = () => exportPNG(false);
     document.getElementById("btnExportPNG2").onclick = () => exportPNG(false);
     document.getElementById("btnExportTransparent").onclick = () => exportPNG(true);
@@ -10167,17 +10715,22 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const k2 = MIN_SHORT / Math.min(iw, ih);
         w = Math.round(iw * k2); h = Math.round(ih * k2);
       }
-      w = Math.max(200, Math.min(3600, w));
-      h = Math.max(200, Math.min(3600, h));
+      w = Math.max(100, Math.min(6000, w));
+      h = Math.max(100, Math.min(6000, h));
+      const prevW = state.width || w, prevH = state.height || h;
       state.width = w; state.height = h;
       state.layers.forEach(l => {
         l.baseScale = computeBaseScale(l.srcW, l.srcH);
-        l.x = w / 2; l.y = h / 2;
+        l.x = (l.x / Math.max(1, prevW)) * w;
+        l.y = (l.y / Math.max(1, prevH)) * h;
       });
       state.disabledCavities.clear();
       const iwEl = document.getElementById("inpCanvasW"), ihEl = document.getElementById("inpCanvasH");
       if (iwEl) iwEl.value = w;
       if (ihEl) ihEl.value = h;
+      const badgeEl = document.getElementById("curCanvasSizeBadge");
+      if (badgeEl) badgeEl.textContent = `当前 ${w} × ${h}`;
+      if (typeof _canvasSizePending !== "undefined") _canvasSizePending = false;
       bgCacheKey = "";
       displayBlurKey = "";
       scheduleRender(0);
@@ -10242,12 +10795,12 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       loadImageFile(f, (img) => {
         pushBgUndo("更换底图");
         state.bgImg = img;
-        const fitted = fitCanvasToBgImage(img);
+        const fitted = state.userLockedCanvasSize ? false : fitCanvasToBgImage(img);
         bgCacheKey = "";
         displayBlurKey = "";
         syncLayerUI();
         scheduleRender(0);
-        showToast(fitted ? `长图已完整适配画布 ${state.width} × ${state.height}` : "底图已更新");
+        showToast(fitted ? `长图已完整适配画布 ${state.width} × ${state.height}` : `底图已更新（当前画布 ${state.width} × ${state.height}）`);
       });
       e.target.value = "";
     };
@@ -11146,46 +11699,78 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     };
     document.getElementById("btnResetTex").onclick = () => { loadDefaultAuxTex(); showToast("已恢复原版辅助图1"); };
 
-    // Canvas size presets
-    document.querySelectorAll("[data-size]").forEach((btn) => {
-      btn.onclick = () => {
-        const [w, h] = btn.dataset.size.split("x").map(Number);
-        document.getElementById("inpCanvasW").value = w;
-        document.getElementById("inpCanvasH").value = h;
-      };
-    });
-    document.getElementById("btnFitBgSize").onclick = () => {
-      if (!state.bgImg) { showToast("请先导入底图"); return; }
-      let w = state.bgImg.naturalWidth || state.bgImg.width;
-      let h = state.bgImg.naturalHeight || state.bgImg.height;
-      const maxDim = Math.max(w, h);
-      if (maxDim > 3600) {
-        const k = 3600 / maxDim;
-        w = Math.round(w * k);
-        h = Math.round(h * k);
-      }
-      w = Math.max(200, Math.min(3600, w));
-      h = Math.max(200, Math.min(3600, h));
-      document.getElementById("inpCanvasW").value = w;
-      document.getElementById("inpCanvasH").value = h;
-      document.getElementById("btnApplySize").click();
-    };
-    document.getElementById("btnApplySize").onclick = () => {
-      const w = Math.max(200, Math.min(3600, parseInt(document.getElementById("inpCanvasW").value, 10) || 2000));
-      const h = Math.max(200, Math.min(3600, parseInt(document.getElementById("inpCanvasH").value, 10) || 2000));
-      state.width = w; state.height = h;
+    // Canvas size presets & auto-apply (no longer requires remembering to click Apply before Export)
+    let _canvasSizePending = false;
+    const inpCanvasWEl = document.getElementById("inpCanvasW");
+    const inpCanvasHEl = document.getElementById("inpCanvasH");
+    const curCanvasSizeBadgeEl = document.getElementById("curCanvasSizeBadge");
+    function applyCanvasSize(silent = false, lockUserSize = true) {
+      const w = Math.max(100, Math.min(6000, parseInt(inpCanvasWEl.value, 10) || state.width || 2000));
+      const h = Math.max(100, Math.min(6000, parseInt(inpCanvasHEl.value, 10) || state.height || 2000));
+      inpCanvasWEl.value = w;
+      inpCanvasHEl.value = h;
+      _canvasSizePending = false;
+      if (lockUserSize) state.userLockedCanvasSize = true;
+      if (curCanvasSizeBadgeEl) curCanvasSizeBadgeEl.textContent = `当前 ${w} × ${h}`;
+      const prevW = state.width || w, prevH = state.height || h;
+      if (prevW === w && prevH === h && silent) return;
+      state.width = w;
+      state.height = h;
       state.layers.forEach(l => {
         l.baseScale = computeBaseScale(l.srcW, l.srcH);
-        l.x = w / 2; l.y = h / 2;
+        l.x = (l.x / Math.max(1, prevW)) * w;
+        l.y = (l.y / Math.max(1, prevH)) * h;
       });
       bgCacheKey = "";
       displayBlurKey = "";
       state.disabledCavities.clear();
       syncLayerUI();
-      scheduleRender(0);
-      setTimeout(fitViewport, 50);
-      showToast(`画布尺寸已更新为 ${w} × ${h}`);
+      if (!silent) {
+        scheduleRender(0);
+        setTimeout(fitViewport, 50);
+        showToast(`画布尺寸已生效：${w} × ${h} px`);
+      }
+    }
+    function flushPendingCanvasSize() {
+      const typedW = parseInt(inpCanvasWEl.value, 10);
+      const typedH = parseInt(inpCanvasHEl.value, 10);
+      if (_canvasSizePending || (Number.isFinite(typedW) && typedW !== state.width) || (Number.isFinite(typedH) && typedH !== state.height)) {
+        applyCanvasSize(true, true);
+      }
+    }
+    [inpCanvasWEl, inpCanvasHEl].forEach((inp) => {
+      if (!inp) return;
+      inp.addEventListener("input", () => { _canvasSizePending = true; });
+      inp.addEventListener("change", () => applyCanvasSize(false, true));
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); inp.blur(); applyCanvasSize(false, true); }
+      });
+    });
+    document.querySelectorAll("[data-size]").forEach((btn) => {
+      btn.onclick = () => {
+        const [w, h] = btn.dataset.size.split("x").map(Number);
+        inpCanvasWEl.value = w;
+        inpCanvasHEl.value = h;
+        applyCanvasSize(false, true);
+      };
+    });
+    document.getElementById("btnFitBgSize").onclick = () => {
+      if (!state.bgImg) { showToast("请先导入底图"); return; }
+      let w = state.bgImg._origW || state.bgImg.naturalWidth || state.bgImg.width;
+      let h = state.bgImg._origH || state.bgImg.naturalHeight || state.bgImg.height;
+      const maxDim = Math.max(w, h);
+      if (maxDim > 6000) {
+        const k = 6000 / maxDim;
+        w = Math.round(w * k);
+        h = Math.round(h * k);
+      }
+      w = Math.max(100, Math.min(6000, w));
+      h = Math.max(100, Math.min(6000, h));
+      inpCanvasWEl.value = w;
+      inpCanvasHEl.value = h;
+      applyCanvasSize(false, true);
     };
+    document.getElementById("btnApplySize").onclick = () => applyCanvasSize(false, true);
 
     // Keyboard shortcuts
     window.addEventListener("keydown", (e) => {
