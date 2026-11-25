@@ -1268,7 +1268,7 @@
           <div class="card-title">
             <span>导入素材 / 新建图层</span>
             <div class="row" style="gap:4px;">
-              <button class="btn btn-sm" id="btnInstallPwaTop" style="color:#a8dcff;border-color:rgba(125,166,255,0.45);" title="将工作室添加到苹果/安卓手机主屏幕，全屏运行无顶栏、支持断网离线，不闪退">📲 装手机桌面</button>
+              <button class="btn btn-sm" id="btnInstallPwaTop" style="color:#a8dcff;border-color:rgba(125,166,255,0.45);" title="把这个网址存成手机桌面快捷图标或浏览器书签，下次点一下直达">🔖 添加桌面图标</button>
               <button class="btn btn-sm" id="btnOfflineTopCard" style="color:#ffd98e;border-color:rgba(230,185,110,0.45);" title="把这个工作室存成本地单文件 HTML（传电脑双击打开，断网也能用）">⬇ 存离线版</button>
             </div>
           </div>
@@ -2478,8 +2478,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     // Mobile / iOS preview renders at lightweight 960px resolution to eliminate GPU OOM & stutter;
     // PNG export / bake / merge ALWAYS switch activeRenderScale = 1 for full 2000x2000 HD output!
     const isIOS = /iP(hone|od|ad)/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const isMobileDevice = isIOS || /Android|Mobile|HarmonyOS/i.test(navigator.userAgent) || window.innerWidth <= 900;
+    const isMobileDevice = isIOS
+      || /Android|Mobile|HarmonyOS|HeyTapBrowser|OppoBrowser|VivoBrowser|MiuiBrowser|HuaweiBrowser|HonorBrowser|SamsungBrowser|UCBrowser|Quark|MQQBrowser|baiduboxapp|MicroMessenger|xhsdiscover|Weibo/i.test(navigator.userAgent)
+      || Boolean(window.matchMedia && window.matchMedia("(pointer: coarse) and (hover: none)").matches)
+      || Math.min((window.screen && window.screen.width) || 9999, (window.screen && window.screen.height) || 9999) <= 600
+      || window.innerWidth <= 900;
     let activeRenderScale = 1;
+    let _isBooting = true;
     function getRenderDim() {
       const rw = Math.max(128, Math.round(state.width * activeRenderScale));
       const rh = Math.max(128, Math.round(state.height * activeRenderScale));
@@ -2487,7 +2492,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     }
     function getPreviewScale() {
       const maxDim = Math.max(state.width, state.height);
-      if (isIOS || isMobileDevice || window.innerWidth <= 900) return Math.min(1, 960 / maxDim);
+      if (isIOS || isMobileDevice || window.innerWidth <= 900) return Math.min(1, 800 / maxDim);
       return 1;
     }
     function getExportRenderScale() {
@@ -2514,6 +2519,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
     function runAtFullResolution(fn) {
       clearTimeout(renderTimer);
+      if (typeof renderFallbackTimer !== "undefined" && renderFallbackTimer) {
+        clearTimeout(renderFallbackTimer);
+        renderFallbackTimer = 0;
+      }
       if (typeof renderRafId !== "undefined" && renderRafId) {
         cancelAnimationFrame(renderRafId);
         renderRafId = 0;
@@ -2870,7 +2879,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       state.layers.push(layer);
       state.selectedLayerId = layer.id;
       syncLayerUI();
-      scheduleRender();
+      if (!_isBooting && !opts.skipRender) scheduleRender();
       return layer;
     }
 
@@ -5626,6 +5635,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           outCtx.restore();
 
           // 11. Diagonal glossy reflection stripes masked to P
+          if (!state.acrylicRefImg) ensureAcrylicAuxLoaded();
           if (state.acrylicRefImg && texMul > 0) {
             const refC = mkCanvas();
             const refCtx = refC.getContext("2d");
@@ -7673,15 +7683,23 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     }
 
     let renderRafId = 0;
+    let renderFallbackTimer = 0;
     function scheduleRender(delay = 35) {
       clearTimeout(renderTimer);
+      clearTimeout(renderFallbackTimer);
       if (renderRafId) { cancelAnimationFrame(renderRafId); renderRafId = 0; }
       const effDelay = isIOS ? (delay > 0 ? Math.max(delay, 90) : 16) : (isMobileDevice && delay > 0 ? Math.max(delay, 60) : delay);
       renderTimer = setTimeout(() => {
-        renderRafId = requestAnimationFrame(() => {
-          renderRafId = 0;
+        let ran = false;
+        const runOnce = () => {
+          if (ran) return;
+          ran = true;
+          clearTimeout(renderFallbackTimer);
+          if (renderRafId) { cancelAnimationFrame(renderRafId); renderRafId = 0; }
           renderAll();
-        });
+        };
+        renderRafId = requestAnimationFrame(runOnce);
+        renderFallbackTimer = setTimeout(runOnce, 80);
       }, effDelay);
     }
 
@@ -11204,21 +11222,47 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
     });
 
-    // Init
-    function loadDefaultAuxTex() {
+    // Init (cached & lazy-loaded textures so startup decodes only the active 12KB texture once)
+    let _cachedSilverAux = null;
+    let _cachedDefaultAux = null;
+    let _acrylicAuxLoading = false;
+    function ensureAcrylicAuxLoaded() {
+      if (state.acrylicRefImg || _acrylicAuxLoading) return;
+      _acrylicAuxLoading = true;
+      const a1 = new Image();
+      a1.onload = () => {
+        state.acrylicRefImg = a1;
+        _acrylicAuxLoading = false;
+        if (!_isBooting) scheduleRender(0);
+      };
+      a1.onerror = () => { _acrylicAuxLoading = false; };
+      a1.src = ACRYLIC_AUX1_TEX;
+    }
+    function loadDefaultAuxTex(onReady) {
+      const wantSilver = state.fx.version === "m01_silver_gloss";
+      const presetRec = FILTER_PRESET_MAP[state.fx.version];
+      if (presetRec && presetRec.traits && presetRec.traits.isAcrylic) {
+        ensureAcrylicAuxLoaded();
+      }
+      const cached = wantSilver ? _cachedSilverAux : _cachedDefaultAux;
+      if (cached) {
+        state.auxImg = cached;
+        if (typeof onReady === "function") onReady();
+        else if (!_isBooting) scheduleRender(0);
+        return;
+      }
       const img = new Image();
-      img.onload = () => { state.auxImg = img; scheduleRender(0); };
-      img.src = state.fx.version === "m01_silver_gloss" ? SILVER_AUX_TEX : DEFAULT_AUX_TEX;
-      if (!state.acrylicRefImg) {
-        const a1 = new Image();
-        a1.onload = () => { state.acrylicRefImg = a1; scheduleRender(0); };
-        a1.src = ACRYLIC_AUX1_TEX;
-      }
-      if (!state.acrylicDotImg) {
-        const a2 = new Image();
-        a2.onload = () => { state.acrylicDotImg = a2; scheduleRender(0); };
-        a2.src = ACRYLIC_AUX2_TEX;
-      }
+      img.onload = () => {
+        if (wantSilver) _cachedSilverAux = img;
+        else _cachedDefaultAux = img;
+        state.auxImg = img;
+        if (typeof onReady === "function") onReady();
+        else if (!_isBooting) scheduleRender(0);
+      };
+      img.onerror = () => {
+        if (typeof onReady === "function") onReady();
+      };
+      img.src = wantSilver ? SILVER_AUX_TEX : DEFAULT_AUX_TEX;
     }
 
     window.addEventListener("resize", () => {
@@ -11376,36 +11420,66 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       };
     }
 
-    loadDefaultAuxTex();
+    function paintInstantBootPreview() {
+      try {
+        const fastW = 480, fastH = Math.max(120, Math.round(480 * (state.height / Math.max(1, state.width))));
+        mainCanvas.width = fastW;
+        mainCanvas.height = fastH;
+        mainCanvas.style.width = `${state.width}px`;
+        mainCanvas.style.height = `${state.height}px`;
+        overlayCanvas.width = fastW;
+        overlayCanvas.height = fastH;
+        drawDefaultBackground(mainCtx, fastW, fastH);
+        const demoLayer = state.layers[0];
+        if (demoLayer && demoLayer.source) {
+          const rs = fastW / Math.max(1, state.width);
+          mainCtx.save();
+          mainCtx.scale(rs, rs);
+          mainCtx.globalAlpha = 0.22;
+          drawLayerToCtx(mainCtx, demoLayer, false);
+          mainCtx.restore();
+        }
+        document.getElementById("canvasDimLabel").textContent = `${state.width} × ${state.height} px`;
+        setBusy(false, "就绪 · 正在载入高清质感…");
+      } catch (_) {}
+    }
+
     updateEffectPanelVisibility(state.fx.version);
-    addLayerFromSource("示例水印 · LOCAL STUDIO", createDemoLayerCanvas(), { qiasi: true });
-    setTimeout(fitViewport, 60);
+    addLayerFromSource("示例水印 · LOCAL STUDIO", createDemoLayerCanvas(), { qiasi: true, skipRender: true });
+    paintInstantBootPreview();
+    fitViewport();
+    _isBooting = false;
+    let _bootRendered = false;
+    const triggerSingleBootRender = () => {
+      if (_bootRendered) return;
+      _bootRendered = true;
+      setTimeout(() => scheduleRender(0), 32);
+    };
+    loadDefaultAuxTex(triggerSingleBootRender);
+    setTimeout(triggerSingleBootRender, 220);
   </script>
 
   <div class="modal-backdrop" id="pwaInstallModal" role="dialog" aria-modal="true">
-    <div class="modal-card" style="max-width:440px;">
+    <div class="modal-card" style="max-width:420px;">
       <div class="modal-head">
-        <h3>📲 安装「水印工作室」到手机桌面</h3>
+        <h3>🔖 添加桌面图标</h3>
         <button class="btn btn-sm" id="btnClosePwaModal">关闭 ✕</button>
       </div>
       <div class="modal-body" id="pwaModalBody">
         <div class="modal-box" id="pwaInAppWarn" style="display:none;background:rgba(230,185,110,0.12);border-color:rgba(230,185,110,0.45);">
-          <strong style="color:#ffd98e;">⚠️ 当前在小红书/微信内置浏览器中</strong><br/>
-          请先点右上角 <b>「···」</b> 选择 <b>「在系统浏览器 / Safari 打开」</b>，再按下方步骤添加到手机桌面，独立全屏运行更稳、不下拉刷新、不闪退！
-        </div>
-        <div class="modal-box" id="pwaIosStepBox">
-          <strong>🍎 苹果 iPhone / iPad（免安装包 · 秒变全屏离线 App）</strong><br/>
-          1. 用 <b>Safari</b> 打开本网址，点屏幕底部中间的 <b>「分享 ⬆」</b> 图标<br/>
-          2. 往下滑找到并点击 <b>「添加到主屏幕」</b> → 点右上角「添加」<br/>
-          3. 桌面就会出现「水印工作室」独立图标，点开全屏无顶栏、支持断网离线使用，以后功能更新也会自动同步！
+          <strong style="color:#ffd98e;">⚠️ 当前在内置网页窗口中</strong><br/>
+          请先点右上角 <b>「···」</b> 选择 <b>「在浏览器打开」</b>，大画面运行更顺滑、不误触下拉刷新。
         </div>
         <div class="modal-box" id="pwaAndroidStepBox" style="background:rgba(125,166,255,0.08);border-color:rgba(125,166,255,0.3);">
-          <strong style="color:#a8dcff;">🤖 安卓 / 电脑浏览器</strong><br/>
-          <span id="pwaAndroidHintText">点击浏览器菜单（右上角或底部 <b>⋮ / 三横线</b>）→ 选择 <b>「添加到主屏幕 / 安装应用」</b> 即可生成桌面独立 App 图标。</span>
+          <strong style="color:#a8dcff;">📱 手机浏览器</strong><br/>
+          点浏览器底部菜单 <b>「≡ 三横线」</b> → 选择 <b>「添加书签 / 添加快捷方式」</b>，勾选 <b>「手机桌面」</b> 即可生成桌面图标，下次点一下直达。
           <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-primary" id="btnTriggerNativePwa" style="display:none;flex:1;justify-content:center;">✨ 一键安装到桌面</button>
-            <a class="btn btn-mint" id="btnDownloadApkLink" href="./watermark_studio.apk" download="水印效果工作室.apk" style="display:none;flex:1;justify-content:center;text-decoration:none;">⬇ 下载安卓安装包 (.apk)</a>
+            <button class="btn btn-primary" id="btnTriggerNativePwa" style="display:none;flex:1;justify-content:center;">✨ 一键添加桌面图标</button>
           </div>
+        </div>
+        <div class="modal-box" style="background:rgba(255,255,255,0.04);border-color:var(--border);">
+          <strong style="color:#dbe6ff;">💻 电脑浏览器</strong><br/>
+          按键盘 <b>Ctrl + D</b> 即可收藏到书签栏。
         </div>
       </div>
     </div>
@@ -11509,7 +11583,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       mask.addEventListener("click", function (e) { if (e.target === mask) closeGuide(); });
       var seen = false;
       try { seen = !!localStorage.getItem(KEY); } catch (e) {}
-      if (!seen) setTimeout(openGuide, 600);
+      if (!seen) setTimeout(openGuide, 950);
     })();
 
     // ==================== 长按弹出文字说明 ====================
@@ -11659,12 +11733,21 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       sync();
     })();
 
-    // ==================== PWA 离线缓存注册 & 安装到桌面 / APK 下载引导 ====================
+    // ==================== 桌面快捷图标 & 浏览器书签引导（自动清理旧 sw 缓存防卡顿） ====================
     (function () {
-      if ("serviceWorker" in navigator && /^https?:$/i.test(location.protocol)) {
-        window.addEventListener("load", function () {
-          navigator.serviceWorker.register("./sw.js").catch(function () {});
-        });
+      if ("serviceWorker" in navigator) {
+        try {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (r) { r.unregister(); });
+          }).catch(function () {});
+        } catch (e) {}
+      }
+      if ("caches" in window) {
+        try {
+          caches.keys().then(function (keys) {
+            keys.forEach(function (k) { caches.delete(k); });
+          }).catch(function () {});
+        } catch (e) {}
       }
       var isStandalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
       var topBtn = document.getElementById("btnInstallPwaTop");
@@ -11681,8 +11764,6 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       var modal = document.getElementById("pwaInstallModal");
       var closeBtn = document.getElementById("btnClosePwaModal");
       var inAppWarn = document.getElementById("pwaInAppWarn");
-      var apkLink = document.getElementById("btnDownloadApkLink");
-      var apkChecked = false;
       function openPwaModal() {
         if (deferredPrompt && nativeBtn) {
           nativeBtn.style.display = "inline-flex";
@@ -11690,14 +11771,6 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         var ua = navigator.userAgent || "";
         if (inAppWarn) {
           inAppWarn.style.display = /MicroMessenger|Weibo|xhsdiscover/i.test(ua) ? "block" : "none";
-        }
-        if (!apkChecked && apkLink && /^https?:$/i.test(location.protocol)) {
-          apkChecked = true;
-          fetch("./watermark_studio.apk", { method: "HEAD" }).then(function (r) {
-            if (r && r.ok && (r.headers.get("content-type") || "").indexOf("text/html") === -1) {
-              apkLink.style.display = "inline-flex";
-            }
-          }).catch(function () {});
         }
         if (modal) modal.classList.add("show");
       }
@@ -11713,15 +11786,6 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
             nativeBtn.style.display = "none";
             if (modal) modal.classList.remove("show");
           });
-        });
-      }
-      if (apkLink) {
-        apkLink.addEventListener("click", function (e) {
-          var ua = navigator.userAgent || "";
-          if (/MicroMessenger|Weibo|xhsdiscover/i.test(ua)) {
-            e.preventDefault();
-            if (typeof showToast === "function") showToast("请先点右上角 ··· 选择「在系统浏览器打开」即可下载安装 APK");
-          }
         });
       }
     })();
