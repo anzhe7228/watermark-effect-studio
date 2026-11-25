@@ -571,6 +571,34 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ibisPaint-style giant teardrop eyedropper loupe */
+    .eye-loupe {
+      position: fixed;
+      left: 0; top: 0;
+      width: 104px; height: 126px;
+      pointer-events: none;
+      z-index: 320;
+      display: none;
+      transform: translate(-50%, -100%);
+      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.36));
+      will-change: left, top;
+    }
+    .eye-loupe.show { display: block; }
+    .eye-loupe-hex {
+      position: absolute;
+      left: 50%; top: -22px;
+      transform: translateX(-50%);
+      background: rgba(16, 20, 30, 0.88);
+      color: #eef3ff;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 99px;
+      padding: 1px 8px;
+      font-size: 10.5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
     .bg-blur-pop { display: none; }
 
     /* About / Compliance Modal */
@@ -760,7 +788,7 @@
         transition: none;
       }
       body.mobile-canvas-max .workspace {
-        grid-template-rows: minmax(0, 1fr) calc(38px + env(safe-area-inset-bottom, 0px));
+        grid-template-rows: minmax(0, 1fr) calc(62px + env(safe-area-inset-bottom, 0px));
       }
       body.mobile-canvas-max .inspector .tab-panel,
       body.mobile-canvas-max .inspector .safety-banner {
@@ -830,23 +858,26 @@
       @media (max-width: 480px) { #btnZoom100 { display: none; } }
       #stageHint { display: none !important; }
       .row-drag {
-        flex: 0 0 20px;
-        height: 20px;
+        flex: 0 0 24px;
+        height: 24px;
+        width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(180deg, #10141d, #161b27);
-        border-top: 1px solid var(--border-strong);
+        gap: 6px;
+        background: linear-gradient(180deg, #1b2233, #141925);
+        border-top: 1px solid rgba(125, 166, 255, 0.35);
+        border-bottom: 1px solid var(--border);
         cursor: row-resize;
         touch-action: none;
         user-select: none;
         -webkit-user-select: none;
-        z-index: 8;
+        z-index: 10;
       }
-      .row-drag span { width: 58px; height: 4px; border-radius: 99px; background: rgba(165, 195, 255, 0.5); }
-      .row-drag.dragging { background: #1c2538; }
-      .row-drag.dragging span { background: var(--accent); width: 72px; }
-      body.mobile-canvas-max .row-drag { display: flex; }
+      .row-drag span { width: 64px; height: 5px; border-radius: 99px; background: rgba(165, 200, 255, 0.78); box-shadow: 0 0 8px rgba(125, 166, 255, 0.45); }
+      .row-drag.dragging { background: #222d44; }
+      .row-drag.dragging span { background: #a8dcff; width: 84px; }
+      body.mobile-canvas-max .row-drag { display: flex !important; }
       .stage-toolbar .btn-sm { padding: 1px 4px; font-size: 10px; }
       #canvasDimLabel { display: none; }
       #btnMobileTogglePanel { display: inline-flex !important; }
@@ -1208,11 +1239,11 @@
           <button class="offline-pill" id="btnFooterAbout" title="查看本地离线与原创声明">🔒 纯本地离线 · 支持飞行模式自证</button>
         </div>
       </div>
-      <div class="row-drag" id="rowDrag" title="拖动可调整上下比例"><span></span></div>
     </main>
 
     <!-- Right Inspector -->
     <aside class="inspector">
+      <div class="row-drag" id="rowDrag"><span></span></div>
       <div class="tabs">
         <button class="tab-btn active" data-tab="layers">图层与全屏</button>
         <button class="tab-btn" data-tab="effect">效果</button>
@@ -1968,6 +1999,14 @@
   </div>
 
   <div class="toast" id="toast"></div>
+  <div class="eye-loupe" id="eyeLoupe" aria-hidden="true">
+    <div class="eye-loupe-hex" id="eyeLoupeHex">#FFFFFF</div>
+    <svg width="104" height="126" viewBox="0 0 104 126" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M52 4C26.595 4 6 24.595 6 50C6 67.2 15.8 82.8 31.2 95.8L52 122L72.8 95.8C88.2 82.8 98 67.2 98 50C98 24.595 77.405 4 52 4Z" fill="#dfe3eb" stroke="#9aa2b2" stroke-width="2.2" stroke-linejoin="round"/>
+      <circle cx="52" cy="50" r="39" id="eyeLoupeFill" fill="#ffffff" stroke="#ffffff" stroke-width="2.4"/>
+      <circle cx="52" cy="50" r="39" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="1"/>
+    </svg>
+  </div>
 
   <script>
     // ==================== EMBEDDED WEBGL2 GPU FILTER ENGINE (折光原生引擎) ====================
@@ -7432,6 +7471,15 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         renderActiveSixSwatchesUI();
       } else if (state.eyeTarget === "card1") {
         state.fx.card1 = hex; document.getElementById("colCard1").value = hex;
+        state.fx.cavityEnable = true;
+        if (state.fx.multiColorEnable) {
+          state.fx.multiColorEnable = false;
+          const chkMC = document.getElementById("chkMultiColorEnable");
+          if (chkMC) chkMC.checked = false;
+          if (typeof syncMultiVsSingleColorUI === "function") syncMultiVsSingleColorUI();
+        }
+        const chkCav = document.getElementById("chkCavityEnable");
+        if (chkCav) chkCav.checked = true;
       } else if (state.eyeTarget === "card2") {
         state.fx.card2 = hex; document.getElementById("colCard2").value = hex;
       } else if (state.eyeTarget === "brush") {
@@ -7452,6 +7500,24 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
       syncEyeBarFromHex(hex);
       if (doRender && state.eyeTarget !== "brush") scheduleRender(30);
+    }
+
+    const eyeLoupeEl = document.getElementById("eyeLoupe");
+    const eyeLoupeFillEl = document.getElementById("eyeLoupeFill");
+    const eyeLoupeHexEl = document.getElementById("eyeLoupeHex");
+    function showEyeLoupe(clientX, clientY, hex) {
+      if (!eyeLoupeEl) return;
+      const liftY = isMobileDevice ? 22 : 8;
+      const lx = Math.max(56, Math.min(window.innerWidth - 56, clientX));
+      const ly = Math.max(148, Math.min(window.innerHeight - 10, clientY - liftY));
+      eyeLoupeEl.style.left = `${Math.round(lx)}px`;
+      eyeLoupeEl.style.top = `${Math.round(ly)}px`;
+      if (eyeLoupeFillEl) eyeLoupeFillEl.setAttribute("fill", hex);
+      if (eyeLoupeHexEl) eyeLoupeHexEl.textContent = String(hex || "#ffffff").toUpperCase();
+      eyeLoupeEl.classList.add("show");
+    }
+    function hideEyeLoupe() {
+      if (eyeLoupeEl) eyeLoupeEl.classList.remove("show");
     }
 
     function sampleCanvasColorAt(pt) {
@@ -7529,7 +7595,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (ws) ws.style.gridTemplateRows = "";
       const btn = document.getElementById("btnMobileTogglePanel");
       if (btn) btn.textContent = expand ? "展开面板 ▴" : "大画布 ▾";
-      if (changed && refit) setTimeout(fitViewport, 40);
+      if (changed && refit) setTimeout(refitIfFitted, 40);
     }
 
     // ==================== 上下分栏拖拽（仅窄屏/手机：支持拖横条 + 拖页签栏上下拉动） ====================
@@ -7596,7 +7662,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (e && e.pointerId !== undefined && rowDragEl && rowDragEl.releasePointerCapture) {
         try { rowDragEl.releasePointerCapture(e.pointerId); } catch (_) {}
       }
-      fitViewport();
+      refitIfFitted();
     }
 
     if (rowDragEl) {
@@ -7643,7 +7709,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         if (!tabDragging) return;
         tabDragging = false;
         if (rowDragEl) rowDragEl.classList.remove("dragging");
-        fitViewport();
+        refitIfFitted();
       };
       tabsBarEl.addEventListener("touchend", endTabDrag);
       tabsBarEl.addEventListener("touchcancel", endTabDrag);
@@ -7654,10 +7720,6 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       canvasWrap.style.transform = `translate3d(${state.view.panX}px, ${state.view.panY}px, 0) scale(${state.view.zoom})`;
       document.getElementById("zoomBadge").textContent = `${Math.round(state.view.zoom * 100)}%`;
       if (!skipOverlay) {
-        // Mobile auto-expand: zooming in past 1.18x of fit zoom automatically collapses bottom inspector!
-        if (window.innerWidth <= 900 && state.view.zoom > lastFitZoom * 1.18 && !document.body.classList.contains("mobile-canvas-max")) {
-          setMobileCanvasMax(true, false);
-        }
         drawOverlayHandles();
       }
     }
@@ -7805,8 +7867,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
       if (state.tool === "eyedropper") {
         const hex = sampleCanvasColorAt(pt);
+        showEyeLoupe(e.clientX, e.clientY, hex);
         dragState = { type: "eyedropper" };
-        showToast(`已吸取颜色 ${hex}`);
         return;
       }
 
@@ -7928,7 +7990,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (dragState.type === "eyedropper") {
         const pt = clientToCanvas(e.clientX, e.clientY);
         if (pt.x >= 0 && pt.y >= 0 && pt.x < state.width && pt.y < state.height) {
-          sampleCanvasColorAt(pt);
+          const hex = sampleCanvasColorAt(pt);
+          showEyeLoupe(e.clientX, e.clientY, hex);
         }
         return;
       }
@@ -8056,6 +8119,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           updateContextBar();
           drawOverlayHandles();
         }
+      }
+      if (dragState && dragState.type === "eyedropper") {
+        hideEyeLoupe();
+        if (state.eyeTarget !== "brush") scheduleRender(0);
       }
       if (dragState && (dragState.type === "eraser" || dragState.type === "brush")) {
         syncLayerUI();
@@ -11324,7 +11391,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       function findTipEl(node) {
         if (node && node.tagName && /^(INPUT|SELECT|TEXTAREA|OPTION|LABEL)$/i.test(node.tagName)) return null;
         while (node && node.nodeType === 1) {
-          if (node.id === "bgBlurPop" || node.id === "bgBlurInline" || (node.closest && (node.closest("#bgBlurPop") || node.closest("#bgBlurInline")))) return null;
+          if (node.id === "rowDrag" || node.id === "bgBlurPop" || node.id === "bgBlurInline" || (node.closest && (node.closest("#rowDrag") || node.closest("#bgBlurPop") || node.closest("#bgBlurInline")))) return null;
           if (node.getAttribute && (node.getAttribute("title") || node.getAttribute("data-tip"))) return node;
           node = node.parentElement;
         }
