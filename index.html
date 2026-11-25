@@ -1589,7 +1589,7 @@
 
           <div id="fsCustomTintBox" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border);">
             <div class="row-between">
-              <label class="switch" style="color:#ffd98e;font-weight:600;" title="开启后可给当前全屏效果自由改单色或双色渐变"><input type="checkbox" id="chkFsTintEnable" /> 🎨 全屏自定义改色</label>
+              <label class="switch" style="color:#ffd98e;font-weight:600;" title="开启后可给当前选中的全屏或日漫效果自由改单色或双色渐变"><input type="checkbox" id="chkFsTintEnable" /> <span id="lblFsTintTitle">🎨 给当前效果改色</span></label>
               <button class="btn btn-sm" id="btnFsTintReset" style="padding:2px 7px;font-size:10px;" title="关闭自定义改色，恢复该效果原版配色">恢复原色</button>
             </div>
             <div class="grid-2">
@@ -1723,25 +1723,26 @@
 
         <div class="card" id="cardPalettePreset">
           <div class="card-title">
-            <span>色卡预设（色卡1填色 + 色卡2银身）</span>
+            <span>🎨 一键整套配色（改水印填色 + 银身 + 发光）</span>
           </div>
           <div class="palette-grid" id="paletteGrid"></div>
         </div>
 
         <div class="card" id="cardMultiColorWorkbench">
           <div class="card-title">
-            <span>🎨 多色分区填色 & 珐琅空洞工作台</span>
+            <span>🎨 水印填色区（空洞/字体内填色）</span>
             <label class="switch"><input type="checkbox" id="chkCavityEnable" checked /> 开启填色</label>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px;padding:9px;background:rgba(125,166,255,0.06);border:1px solid rgba(125,166,255,0.24);border-radius:8px;">
             <div class="row-between">
               <label class="switch" style="font-weight:600;color:#ffd6e5;">
-                <input type="checkbox" id="chkMultiColorEnable" /> 启用 6 色分区填色
+                <input type="checkbox" id="chkMultiColorEnable" /> 启用 6 色分区（开启后接管下方单色）
               </label>
-              <button class="btn btn-sm" id="btnExtractBgSix" style="color:#96eed0;border-color:rgba(82,199,160,0.45);" title="从当前底图自动提取 2浅+2主+2深 6个高对比配色并立刻填色">✨ 一键从底图自动配 6 色</button>
+              <button class="btn btn-sm" id="btnExtractBgSix" style="color:#96eed0;border-color:rgba(82,199,160,0.45);" title="从当前底图自动提取 2浅+2主+2深 6个高对比配色并立刻填色">✨ 按底图配 6 色</button>
             </div>
 
+            <div id="sixColorInnerBody" style="display:flex;flex-direction:column;gap:8px;">
             <div class="six-palette-grid" id="sixPaletteGrid"></div>
 
             <div class="row-between" style="padding-top:2px;">
@@ -1768,13 +1769,14 @@
               <button class="btn btn-sm btn-primary" id="btnOpenFillTool" style="flex:1;justify-content:center;">🎨 开启画布点填 / 10% 柔边喷枪工具</button>
               <button class="btn btn-sm" id="btnResetCavities" title="清空手动点填与手涂笔触，恢复全部空洞">重置手填</button>
             </div>
+            </div>
           </div>
 
           <div class="row-between" id="singleColorCard1Row" style="padding-top:4px;">
             <div class="row">
               <input type="color" id="colCard1" value="#a31c24" />
-              <button class="btn btn-sm" id="btnPickCard1" title="在画布上吸色到色卡1">吸色</button>
-              <span style="color:var(--muted);">单色模式 · 色卡1</span>
+              <button class="btn btn-sm" id="btnPickCard1" title="在画布上吸色到水印单色填色">吸色</button>
+              <span style="color:var(--muted);">单色填色（色卡1 · 改空洞/字内颜色）</span>
             </div>
           </div>
           <div class="field">
@@ -1793,7 +1795,7 @@
 
         <div class="card" id="cardCard2Core">
           <div class="card-title">
-            <span>色卡 2 & 核心参数</span>
+            <span>✨ 主体银身 / 光泽色调（色卡 2）& 材质参数</span>
           </div>
           <div id="card2ColorGroup" style="display:flex;flex-direction:column;gap:8px;">
             <div class="row-between">
@@ -9470,13 +9472,39 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
       show("cardPalettePreset", !hideAllFillAndCore && !isColorFill && !isGradient);
       show("cardMultiColorWorkbench", !hideAllFillAndCore && !isGradient);
-      show("singleColorCard1Row", !hideAllFillAndCore && !isColorFill && !isGradient);
       show("cardCard2Core", !hideAllFillAndCore);
       show("card2ColorGroup", !hideAllFillAndCore && !isColorFill && !isGradient);
       show("blurRField", !hideAllFillAndCore && !isColorFill && !isGradient);
       show("auxTexGroup", !hideAllFillAndCore && !isColorFill && !isGradient);
       show("cardBevelGlowShadow", true);
       show("bevelControlsGroup", !isGpu && !isLayerBlur && (!isFsCat || Boolean(presetRec && presetRec.traits && presetRec.traits.fsEmboss)));
+
+      // Sync all effect-specific extra panels so switching layers or effects NEVER leaves a stale color box!
+      const isFsEditable = Boolean(FS_PRESET_DEFAULTS[verId]);
+      const setFlex = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? "flex" : "none"; };
+      setFlex("silverExtraBox", verId === "m01_silver_gloss");
+      setFlex("gradientExtraBox", verId === "gradient");
+      setFlex("glassReliefExtraBox", verId === "g01_glass_relief");
+      setFlex("thickExtraBox", verId === "m02_heavy_silver");
+      setFlex("waterWireExtraBox", verId === "g02_water_wire");
+      setFlex("blurLayerExtraBox", verId === "layer_blur");
+      setFlex("fsExtraBox", isFsEditable);
+      const supportsCustomTint = typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || verId.startsWith("a0"));
+      setFlex("fsCustomTintBox", supportsCustomTint);
+      if (supportsCustomTint) {
+        const efObj = ALL_EFFECTS.find(e => e.id === verId);
+        const lbl = document.getElementById("lblFsTintTitle");
+        if (lbl) lbl.textContent = `🎨 给「${efObj ? efObj.label : "当前效果"}」改色`;
+      }
+      if (typeof syncMultiVsSingleColorUI === "function") syncMultiVsSingleColorUI();
+    }
+
+    function syncMultiVsSingleColorUI() {
+      const isMulti = Boolean(state.fx.multiColorEnable || state.fx.version === "colorfill");
+      const sixBody = document.getElementById("sixColorInnerBody");
+      const singleRow = document.getElementById("singleColorCard1Row");
+      if (sixBody) sixBody.style.display = isMulti ? "flex" : "none";
+      if (singleRow) singleRow.style.display = isMulti ? "none" : "flex";
     }
 
     function selectEffectVersion(verId, labelText) {
@@ -10494,11 +10522,16 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         state.fx.card1 = p.c1;
         state.fx.card2 = p.c2;
         state.fx.glowColor = p.glow;
+        state.fx.cavityEnable = true;
+        state.fx.multiColorEnable = false;
+        document.getElementById("chkCavityEnable").checked = true;
+        document.getElementById("chkMultiColorEnable").checked = false;
         document.getElementById("colCard1").value = p.c1;
         document.getElementById("colCard2").value = p.c2;
         document.getElementById("colOuterGlow").value = p.glow;
+        syncMultiVsSingleColorUI();
         scheduleRender(0);
-        showToast(`已套用配色：${p.name}`);
+        showToast(`已套用整套配色：${p.name}`);
       };
       paletteGrid.appendChild(btn);
     });
@@ -10589,7 +10622,17 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       el.addEventListener("input", fn);
       el.addEventListener("change", fn);
     };
-    bindColor("colCard1", (e) => { state.fx.card1 = e.target.value; scheduleRender(20); });
+    bindColor("colCard1", (e) => {
+      state.fx.card1 = e.target.value;
+      state.fx.cavityEnable = true;
+      if (state.fx.multiColorEnable) {
+        state.fx.multiColorEnable = false;
+        document.getElementById("chkMultiColorEnable").checked = false;
+        syncMultiVsSingleColorUI();
+      }
+      document.getElementById("chkCavityEnable").checked = true;
+      scheduleRender(20);
+    });
     bindColor("colCard2", (e) => { state.fx.card2 = e.target.value; scheduleRender(20); });
     bindColor("colOuterGlow", (e) => { state.fx.glowColor = e.target.value; scheduleRender(20); });
     bindColor("colShadowColor", (e) => {
@@ -10707,6 +10750,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           state.fx.sixColors = [...p.colors];
           state.fx.multiColorEnable = true;
           document.getElementById("chkMultiColorEnable").checked = true;
+          syncMultiVsSingleColorUI();
           renderSixPalettesUI();
           renderActiveSixSwatchesUI();
           scheduleRender(0);
@@ -10766,6 +10810,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       state.fx.sixColors = picked;
       state.fx.multiColorEnable = true;
       document.getElementById("chkMultiColorEnable").checked = true;
+      syncMultiVsSingleColorUI();
       renderSixPalettesUI();
       renderActiveSixSwatchesUI();
       scheduleRender(0);
@@ -10778,8 +10823,9 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     document.getElementById("chkMultiColorEnable").onchange = (e) => {
       pushFxUndo("开关 6 色分区");
       state.fx.multiColorEnable = e.target.checked;
+      syncMultiVsSingleColorUI();
       scheduleRender(0);
-      showToast(state.fx.multiColorEnable ? "已开启 6 色分区填色" : "已切回单色模式");
+      showToast(state.fx.multiColorEnable ? "已开启 6 色分区填色" : "已切回单色模式（下方色卡1立即生效）");
     };
     document.getElementById("btnExtractBgSix").onclick = extractSixColorsFromBg;
     document.getElementById("btnShuffleFillSeed").onclick = () => {
