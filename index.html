@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#141824" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="水印工作室" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <title>水印效果工作室 · 多图层一键出图</title>
   <script>
     // 工作室是独立页面：任何返回都不允许退到查款页（浏览器返回键锁在本页）
@@ -1260,7 +1267,10 @@
         <div class="card">
           <div class="card-title">
             <span>导入素材 / 新建图层</span>
-            <button class="btn btn-sm" id="btnOfflineTopCard" style="color:#ffd98e;border-color:rgba(230,185,110,0.45);" title="把这个工作室存成本地单文件 HTML（传电脑双击打开，断网也能用）">⬇ 存离线版</button>
+            <div class="row" style="gap:4px;">
+              <button class="btn btn-sm" id="btnInstallPwaTop" style="color:#a8dcff;border-color:rgba(125,166,255,0.45);" title="将工作室添加到苹果/安卓手机主屏幕，全屏运行无顶栏、支持断网离线，不闪退">📲 装手机桌面</button>
+              <button class="btn btn-sm" id="btnOfflineTopCard" style="color:#ffd98e;border-color:rgba(230,185,110,0.45);" title="把这个工作室存成本地单文件 HTML（传电脑双击打开，断网也能用）">⬇ 存离线版</button>
+            </div>
           </div>
           <div class="grid-2">
             <button class="btn btn-primary" id="btnAddWatermark" title="从相册或本地导入一张或多张透明黑素、贴图作为新图层">+ 导入黑素/贴图</button>
@@ -11372,6 +11382,35 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     setTimeout(fitViewport, 60);
   </script>
 
+  <div class="modal-backdrop" id="pwaInstallModal" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-head">
+        <h3>📲 安装「水印工作室」到手机桌面</h3>
+        <button class="btn btn-sm" id="btnClosePwaModal">关闭 ✕</button>
+      </div>
+      <div class="modal-body" id="pwaModalBody">
+        <div class="modal-box" id="pwaInAppWarn" style="display:none;background:rgba(230,185,110,0.12);border-color:rgba(230,185,110,0.45);">
+          <strong style="color:#ffd98e;">⚠️ 当前在小红书/微信内置浏览器中</strong><br/>
+          请先点右上角 <b>「···」</b> 选择 <b>「在系统浏览器 / Safari 打开」</b>，再按下方步骤添加到手机桌面，独立全屏运行更稳、不下拉刷新、不闪退！
+        </div>
+        <div class="modal-box" id="pwaIosStepBox">
+          <strong>🍎 苹果 iPhone / iPad（免安装包 · 秒变全屏离线 App）</strong><br/>
+          1. 用 <b>Safari</b> 打开本网址，点屏幕底部中间的 <b>「分享 ⬆」</b> 图标<br/>
+          2. 往下滑找到并点击 <b>「添加到主屏幕」</b> → 点右上角「添加」<br/>
+          3. 桌面就会出现「水印工作室」独立图标，点开全屏无顶栏、支持断网离线使用，以后功能更新也会自动同步！
+        </div>
+        <div class="modal-box" id="pwaAndroidStepBox" style="background:rgba(125,166,255,0.08);border-color:rgba(125,166,255,0.3);">
+          <strong style="color:#a8dcff;">🤖 安卓 / 电脑浏览器</strong><br/>
+          <span id="pwaAndroidHintText">点击浏览器菜单（右上角或底部 <b>⋮ / 三横线</b>）→ 选择 <b>「添加到主屏幕 / 安装应用」</b> 即可生成桌面独立 App 图标。</span>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" id="btnTriggerNativePwa" style="display:none;flex:1;justify-content:center;">✨ 一键安装到桌面</button>
+            <a class="btn btn-mint" id="btnDownloadApkLink" href="./watermark_studio.apk" download="水印效果工作室.apk" style="display:none;flex:1;justify-content:center;text-decoration:none;">⬇ 下载安卓安装包 (.apk)</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle">
     <div class="modal-card">
       <div class="modal-head">
@@ -11618,6 +11657,73 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (mq.addEventListener) mq.addEventListener("change", sync);
       else if (mq.addListener) mq.addListener(sync);
       sync();
+    })();
+
+    // ==================== PWA 离线缓存注册 & 安装到桌面 / APK 下载引导 ====================
+    (function () {
+      if ("serviceWorker" in navigator && /^https?:$/i.test(location.protocol)) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("./sw.js").catch(function () {});
+        });
+      }
+      var isStandalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+      var topBtn = document.getElementById("btnInstallPwaTop");
+      if (isStandalone && topBtn) {
+        topBtn.style.display = "none";
+      }
+      var deferredPrompt = null;
+      var nativeBtn = document.getElementById("btnTriggerNativePwa");
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (nativeBtn) nativeBtn.style.display = "inline-flex";
+      });
+      var modal = document.getElementById("pwaInstallModal");
+      var closeBtn = document.getElementById("btnClosePwaModal");
+      var inAppWarn = document.getElementById("pwaInAppWarn");
+      var apkLink = document.getElementById("btnDownloadApkLink");
+      var apkChecked = false;
+      function openPwaModal() {
+        if (deferredPrompt && nativeBtn) {
+          nativeBtn.style.display = "inline-flex";
+        }
+        var ua = navigator.userAgent || "";
+        if (inAppWarn) {
+          inAppWarn.style.display = /MicroMessenger|Weibo|xhsdiscover/i.test(ua) ? "block" : "none";
+        }
+        if (!apkChecked && apkLink && /^https?:$/i.test(location.protocol)) {
+          apkChecked = true;
+          fetch("./watermark_studio.apk", { method: "HEAD" }).then(function (r) {
+            if (r && r.ok && (r.headers.get("content-type") || "").indexOf("text/html") === -1) {
+              apkLink.style.display = "inline-flex";
+            }
+          }).catch(function () {});
+        }
+        if (modal) modal.classList.add("show");
+      }
+      if (topBtn) topBtn.addEventListener("click", openPwaModal);
+      if (closeBtn && modal) closeBtn.addEventListener("click", function () { modal.classList.remove("show"); });
+      if (modal) modal.addEventListener("click", function (e) { if (e.target === modal) modal.classList.remove("show"); });
+      if (nativeBtn) {
+        nativeBtn.addEventListener("click", function () {
+          if (!deferredPrompt) return;
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.finally(function () {
+            deferredPrompt = null;
+            nativeBtn.style.display = "none";
+            if (modal) modal.classList.remove("show");
+          });
+        });
+      }
+      if (apkLink) {
+        apkLink.addEventListener("click", function (e) {
+          var ua = navigator.userAgent || "";
+          if (/MicroMessenger|Weibo|xhsdiscover/i.test(ua)) {
+            e.preventDefault();
+            if (typeof showToast === "function") showToast("请先点右上角 ··· 选择「在系统浏览器打开」即可下载安装 APK");
+          }
+        });
+      }
     })();
   </script>
 </body>
