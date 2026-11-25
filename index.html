@@ -1178,6 +1178,7 @@
             <button class="seg-btn" data-etarget="brush" style="padding:3px 7px;font-size:11px;">画笔</button>
             <button class="seg-btn" data-etarget="grad1" style="padding:3px 7px;font-size:11px;">渐变A</button>
             <button class="seg-btn" data-etarget="grad2" style="padding:3px 7px;font-size:11px;">渐变B</button>
+            <button class="seg-btn" data-etarget="stroke" style="padding:3px 7px;font-size:11px;">描边</button>
             <button class="seg-btn" data-etarget="shadow" style="padding:3px 7px;font-size:11px;">阴影</button>
           </div>
           <span id="eyeSwatch" style="width:18px;height:18px;border-radius:50%;border:1px solid #fff;display:inline-block;background:#a31c24;"></span>
@@ -1879,6 +1880,26 @@
             <div class="field">
               <div class="field-head"><span>斜面光照角度</span><span class="field-val" id="valBevelAngle">135°</span></div>
               <input type="range" id="rngBevelAngle" min="0" max="360" value="135" />
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:7px;padding:8px;background:rgba(125,166,255,0.06);border:1px solid rgba(125,166,255,0.22);border-radius:8px;">
+            <div class="row-between">
+              <label class="switch" style="color:#ffd98e;font-weight:600;" title="给当前任何效果（普通/预设/全屏/日漫/折光）额外套一层清晰自定义颜色外描边"><input type="checkbox" id="chkCustomStroke" /> 🎨 自定义外描边颜色</label>
+              <div class="row" style="gap:6px;">
+                <button class="btn btn-sm" id="btnPickStroke" title="用大水滴吸管在画布吸取描边颜色">吸色</button>
+                <input type="color" id="colCustomStroke" value="#ffffff" style="width:28px;height:22px;" title="选择自定义外描边颜色" />
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <div class="field-head"><span>外描边粗细</span><span class="field-val" id="valCustomStrokeW">2.5 px</span></div>
+                <input type="range" id="rngCustomStrokeW" min="0.5" max="16" step="0.5" value="2.5" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>外描边浓度</span><span class="field-val" id="valCustomStrokeAlpha">100%</span></div>
+                <input type="range" id="rngCustomStrokeAlpha" min="10" max="100" step="1" value="100" />
+              </div>
             </div>
           </div>
 
@@ -3309,10 +3330,47 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         return c;
       };
       let _freehandApplied = false;
+      let _customStrokeApplied = false;
       const cleanupTemps = () => {
         if (!_freehandApplied && !state.fillClipSilhouette && state.hasFreehandPaint && fx.cavityEnable && !(fx.version && fx.version.startsWith("fs_")) && (!atnRecCheck || atnRecCheck.cat !== "全屏")) {
           _freehandApplied = true;
           drawFreehandOutsideCavities(outCtx);
+        }
+        if (!_customStrokeApplied && fx.customStrokeEnable && (fx.customStrokeW ?? 2.5) > 0 && (fx.customStrokeAlpha ?? 100) > 0) {
+          _customStrokeApplied = true;
+          const stHex = fx.customStrokeColor || "#ffffff";
+          const stR = Math.max(0.5, (fx.customStrokeW ?? 2.5) * rs);
+          const stA = Math.max(0, Math.min(1, (fx.customStrokeAlpha ?? 100) / 100));
+          const cCol = parseInt(stHex.slice(1, 3), 16) || 0;
+          const cGrn = parseInt(stHex.slice(3, 5), 16) || 0;
+          const cBlu = parseInt(stHex.slice(5, 7), 16) || 0;
+          const silC = makeSolidAlphaCanvas(H, w, h, cCol, cGrn, cBlu);
+          const cutC = makeSolidAlphaCanvas(H, w, h, 0, 0, 0);
+          const ringC = document.createElement("canvas");
+          ringC.width = w; ringC.height = h;
+          const rg = ringC.getContext("2d");
+          const steps = Math.max(12, Math.min(32, Math.ceil(stR * 6.5)));
+          for (let k = 0; k < steps; k++) {
+            const ang = (k / steps) * Math.PI * 2;
+            rg.drawImage(silC, Math.cos(ang) * stR, Math.sin(ang) * stR);
+          }
+          if (stR > 2.2) {
+            const innerR = stR * 0.52;
+            for (let k = 0; k < 12; k++) {
+              const ang = (k / 12) * Math.PI * 2;
+              rg.drawImage(silC, Math.cos(ang) * innerR, Math.sin(ang) * innerR);
+            }
+          }
+          rg.globalCompositeOperation = "destination-out";
+          rg.drawImage(cutC, 0, 0);
+          outCtx.save();
+          outCtx.globalCompositeOperation = "source-over";
+          outCtx.globalAlpha = stA;
+          outCtx.drawImage(ringC, 0, 0);
+          outCtx.restore();
+          freeCanvas(silC);
+          freeCanvas(cutC);
+          freeCanvas(ringC);
         }
         while (_temps.length) freeCanvas(_temps.pop());
       };
@@ -6071,7 +6129,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const fx = state.fx;
       const wantShadow = !isBgBlurHelper && fx.dropShadow && fx.shadowAlpha > 0;
       const wantGlow = !isBgBlurHelper && fx.outerGlow && fx.glowRadius > 0;
-      if (!wantShadow && !wantGlow) return effectOut;
+      const wantStroke = !isBgBlurHelper && fx.customStrokeEnable && (fx.customStrokeW ?? 2.5) > 0 && (fx.customStrokeAlpha ?? 100) > 0;
+      if (!wantShadow && !wantGlow && !wantStroke) return effectOut;
 
       const w = effectOut.width, h = effectOut.height;
       const { rs } = getRenderDim();
@@ -6116,6 +6175,33 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         oCtx.globalAlpha = 0.85;
         oCtx.drawImage(tintC, 0, 0);
         oCtx.restore();
+      }
+
+      if (wantStroke) {
+        const stHex = fx.customStrokeColor || "#ffffff";
+        const stR = Math.max(0.5, (fx.customStrokeW ?? 2.5) * rs);
+        const stA = Math.max(0, Math.min(1, (fx.customStrokeAlpha ?? 100) / 100));
+        tCtx.clearRect(0, 0, w, h);
+        tCtx.drawImage(effectOut, 0, 0);
+        tCtx.globalCompositeOperation = "source-in";
+        tCtx.fillStyle = stHex;
+        tCtx.fillRect(0, 0, w, h);
+        tCtx.globalCompositeOperation = "source-over";
+        const ringC = document.createElement("canvas");
+        ringC.width = w; ringC.height = h;
+        const rg = ringC.getContext("2d");
+        const steps = Math.max(12, Math.min(32, Math.ceil(stR * 6.5)));
+        for (let k = 0; k < steps; k++) {
+          const ang = (k / steps) * Math.PI * 2;
+          rg.drawImage(tCtx.canvas, Math.cos(ang) * stR, Math.sin(ang) * stR);
+        }
+        rg.globalCompositeOperation = "destination-out";
+        rg.drawImage(effectOut, 0, 0);
+        oCtx.save();
+        oCtx.globalAlpha = stA;
+        oCtx.drawImage(ringC, 0, 0);
+        oCtx.restore();
+        freeCanvas(ringC);
       }
 
       freeCanvas(tintC);
@@ -7488,6 +7574,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         if (cb) cb.value = hex;
       } else if (state.eyeTarget === "grad1") {
         state.fx.gradColor1 = hex; document.getElementById("colGrad1").value = hex;
+      } else if (state.eyeTarget === "stroke") {
+        state.fx.customStrokeColor = hex;
+        state.fx.customStrokeEnable = true;
+        const cst = document.getElementById("colCustomStroke");
+        if (cst) cst.value = hex;
+        const chkst = document.getElementById("chkCustomStroke");
+        if (chkst) chkst.checked = true;
       } else if (state.eyeTarget === "shadow") {
         state.fx.shadowColor = hex;
         state.fx.shadowColorEnable = true;
@@ -10763,6 +10856,56 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     document.getElementById("chkShadowColor").onchange = (e) => { pushFxUndo("开关阴影自定义颜色"); state.fx.shadowColorEnable = e.target.checked; scheduleRender(0); };
     const btnPickShadowEl = document.getElementById("btnPickShadow");
     if (btnPickShadowEl) btnPickShadowEl.onclick = () => openEyedropperFor("shadow");
+
+    // Universal Custom Outer Stroke bindings
+    if (state.fx.customStrokeEnable === undefined) {
+      state.fx.customStrokeEnable = false;
+      state.fx.customStrokeColor = "#ffffff";
+      state.fx.customStrokeW = 2.5;
+      state.fx.customStrokeAlpha = 100;
+    }
+    const chkCustomStrokeEl = document.getElementById("chkCustomStroke");
+    if (chkCustomStrokeEl) {
+      chkCustomStrokeEl.onchange = (e) => {
+        pushFxUndo("开关自定义外描边");
+        state.fx.customStrokeEnable = e.target.checked;
+        scheduleRender(0);
+      };
+    }
+    bindColor("colCustomStroke", (e) => {
+      state.fx.customStrokeColor = e.target.value;
+      if (!state.fx.customStrokeEnable) {
+        state.fx.customStrokeEnable = true;
+        if (chkCustomStrokeEl) chkCustomStrokeEl.checked = true;
+      }
+      scheduleRender(20);
+    });
+    const btnPickStrokeEl = document.getElementById("btnPickStroke");
+    if (btnPickStrokeEl) btnPickStrokeEl.onclick = () => openEyedropperFor("stroke");
+    const rngCustomStrokeWEl = document.getElementById("rngCustomStrokeW");
+    if (rngCustomStrokeWEl) {
+      rngCustomStrokeWEl.oninput = (e) => {
+        state.fx.customStrokeW = parseFloat(e.target.value) || 2.5;
+        document.getElementById("valCustomStrokeW").textContent = `${state.fx.customStrokeW} px`;
+        if (!state.fx.customStrokeEnable) {
+          state.fx.customStrokeEnable = true;
+          if (chkCustomStrokeEl) chkCustomStrokeEl.checked = true;
+        }
+        scheduleRender(25);
+      };
+    }
+    const rngCustomStrokeAlphaEl = document.getElementById("rngCustomStrokeAlpha");
+    if (rngCustomStrokeAlphaEl) {
+      rngCustomStrokeAlphaEl.oninput = (e) => {
+        state.fx.customStrokeAlpha = parseInt(e.target.value, 10) || 100;
+        document.getElementById("valCustomStrokeAlpha").textContent = `${state.fx.customStrokeAlpha}%`;
+        if (!state.fx.customStrokeEnable) {
+          state.fx.customStrokeEnable = true;
+          if (chkCustomStrokeEl) chkCustomStrokeEl.checked = true;
+        }
+        scheduleRender(25);
+      };
+    }
 
     // ==================== 6-COLOR PALETTES & FILL WORKBENCH ====================
     function renderActiveSixSwatchesUI() {
