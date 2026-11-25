@@ -1480,6 +1480,7 @@
             <button class="cat-pill" data-cat="填色">填色</button>
             <button class="cat-pill" data-cat="折光GPU">折光GPU</button>
             <button class="cat-pill" data-cat="全屏">全屏</button>
+            <button class="cat-pill" data-cat="日漫">日漫</button>
             <button class="cat-pill" data-cat="金属液态">金属液态</button>
             <button class="cat-pill" data-cat="玻璃透明">玻璃透明</button>
             <button class="cat-pill" data-cat="光影纹理">光影纹理</button>
@@ -2180,6 +2181,9 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       { id: "fs_clear_dew", label: "FS09 晨露清透", cat: "全屏" },
       { id: "fs_clear_tint", label: "FS10 琉璃染透", cat: "全屏" },
       { id: "fs_relief_glass", label: "FS11 浮雕柔透", cat: "全屏" },
+      { id: "a01_frost_silver", label: "A01 霜银清璃", cat: "日漫" },
+      { id: "a02_star_frame", label: "A02 星纱细框", cat: "日漫" },
+      { id: "a03_mist_glaze", label: "A03 雾糖柔釉", cat: "日漫" },
     ];
     const ALL_EFFECTS = [...CORE_EFFECTS, ...FILTER_PRESETS];
     const FILTER_PRESET_MAP = Object.fromEntries(FILTER_PRESETS.map(p => [p.id, p]));
@@ -5115,6 +5119,216 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           outCtx.drawImage(glassBody, 0, 0);
           drawOuterGlow(outCtx, H, { punchOutArr: H });
           return finishFsOut();
+        }
+      }
+
+      // ==================== 原创日漫系列效果引擎 (A01-A03) ====================
+      if (fx.version && fx.version.startsWith("a0")) {
+        const sc = Math.max(0.5, rs);
+        const mkTmp = () => {
+          const c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          _temps.push(c);
+          return c;
+        };
+        // Full plaque silhouette S = H ∪ enclosed cavities ∪ 2px outer rim (填补镂空空隙 + 描边外部2)
+        const S = new Uint8Array(total);
+        for (let i = 0; i < total; i++) {
+          const baseV = (fx.cavityEnable && compCount > 0) ? Math.max(H[i], cavAlpha[i]) : H[i];
+          S[i] = Math.max(baseV, outer4[i]);
+        }
+        const cSWhite = mkAlpha(S, 255, 255, 255);
+        const cSBlack = mkAlpha(S, 0, 0, 0);
+        const rimHollow = mkTmp();
+        const rhg = rimHollow.getContext("2d");
+        rhg.drawImage(cOuter4, 0, 0);
+        rhg.globalCompositeOperation = "destination-out";
+        rhg.drawImage(cHWhite, 0, 0);
+
+        const off1 = Math.max(1, Math.round(1.3 * sc));
+        const off2 = Math.max(2, Math.round(2.4 * sc));
+        const finishAnimeOut = () => {
+          if (fx.fsTintEnable && (fx.fsTintAlpha ?? 85) > 0) {
+            const a = Math.max(0, Math.min(1, (fx.fsTintAlpha ?? 85) / 100));
+            const tintC = mkTmp();
+            const tg = tintC.getContext("2d");
+            const gr = tg.createLinearGradient(0, 0, w, h);
+            gr.addColorStop(0, fx.fsTint1 || "#ff66b2");
+            gr.addColorStop(1, fx.fsTint2 || fx.fsTint1 || "#5ce1ff");
+            tg.fillStyle = gr;
+            tg.fillRect(0, 0, w, h);
+            tg.globalCompositeOperation = "destination-in";
+            tg.drawImage(outC, 0, 0);
+            outCtx.save();
+            outCtx.globalCompositeOperation = "color";
+            outCtx.globalAlpha = Math.min(1, a * 0.8);
+            outCtx.drawImage(tintC, 0, 0);
+            outCtx.globalCompositeOperation = "source-atop";
+            outCtx.globalAlpha = a * 0.32;
+            outCtx.drawImage(tintC, 0, 0);
+            outCtx.restore();
+          }
+          cleanupTemps();
+          return outC;
+        };
+
+        if (fx.version === "a01_frost_silver") {
+          // A01 霜银清璃：模糊底图填补空隙 + 暗影移位 + 软光黑 + 覆盖白 + 硬光吸色 + 线性加深细边
+          const autoPal = sampleBgPaletteFromCanvas(bgCanvas);
+          const accentHex = (fx.fsTintEnable && fx.fsTint1) ? fx.fsTint1 : (autoPal ? autoPal.card1 : (fx.card1 || "#9ec5e8"));
+          const [ar, ag, ab] = hexToRgbTuple(accentHex);
+          const cHAccent = mkAlpha(H, ar, ag, ab);
+          const cRimAccent = mkTmp();
+          const rag = cRimAccent.getContext("2d");
+          rag.drawImage(rimHollow, 0, 0);
+          rag.globalCompositeOperation = "source-in";
+          rag.fillStyle = accentHex;
+          rag.fillRect(0, 0, w, h);
+
+          // 底层：偏移 x+2,y+2 低透明暗影 + 外部用户投影
+          outCtx.save();
+          outCtx.globalAlpha = 0.28;
+          outCtx.drawImage(cSBlack, off2, off2);
+          outCtx.restore();
+          drawDropShadow(outCtx, S, { baseDist: 3.5, baseBlur: 6, defAlpha55: 0.32, maxAlpha: 0.85, punchOutArr: S });
+
+          // 主体模糊底图（含镂空空隙填补）
+          const glass = mkTmp();
+          const gg = glass.getContext("2d");
+          gg.drawImage(cSWhite, 0, 0);
+          gg.globalCompositeOperation = "source-in";
+          gg.drawImage(blurBgCanvas, 0, 0, w, h);
+
+          // 软光黑(x+2,y+2) + 覆盖白 + 硬光取色 + 线性加深描边
+          gg.save();
+          gg.globalCompositeOperation = "soft-light";
+          gg.globalAlpha = 0.78;
+          gg.drawImage(cHBlack, off2, off2);
+          gg.globalCompositeOperation = "overlay";
+          gg.globalAlpha = 0.92;
+          gg.drawImage(cHWhite, 0, 0);
+          gg.globalCompositeOperation = "hard-light";
+          gg.globalAlpha = 0.48;
+          gg.drawImage(cHAccent, 0, 0);
+          gg.globalCompositeOperation = "color-burn";
+          gg.globalAlpha = 0.62;
+          gg.drawImage(cRimAccent, 0, 0);
+          gg.globalCompositeOperation = "screen";
+          gg.globalAlpha = 0.45;
+          gg.drawImage(cInnerRimW, 0, 0);
+          gg.restore();
+
+          outCtx.drawImage(glass, 0, 0);
+          drawOuterGlow(outCtx, S, { punchOutArr: S });
+          return finishAnimeOut();
+        }
+
+        if (fx.version === "a02_star_frame") {
+          // A02 星纱细框：三重错位模糊底（+2,+2 柔托 / +1,+1 20%黑覆盖 / 原位）+ 双层白覆盖(50%/70%) + 双白软光 + 黑覆盖外轮廓
+          const blurCut = mkTmp();
+          const bcg = blurCut.getContext("2d");
+          bcg.drawImage(cSWhite, 0, 0);
+          bcg.globalCompositeOperation = "source-in";
+          bcg.drawImage(blurBgCanvas, 0, 0, w, h);
+
+          drawDropShadow(outCtx, S, { baseDist: 3, baseBlur: 6, defAlpha55: 0.3, maxAlpha: 0.82, punchOutArr: S });
+
+          const comp = mkTmp();
+          const cg = comp.getContext("2d");
+          // 最底模糊层 x+2, y+2
+          cg.globalAlpha = 0.82;
+          cg.drawImage(blurCut, off2, off2);
+          // 中间黑覆盖层 x+1, y+1 透明度 20%
+          cg.globalCompositeOperation = "overlay";
+          cg.globalAlpha = 0.22;
+          cg.drawImage(cSBlack, off1, off1);
+          // 主模糊底原位
+          cg.globalCompositeOperation = "source-over";
+          cg.globalAlpha = 0.96;
+          cg.drawImage(blurCut, 0, 0);
+
+          // 亮晶晶细框叠层：白覆盖50% -> 黑软光 -> 白覆盖70% -> 双白软光 -> 2px黑覆盖外轮廓
+          cg.globalCompositeOperation = "overlay";
+          cg.globalAlpha = 0.50;
+          cg.drawImage(cHWhite, 0, 0);
+          cg.globalCompositeOperation = "soft-light";
+          cg.globalAlpha = 0.65;
+          cg.drawImage(cHBlack, 0, 0);
+          cg.globalCompositeOperation = "overlay";
+          cg.globalAlpha = 0.70;
+          cg.drawImage(cHWhite, 0, 0);
+          cg.globalCompositeOperation = "soft-light";
+          cg.globalAlpha = 0.58;
+          cg.drawImage(cHWhite, 0, 0);
+          cg.globalAlpha = 0.45;
+          cg.drawImage(cHWhite, 0, 0);
+          cg.globalCompositeOperation = "overlay";
+          cg.globalAlpha = 0.82;
+          cg.drawImage(rimHollow, 0, 0);
+          cg.globalCompositeOperation = "screen";
+          cg.globalAlpha = 0.52;
+          cg.drawImage(cInnerRimW, 0, 0);
+
+          outCtx.drawImage(comp, 0, 0);
+          drawOuterGlow(outCtx, S, { color: "#ffffff", punchOutArr: S });
+          return finishAnimeOut();
+        }
+
+        if (fx.version === "a03_mist_glaze") {
+          // A03 雾糖柔釉：高斯模糊10低透柔影(≤20%) + 模糊底图填补 + 低透明渐变糖霜改色 + 合并白黑(x+2,y+2)覆盖浮雕
+          outCtx.save();
+          outCtx.filter = `blur(${(10 * sc).toFixed(1)}px)`;
+          outCtx.globalAlpha = 0.19;
+          outCtx.drawImage(cSBlack, off2, off2);
+          outCtx.restore();
+          drawDropShadow(outCtx, S, { baseDist: 3.5, baseBlur: 9, defAlpha55: 0.25, maxAlpha: 0.8, punchOutArr: S });
+
+          const glaze = mkTmp();
+          const gz = glaze.getContext("2d");
+          gz.drawImage(cSWhite, 0, 0);
+          gz.globalCompositeOperation = "source-in";
+          gz.drawImage(blurBgCanvas, 0, 0, w, h);
+
+          // 柔和渐变糖霜改色层（优先用用户自定义色，否则取底图真实柔和双色）
+          const autoPal = sampleBgPaletteFromCanvas(bgCanvas);
+          const g1 = fx.fsTintEnable ? (fx.fsTint1 || "#ffd4e8") : (autoPal ? autoPal.gradColor1 : "#ffd8ea");
+          const g2 = fx.fsTintEnable ? (fx.fsTint2 || "#cce6ff") : (autoPal ? autoPal.gradColor2 : "#cbe6ff");
+          const tintGrad = mkTmp();
+          const tgg = tintGrad.getContext("2d");
+          const gr = tgg.createLinearGradient(0, 0, w, h);
+          gr.addColorStop(0, g1);
+          gr.addColorStop(1, g2);
+          tgg.fillStyle = gr;
+          tgg.fillRect(0, 0, w, h);
+          tgg.globalCompositeOperation = "destination-in";
+          tgg.drawImage(cSWhite, 0, 0);
+
+          gz.save();
+          gz.globalCompositeOperation = "source-atop";
+          gz.globalAlpha = 0.36;
+          gz.drawImage(tintGrad, 0, 0);
+          gz.restore();
+
+          // 顶层合并：黑素 x+2,y+2 + 白素合并 -> 覆盖（Overlay）
+          const mergedWB = mkTmp();
+          const mwg = mergedWB.getContext("2d");
+          mwg.globalAlpha = 0.9;
+          mwg.drawImage(cHBlack, off2, off2);
+          mwg.globalAlpha = 0.96;
+          mwg.drawImage(cHWhite, 0, 0);
+
+          gz.save();
+          gz.globalCompositeOperation = "overlay";
+          gz.globalAlpha = 0.94;
+          gz.drawImage(mergedWB, 0, 0);
+          gz.globalCompositeOperation = "screen";
+          gz.globalAlpha = 0.38;
+          gz.drawImage(cInnerRimW, 0, 0);
+          gz.restore();
+
+          outCtx.drawImage(glaze, 0, 0);
+          drawOuterGlow(outCtx, S, { punchOutArr: S });
+          return finishAnimeOut();
         }
       }
 
@@ -9243,7 +9457,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const presetRec = FILTER_PRESET_MAP[verId];
       const isGpu = Boolean(GPU_FILTER_SPECS[verId]);
       const isLayerBlur = verId === "layer_blur";
-      const isFsCat = verId === "fs_bold" || (typeof verId === "string" && verId.startsWith("fs_")) || (presetRec && presetRec.cat === "全屏");
+      const isFsCat = verId === "fs_bold" || (typeof verId === "string" && (verId.startsWith("fs_") || verId.startsWith("a0"))) || (presetRec && presetRec.cat === "全屏");
       const isAcrylic = Boolean(presetRec && presetRec.traits && presetRec.traits.isAcrylic);
       const isColorFill = verId === "colorfill";
       const isGradient = verId === "gradient";
@@ -9294,7 +9508,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       document.getElementById("blurLayerExtraBox").style.display = verId === "layer_blur" ? "flex" : "none";
       document.getElementById("fsExtraBox").style.display = isFsEditable ? "flex" : "none";
       const fsCustomTintBox = document.getElementById("fsCustomTintBox");
-      if (fsCustomTintBox) fsCustomTintBox.style.display = (typeof verId === "string" && verId.startsWith("fs_") && verId !== "fs_bold") ? "flex" : "none";
+      if (fsCustomTintBox) fsCustomTintBox.style.display = (typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || verId.startsWith("a0"))) ? "flex" : "none";
       buildGpuParamsUI(verId);
       updateEffectPanelVisibility(verId);
       renderEffectLibraryUI();
