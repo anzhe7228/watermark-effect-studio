@@ -2400,6 +2400,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       { id: "fs_clear_dew", label: "FS09 晨露清透", cat: "全屏" },
       { id: "fs_clear_tint", label: "FS10 琉璃染透", cat: "全屏" },
       { id: "fs_relief_glass", label: "FS11 浮雕柔透", cat: "全屏" },
+      { id: "a06_popular", label: "流行效果", name: "自带图效叠加小水印", cat: "日漫" },
       { id: "a01_frost_silver", label: "A01 霜银清璃", cat: "日漫" },
       { id: "a02_star_frame", label: "A02 星纱细框", cat: "日漫" },
       { id: "a03_mist_glaze", label: "A03 雾糖柔釉", cat: "日漫" },
@@ -5643,6 +5644,118 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           return outC;
         };
 
+        if (fx.version === "a06_popular") {
+          // 流行效果（日漫自带图效叠加风）：圆润宽白描边 + 右下(+3,+5)错位硬柔暗影 + 主次双灰阶黑芯自动叠加(Overlay)透出底图高饱和原色
+          const stHex = fx.customStrokeEnable ? (fx.customStrokeColor || "#ffffff") : "#ffffff";
+          const rPop = (fx.customStrokeEnable ? Math.max(2.0, (fx.customStrokeW ?? 5.5) * 1.55) : 5.4) * sc;
+
+          // 1. 圆润饱满外描边剪影（双圈圆周采样，转角圆滑如圆体描边）
+          const popSilW = mkTmp();
+          const pwg = popSilW.getContext("2d");
+          for (const ringMul of [0.52, 1.0]) {
+            const rr = rPop * ringMul;
+            const steps = ringMul < 0.8 ? 12 : 22;
+            for (let k = 0; k < steps; k++) {
+              const ang = (k / steps) * Math.PI * 2;
+              pwg.drawImage(cHWhite, Math.cos(ang) * rr, Math.sin(ang) * rr);
+            }
+          }
+          pwg.drawImage(cHWhite, 0, 0);
+
+          // 着色外框（默认纯白 #FFFFFF）与右下错位阴影层（#121216）
+          const popStrokeC = mkTmp();
+          const psg = popStrokeC.getContext("2d");
+          psg.drawImage(popSilW, 0, 0);
+          psg.globalCompositeOperation = "source-in";
+          psg.fillStyle = stHex;
+          psg.fillRect(0, 0, w, h);
+
+          const popShadowSil = mkTmp();
+          const pdg = popShadowSil.getContext("2d");
+          pdg.drawImage(popSilW, 0, 0);
+          pdg.globalCompositeOperation = "source-in";
+          pdg.fillStyle = fx.shadowCustom ? (fx.shadowColor || "#121218") : "#121218";
+          pdg.fillRect(0, 0, w, h);
+
+          // 纯净外白圈（镂空字芯，用于暗部底图托底护边）
+          const outerRingOnly = mkTmp();
+          const org = outerRingOnly.getContext("2d");
+          org.drawImage(popStrokeC, 0, 0);
+          org.globalCompositeOperation = "destination-out";
+          org.drawImage(cHWhite, 0, 0);
+
+          // 2. 字芯主次双灰阶：粗主笔呈深炭黑(#121216，叠加染色浓郁)，细副笔自然呈清透中灰(#5e5e66，叠加轻透有层次)
+          const coreSoft = mkTmp();
+          const csg = coreSoft.getContext("2d");
+          csg.filter = `blur(${Math.max(0.8, 1.45 * sc).toFixed(2)}px)`;
+          csg.drawImage(cHBlack, 0, 0);
+          csg.filter = "none";
+
+          const innerCore = mkTmp();
+          const icg = innerCore.getContext("2d");
+          icg.fillStyle = "#5c5c64";
+          icg.fillRect(0, 0, w, h);
+          icg.globalCompositeOperation = "destination-in";
+          icg.drawImage(cHWhite, 0, 0);
+          icg.globalCompositeOperation = "source-atop";
+          icg.globalAlpha = 0.86;
+          icg.drawImage(coreSoft, 0, 0);
+
+          // 3. 组装「自带图效」标准灰黑白母版 stampC（右下 +3,+5 错位立体阴影 + 宽白边 + 双灰阶字芯）
+          const dxSh = Math.round(3.2 * sc);
+          const dySh = Math.round(5.0 * sc);
+          const shAlphaMul = fx.dropShadow ? Math.max(0.15, Math.min(1, (fx.shadowAlpha ?? 55) / 55 * 0.64)) : 0;
+
+          const stampC = mkTmp();
+          const stg = stampC.getContext("2d");
+          if (shAlphaMul > 0.01) {
+            stg.save();
+            stg.filter = `blur(${Math.max(0.4, 0.75 * sc).toFixed(2)}px)`;
+            stg.globalAlpha = shAlphaMul;
+            stg.drawImage(popShadowSil, dxSh, dySh);
+            stg.restore();
+          }
+          stg.drawImage(popStrokeC, 0, 0);
+          stg.drawImage(innerCore, 0, 0);
+
+          // 4. 有底图时自动执行真实「叠加 (Overlay)」融色透图效；透明底导出时直接输出标准自带图效灰黑白母版 PNG
+          const curBgMode = state._renderingBgMode || state.bgMode;
+          if (curBgMode !== "transparent") {
+            const bgRef = mkTmp();
+            const brg = bgRef.getContext("2d");
+            if (curBgMode === "blurred") {
+              ensureDisplayBlurCache();
+              brg.drawImage(displayBlurBgCanvas, 0, 0, w, h);
+            } else {
+              brg.drawImage(bgCanvas, 0, 0, w, h);
+              if (state.bgTintAlpha > 0) applyBgTintToCtx(brg, w, h);
+            }
+            // Clip underlying illustration to stamp silhouette
+            const fused = mkTmp();
+            const fg = fused.getContext("2d");
+            fg.drawImage(stampC, 0, 0);
+            fg.globalCompositeOperation = "source-in";
+            fg.drawImage(bgRef, 0, 0);
+
+            // Apply genuine Overlay blend so black/gray core absorbs saturated anime colors & white border glows!
+            fg.globalCompositeOperation = "overlay";
+            fg.globalAlpha = 0.96;
+            fg.drawImage(stampC, 0, 0);
+
+            // Subtle white rim safeguard so white border stays crisp even over very dark hair/clothes
+            fg.globalCompositeOperation = "source-over";
+            fg.globalAlpha = 0.34;
+            fg.drawImage(outerRingOnly, 0, 0);
+
+            outCtx.drawImage(fused, 0, 0);
+          } else {
+            outCtx.drawImage(stampC, 0, 0);
+          }
+
+          drawOuterGlow(outCtx, S, { color: stHex, punchOutArr: S });
+          return finishAnimeOut();
+        }
+
         if (fx.version === "a01_frost_silver") {
           // A01 霜银清璃：模糊底图填补空隙 + 暗影移位 + 软光黑 + 覆盖白 + 硬光吸色 + 线性加深细边
           const autoPal = sampleBgPaletteFromCanvas(bgCanvas);
@@ -6912,6 +7025,9 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     function compositeFinal(targetCtx, bgModeOverride = null) {
       const { rw: w, rh: h, rs } = getRenderDim();
       const mode = bgModeOverride || state.bgMode;
+      const prevRenderingBgMode = state._renderingBgMode;
+      state._renderingBgMode = mode;
+      try {
       const bgPos = getBgLayerPos();
       let bgDrawn = false;
       const drawCanvasBg = () => {
@@ -7099,6 +7215,9 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         if (clipBaseCanvas) { freeCanvas(clipBaseCanvas); clipBaseCanvas = null; }
       }
       drawCanvasBg();
+      } finally {
+        state._renderingBgMode = prevRenderingBgMode;
+      }
     }
 
     let hoverCanvasPt = null;
