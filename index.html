@@ -1727,6 +1727,82 @@
             </div>
           </div>
 
+          <div id="psSatinBevelExtraBox" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border);">
+            <div class="row-between">
+              <span class="card-sub" style="color:#ffd98e;font-weight:600;">仿PS立体 · 水滴缎面压纹 + 平行立体框</span>
+              <label class="switch" style="font-size:10.5px;color:#96eed0;" title="实心书法字默认关闭以保留字内镂空（如日/口/田）；空心线稿水印可勾选填满内部">
+                <input type="checkbox" id="chkPsFillCavity" /> 空洞填色
+              </label>
+            </div>
+
+            <div class="seg-group" id="psModeSeg" style="display:flex;width:100%;">
+              <button type="button" class="seg-btn active" data-psmode="gufeng" style="flex:1;padding:5px 4px;font-size:10.5px;" title="古风专属缎面(距离12/半径19白黑白丝绸渐变) + 刺绣暗纹48% + 关闭玻璃盖">🏮 古风丝缎(刺绣纹)</button>
+              <button type="button" class="seg-btn" data-psmode="gaofeng" style="flex:1;padding:5px 4px;font-size:10.5px;" title="稿风多波段金属缎面(距离10/半径18) + 左上斜杠反光玻璃盖46% + 细噪点纹48%">💎 稿风琉璃(带玻璃盖)</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:5px;padding:6px 8px;background:rgba(255,217,142,0.06);border:1px solid rgba(255,217,142,0.22);border-radius:7px;">
+              <div class="row-between">
+                <span style="font-size:10.5px;color:#ffe6b3;font-weight:600;">🎨 推荐色卡方案（点选即套用，下方6色台可精修）</span>
+                <button type="button" class="btn btn-sm" id="btnPsShuffleSeed" style="padding:1px 6px;font-size:10px;" title="打乱各字与装饰块的6色排布顺序">🎲 换色序</button>
+              </div>
+              <div id="psQuickPalRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
+                <button type="button" class="btn btn-sm ps-pal-btn" data-palid="pal_hongjian_liuli" style="flex-direction:column;align-items:flex-start;gap:3px;padding:5px 6px;">
+                  <span style="font-size:10.5px;font-weight:600;color:#ffd6e5;">红笺琉璃</span>
+                  <span style="display:flex;gap:2px;"><i style="width:9px;height:9px;border-radius:50%;background:#E8836B;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F3B0BC;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F5E49C;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#8ECBA4;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#9EE2EF;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#C1A3DF;display:inline-block;"></i></span>
+                </button>
+                <button type="button" class="btn btn-sm ps-pal-btn" data-palid="pal_pinkblue_silver" style="flex-direction:column;align-items:flex-start;gap:3px;padding:5px 6px;">
+                  <span style="font-size:10.5px;font-weight:600;color:#bfe8ff;">粉蓝银霜</span>
+                  <span style="display:flex;gap:2px;"><i style="width:9px;height:9px;border-radius:50%;background:#A9E8FA;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#8ABFF9;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F9C1E0;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F6A1C7;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F4E1F4;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#B8BDC4;display:inline-block;"></i></span>
+                </button>
+                <button type="button" class="btn btn-sm ps-pal-btn" data-palid="pal_apricot_tea" style="flex-direction:column;align-items:flex-start;gap:3px;padding:5px 6px;">
+                  <span style="font-size:10.5px;font-weight:600;color:#ffe2c4;">暖杏茶紫</span>
+                  <span style="display:flex;gap:2px;"><i style="width:9px;height:9px;border-radius:50%;background:#FCD8B8;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#FEDAA8;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F2ACC6;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#BFBCD9;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#BFD8EC;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#C9A398;display:inline-block;"></i></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <div class="field-head"><span>平行立体框深度</span><span class="field-val" id="valPsBevelDepth">7 px</span></div>
+                <input type="range" id="rngPsBevelDepth" min="0" max="16" step="0.5" value="7" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>平行立体框角度</span><span class="field-val" id="valPsBevelAngle">49°</span></div>
+                <input type="range" id="rngPsBevelAngle" min="0" max="360" step="1" value="49" />
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <div class="field-head"><span>缎面与双压纹光泽</span><span class="field-val" id="valPsSatinStrength">100%</span></div>
+                <input type="range" id="rngPsSatinStrength" min="0" max="150" step="1" value="100" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>柔化掐丝与内描</span><span class="field-val" id="valPsWireStrength">100%</span></div>
+                <input type="range" id="rngPsWireStrength" min="0" max="150" step="1" value="100" />
+              </div>
+            </div>
+
+            <div class="grid-3" style="gap:6px;">
+              <div class="field">
+                <div class="field-head"><span>斜杠玻璃盖</span><span class="field-val" id="valPsGlassLid">0%</span></div>
+                <input type="range" id="rngPsGlassLid" min="0" max="100" step="1" value="0" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>刺绣/噪点纹</span><span class="field-val" id="valPsAuxTex">48%</span></div>
+                <input type="range" id="rngPsAuxTex" min="0" max="100" step="1" value="48" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>柔光偏移影</span><span class="field-val" id="valPsSoftSh">48%</span></div>
+                <input type="range" id="rngPsSoftSh" min="0" max="100" step="1" value="48" />
+              </div>
+            </div>
+
+            <div style="font-size:10.5px;color:#b8c8e8;line-height:1.42;padding:5px 8px;background:rgba(125,166,255,0.08);border:1px solid rgba(125,166,255,0.22);border-radius:7px;">
+              💡 完整还原「水滴1.34 + 6px/25px双压纹非锐化 + 自研缎面 + 四向3px柔化掐丝 + 7px/49°染色平行立体框 + 柔光投影」；下方「水印填色区」可随时点填单字颜色或切换 40+ 套色卡。
+            </div>
+          </div>
+
           <div id="popularAnimeExtraBox" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border);">
             <div class="row-between">
               <span class="card-sub" style="color:#ffd6e5;font-weight:600;">流行效果 · 自带图效叠加（黑芯 / 白芯双系）</span>
@@ -2572,6 +2648,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     const FILTER_PRESETS = [{"id": "fx_acrylic", "name": "亚克力", "cat": "玻璃透明", "steps": 164, "hasBlurBg": true, "blurR": 19.4, "hasCavities": true, "hasInvert": true, "hasWhite": true, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "亚克力", "traits": {"isAcrylic": true}}, {"id": "l01_fs_hard_glow", "name": "L01 全屏硬影泛光", "cat": "全屏", "steps": 6, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": false, "hasWhite": true, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": true, "shadowDist": 3, "shadowBlur": 8, "shadowAlpha": 55, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "L01 全屏硬影泛光", "traits": {"fsLayered": true}}, {"id": "l02_fs_white_halo", "name": "L02 全屏白晕泛光", "cat": "全屏", "steps": 6, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": false, "hasWhite": true, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": true, "shadowDist": 3, "shadowBlur": 8, "shadowAlpha": 55, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "L02 全屏白晕泛光", "traits": {"fsLayered": true}}, {"id": "m04_gloss_wire_silver", "name": "M04 高光掐丝镀银", "cat": "金属液态", "steps": 262, "hasBlurBg": true, "blurR": 55.3, "hasCavities": true, "hasInvert": true, "hasWhite": true, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 2, "mainBlend": "source-over", "blends": ["Ovrl", "Mltp", "linearDodge"], "label": "M04 高光掐丝镀银", "traits": {"fsLayered": true, "useCloisonneWire": true}}, {"id": "g03_ice_fine_refract", "name": "G03 冰晶细边折光", "cat": "玻璃透明", "steps": 143, "hasBlurBg": true, "blurR": 36.0, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": true, "hasEmboss": false, "hasBevel": true, "bevelDepth": 43, "bevelSize": 3, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 2, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 40, "mainBlend": "source-over", "blends": ["Ovrl", "CDdg", "linearDodge"], "label": "G03 冰晶细边折光", "traits": {"isJadeTone": true, "innerGlowForce": true, "useCloisonneWire": true}}, {"id": "fx_emboss_raised", "name": "凸浮雕", "cat": "全屏", "steps": 8, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": false, "hasWhite": false, "hasBlack": false, "hasEmboss": true, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "convex", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "凸浮雕", "traits": {"fsEmboss": true}}, {"id": "fx_emboss_deboss", "name": "凹浮雕", "cat": "全屏", "steps": 8, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": false, "hasWhite": true, "hasBlack": false, "hasEmboss": true, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "concave", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "凹浮雕", "traits": {"fsEmboss": true, "fsEmbossConcave": true}}, {"id": "fx_thick_silver", "name": "厚实镀银", "cat": "金属液态", "steps": 121, "hasBlurBg": true, "blurR": 33.2, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 2, "mainBlend": "source-over", "blends": ["SftL", "Ovrl", "Mltp"], "label": "厚实镀银"}, {"id": "t01_woven_emboss", "name": "T01 织纹压印浮雕", "cat": "光影纹理", "steps": 110, "hasBlurBg": true, "blurR": 22.2, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": true, "bevelDepth": 63, "bevelSize": 13, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 3, "hasDropShadow": true, "shadowDist": 2, "shadowBlur": 1, "shadowAlpha": 64, "hasInnerGlow": true, "innerGlowSize": 9, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": true, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL", "Ovrl", "linearDodge", "Mltp", "CBrn", "H   "], "label": "T01 织纹压印浮雕", "traits": {"isEmbroideryTex": true}}, {"id": "g04_jade_inner_glow", "name": "G04 温润玉石内光", "cat": "玻璃透明", "steps": 112, "hasBlurBg": true, "blurR": 22.2, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": true, "bevelDepth": 63, "bevelSize": 13, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 3, "hasDropShadow": true, "shadowDist": 2, "shadowBlur": 1, "shadowAlpha": 64, "hasInnerGlow": true, "innerGlowSize": 9, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL", "Ovrl", "linearDodge", "Mltp", "CBrn", "H   "], "label": "G04 温润玉石内光", "traits": {"isJadeTone": true, "innerGlowForce": true}}, {"id": "g05_fine_clear_relief", "name": "G05 细边透明浮雕", "cat": "玻璃透明", "steps": 143, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": true, "hasBevel": true, "bevelDepth": 1000, "bevelSize": 5, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 9, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl", "linearDodge"], "label": "G05 细边透明浮雕", "traits": {"useCloisonneWire": true}}, {"id": "g06_matte_frosted_glass", "name": "G06 哑光雾面玻璃", "cat": "玻璃透明", "steps": 104, "hasBlurBg": true, "blurR": 49.8, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": true, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["H   ", "SftL", "Scrn", "Mltp", "Ovrl"], "label": "G06 哑光雾面玻璃", "traits": {"isMatte": true, "isMatteExact": true}}, {"id": "g07_dark_frosted_glass", "name": "G07 深色磨砂玻璃", "cat": "玻璃透明", "steps": 103, "hasBlurBg": true, "blurR": 49.8, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": true, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["H   ", "SftL", "Scrn", "Mltp", "Ovrl", "Nrml"], "label": "G07 深色磨砂玻璃", "traits": {"isMatte": true, "isMatteExact": true, "isDarkTone": true}}, {"id": "fx_matte_silver", "name": "哑光镀银", "cat": "金属液态", "steps": 48, "hasBlurBg": true, "blurR": 48.4, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": true, "hasWave": false, "hasExpand": 3, "mainBlend": "source-over", "blends": ["Ovrl", "SftL"], "label": "哑光镀银", "traits": {"isMatte": true, "isMatteExact": true}}, {"id": "m05_iridescent_chrome", "name": "M05 虹彩电镀", "cat": "金属液态", "steps": 119, "hasBlurBg": true, "blurR": 49.8, "hasCavities": true, "hasInvert": true, "hasWhite": true, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": true, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl", "Mltp", "Nrml"], "label": "M05 虹彩电镀", "traits": {"useChromeGpu": true, "useIridescent": true, "isRainbowIridescent": true}}, {"id": "m12_duotone_wire_relief", "name": "M12 拼色掐丝浮雕", "cat": "金属液态", "steps": 29, "hasBlurBg": false, "blurR": 25.0, "hasCavities": true, "hasInvert": false, "hasWhite": true, "hasBlack": false, "hasEmboss": true, "hasBevel": true, "bevelDepth": 400, "bevelSize": 10, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 3, "hasDropShadow": true, "shadowDist": 6, "shadowBlur": 10, "shadowAlpha": 60, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": true, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "M12 拼色掐丝浮雕", "traits": {"useIridescent": true, "useCloisonneWire": true}}, {"id": "m14_silk_wire_metal", "name": "M14 细纹掐丝金属", "cat": "金属液态", "steps": 156, "hasBlurBg": true, "blurR": 38.7, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": true, "bevelDepth": 220, "bevelSize": 10, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 1, "hasDropShadow": true, "shadowDist": 2, "shadowBlur": 0, "shadowAlpha": 19, "hasInnerGlow": true, "innerGlowSize": 3, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Clr ", "Ovrl", "Mltp", "Nrml"], "label": "M14 细纹掐丝金属", "traits": {"useCloisonneWire": true}}, {"id": "t02_tinted_outline_3d", "name": "T02 染色立体描边", "cat": "光影纹理", "steps": 42, "hasBlurBg": true, "blurR": 48.4, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 4, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": [], "label": "T02 染色立体描边", "traits": {"isWhiteOutline": true, "isTintedOutline": true}}, {"id": "l03_soft_mist_diffuse", "name": "L03 柔焦弥散雾光", "cat": "光影纹理", "steps": 88, "hasBlurBg": true, "blurR": 37.4, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": true, "hasWave": false, "hasExpand": 3, "mainBlend": "source-over", "blends": ["Ovrl", "linearDodge", "SftL"], "label": "L03 柔焦弥散雾光"}, {"id": "l04_cool_rim_glow", "name": "L04 冷白边缘泛光", "cat": "光影纹理", "steps": 98, "hasBlurBg": true, "blurR": 31.8, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": true, "bevelDepth": 1000, "bevelSize": 7, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": true, "strokeSize": 1, "hasDropShadow": true, "shadowDist": 3, "shadowBlur": 7, "shadowAlpha": 35, "hasInnerGlow": true, "innerGlowSize": 3, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "L04 冷白边缘泛光", "traits": {"outerGlowForce": true}}, {"id": "g08_crisp_ice_glass", "name": "G08 脆透冰晶玻璃", "cat": "玻璃透明", "steps": 102, "hasBlurBg": true, "blurR": 24.9, "hasCavities": false, "hasInvert": true, "hasWhite": true, "hasBlack": false, "hasEmboss": true, "hasBevel": true, "bevelDepth": 230, "bevelSize": 13, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 33, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL", "Ovrl", "linearDodge"], "label": "G08 脆透冰晶玻璃"}, {"id": "t05_bold_contrast_rim", "name": "T05 粗边高对比压纹", "cat": "光影纹理", "steps": 71, "hasBlurBg": true, "blurR": 45.6, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 3, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL", "Ovrl", "Mltp"], "label": "T05 粗边高对比压纹", "traits": {"isBoldFrame": true}}, {"id": "g09_bold_prism_glass", "name": "G09 粗边彩透玻璃", "cat": "玻璃透明", "steps": 175, "hasBlurBg": true, "blurR": 44.3, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": true, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL", "Ovrl"], "label": "G09 粗边彩透玻璃", "traits": {"isBoldFrame": true}}, {"id": "t06_invert_contour", "name": "T06 高反差反相轮廓", "cat": "光影纹理", "steps": 67, "hasBlurBg": true, "blurR": 27.7, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 2, "mainBlend": "source-over", "blends": ["SftL", "Ovrl"], "label": "T06 高反差反相轮廓"}, {"id": "g10_milky_translucent", "name": "G10 乳白柔透玻璃", "cat": "玻璃透明", "steps": 53, "hasBlurBg": true, "blurR": 30.0, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 6, "mainBlend": "source-over", "blends": ["SftL", "Ovrl"], "label": "G10 乳白柔透玻璃", "traits": {"innerGlowForce": true}}, {"id": "fx_crystal", "name": "水晶", "cat": "玻璃透明", "steps": 78, "hasBlurBg": true, "blurR": 30.4, "hasCavities": false, "hasInvert": true, "hasWhite": true, "hasBlack": false, "hasEmboss": false, "hasBevel": true, "bevelDepth": 261, "bevelSize": 5, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 2, "hasStroke": false, "strokeSize": 0, "hasDropShadow": true, "shadowDist": 3, "shadowBlur": 5, "shadowAlpha": 100, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL", "HrdL", "linearDodge"], "label": "水晶"}, {"id": "g11_clear_crystal", "name": "G11 高透通用水晶", "cat": "玻璃透明", "steps": 79, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": false, "hasWhite": false, "hasBlack": false, "hasEmboss": true, "hasBevel": true, "bevelDepth": 17, "bevelSize": 14, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 9, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 50, "mainBlend": "source-over", "blends": ["Ovrl", "SftL", "Scrn"], "label": "G11 高透通用水晶"}, {"id": "fx_crystal_glass", "name": "水晶玻璃", "cat": "全屏", "steps": 12, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": true, "bevelDepth": 261, "bevelSize": 1, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "水晶玻璃"}, {"id": "m06_liquid_mercury", "name": "M06 液态镜面水银", "cat": "金属液态", "steps": 52, "hasBlurBg": true, "blurR": 49.8, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": true, "strokeSize": 7, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl", "SftL"], "label": "M06 液态镜面水银", "traits": {"useChromeGpu": true}}, {"id": "fx_emboss_silver", "name": "浮雕镀银", "cat": "金属液态", "steps": 59, "hasBlurBg": true, "blurR": 49.8, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": true, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": true, "strokeSize": 4, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl", "Nrml"], "label": "浮雕镀银"}, {"id": "fx_emboss_silver_glow", "name": "浮雕镀银外发光", "cat": "金属液态", "steps": 59, "hasBlurBg": true, "blurR": 49.8, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": true, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": true, "strokeSize": 4, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl", "Nrml"], "label": "浮雕镀银外发光", "traits": {"outerGlowForce": true}}, {"id": "m07_grad_bold_silver", "name": "M07 渐变宽边镀银", "cat": "金属液态", "steps": 268, "hasBlurBg": false, "blurR": 25.0, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": true, "hasEmboss": true, "hasBevel": true, "bevelDepth": 43, "bevelSize": 3, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 2, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": true, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl", "SftL", "linearDodge", "Mltp"], "label": "M07 渐变宽边镀银", "traits": {"isBoldFrame": true, "useIridescent": true}}, {"id": "m08_jade_silver", "name": "M08 半透玉质镀银", "cat": "金属液态", "steps": 86, "hasBlurBg": true, "blurR": 49.8, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL", "Mltp", "Ovrl"], "label": "M08 半透玉质镀银", "traits": {"isJadeTone": true, "innerGlowForce": true}}, {"id": "g12_thick_wall_glass", "name": "G12 粗边厚壁玻璃", "cat": "玻璃透明", "steps": 53, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": false, "hasWhite": false, "hasBlack": false, "hasEmboss": true, "hasBevel": true, "bevelDepth": 32, "bevelSize": 14, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 3, "hasStroke": false, "strokeSize": 0, "hasDropShadow": true, "shadowDist": 2, "shadowBlur": 3, "shadowAlpha": 100, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl", "H   "], "label": "G12 粗边厚壁玻璃", "traits": {"isBoldFrame": true}}, {"id": "fx_fs_white_overlay", "name": "白叠加", "cat": "全屏", "steps": 6, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": false, "hasWhite": true, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": true, "shadowDist": 2, "shadowBlur": 0, "shadowAlpha": 100, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "白叠加", "traits": {"fsLayered": true}}, {"id": "t04_white_contour", "name": "T04 纯白高反差轮廓", "cat": "光影纹理", "steps": 48, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": true, "hasWhite": true, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": true, "shadowDist": 0, "shadowBlur": 3, "shadowAlpha": 100, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "T04 纯白高反差轮廓", "traits": {"isWhiteOutline": true}}, {"id": "fx_fs_white_soft", "name": "白软光", "cat": "全屏", "steps": 6, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": false, "hasWhite": true, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL"], "label": "白软光", "traits": {"fsSoftLight": true, "fsSoftLightWhite": true}}, {"id": "m15_matte_wire_jade", "name": "M15 哑光掐丝玉面", "cat": "金属液态", "steps": 184, "hasBlurBg": true, "blurR": 30.4, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": true, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["linearDodge", "Ovrl", "Nrml", "SftL"], "label": "M15 哑光掐丝玉面", "traits": {"isJadeTone": true, "innerGlowForce": true, "useCloisonneWire": true}}, {"id": "fx_frosted", "name": "磨砂", "cat": "玻璃透明", "steps": 116, "hasBlurBg": true, "blurR": 30.4, "hasCavities": false, "hasInvert": true, "hasWhite": true, "hasBlack": true, "hasEmboss": false, "hasBevel": true, "bevelDepth": 251, "bevelSize": 7, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 4, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": true, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL", "Ovrl", "linearDodge"], "label": "磨砂", "traits": {"isMatte": true}}, {"id": "m10_bold_cold_metal", "name": "M10 粗边冷调金属", "cat": "金属液态", "steps": 221, "hasBlurBg": true, "blurR": 26.3, "hasCavities": true, "hasInvert": true, "hasWhite": true, "hasBlack": false, "hasEmboss": false, "hasBevel": true, "bevelDepth": 750, "bevelSize": 109, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 10, "mainBlend": "source-over", "blends": ["Ovrl", "linearDodge", "Clr "], "label": "M10 粗边冷调金属", "traits": {"isBoldFrame": true, "useChromeGpu": true, "useCloisonneWire": true}}, {"id": "m11_fine_cold_metal", "name": "M11 细边冷调金属", "cat": "金属液态", "steps": 232, "hasBlurBg": true, "blurR": 26.3, "hasCavities": true, "hasInvert": true, "hasWhite": true, "hasBlack": false, "hasEmboss": false, "hasBevel": true, "bevelDepth": 750, "bevelSize": 109, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 10, "mainBlend": "source-over", "blends": ["Ovrl", "linearDodge", "Clr "], "label": "M11 细边冷调金属", "traits": {"useChromeGpu": true, "useCloisonneWire": true}}, {"id": "g13_prism_gem_fine", "name": "G13 细边棱镜宝石", "cat": "玻璃透明", "steps": 203, "hasBlurBg": true, "blurR": 18.0, "hasCavities": true, "hasInvert": false, "hasWhite": true, "hasBlack": false, "hasEmboss": true, "hasBevel": true, "bevelDepth": 646, "bevelSize": 8, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 3, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 60, "mainBlend": "source-over", "blends": ["Ovrl", "Scrn", "linearDodge", "H   "], "label": "G13 细边棱镜宝石", "traits": {"isGemSparkle": true, "useCloisonneWire": true}}, {"id": "m09_bold_brushed_silver", "name": "M09 粗边拉丝镀银", "cat": "金属液态", "steps": 205, "hasBlurBg": true, "blurR": 20.8, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl", "SftL", "Mltp", "linearDodge"], "label": "M09 粗边拉丝镀银", "traits": {"isBoldFrame": true}}, {"id": "m13_solid_wire_relief", "name": "M13 纯色掐丝浮雕", "cat": "金属液态", "steps": 32, "hasBlurBg": false, "blurR": 25.0, "hasCavities": true, "hasInvert": false, "hasWhite": true, "hasBlack": false, "hasEmboss": true, "hasBevel": true, "bevelDepth": 400, "bevelSize": 10, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 3, "hasDropShadow": true, "shadowDist": 6, "shadowBlur": 10, "shadowAlpha": 60, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": true, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "M13 纯色掐丝浮雕", "traits": {"useCloisonneWire": true}}, {"id": "g14_ivory_jade_glow", "name": "G14 凝脂白玉内光", "cat": "玻璃透明", "steps": 177, "hasBlurBg": true, "blurR": 49.8, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": true, "innerGlowSize": 7, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL", "Clr ", "linearDodge", "Ovrl", "Mltp"], "label": "G14 凝脂白玉内光", "traits": {"isJadeTone": true, "isIvoryJade": true, "innerGlowForce": true}}, {"id": "l05_soft_relief_halo", "name": "L05 柔影浮雕光晕", "cat": "光影纹理", "steps": 88, "hasBlurBg": true, "blurR": 33.2, "hasCavities": true, "hasInvert": false, "hasWhite": false, "hasBlack": false, "hasEmboss": true, "hasBevel": true, "bevelDepth": 1000, "bevelSize": 8, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": true, "shadowDist": 3, "shadowBlur": 0, "shadowAlpha": 100, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl", "Scrn"], "label": "L05 柔影浮雕光晕"}, {"id": "g15_glossy_ceramic", "name": "G15 粗边亮釉陶瓷", "cat": "玻璃透明", "steps": 203, "hasBlurBg": false, "blurR": 25.0, "hasCavities": true, "hasInvert": true, "hasWhite": false, "hasBlack": true, "hasEmboss": true, "hasBevel": true, "bevelDepth": 115, "bevelSize": 9, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 33, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 4, "mainBlend": "source-over", "blends": ["Ovrl", "linearDodge", "SftL", "Mltp"], "label": "G15 粗边亮釉陶瓷", "traits": {"isBoldFrame": true}}, {"id": "g16_tempered_gloss", "name": "G16 高透硬膜反光", "cat": "玻璃透明", "steps": 85, "hasBlurBg": true, "blurR": 48.4, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": true, "shadowDist": 2, "shadowBlur": 3, "shadowAlpha": 39, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": true, "outerGlowSize": 2, "hasGlass": true, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": [], "label": "G16 高透硬膜反光", "traits": {"outerGlowForce": true, "isTemperedGlass": true}}, {"id": "fx_silver_plate", "name": "镀银", "cat": "金属液态", "steps": 115, "hasBlurBg": true, "blurR": 49.8, "hasCavities": true, "hasInvert": true, "hasWhite": true, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": true, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": true, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl", "Mltp", "Nrml"], "label": "镀银", "traits": {"useChromeGpu": true}}, {"id": "fx_fs_black_overlay", "name": "黑叠加", "cat": "全屏", "steps": 6, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": false, "hasWhite": false, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": false, "strokeSize": 0, "hasDropShadow": true, "shadowDist": 2, "shadowBlur": 0, "shadowAlpha": 100, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["Ovrl"], "label": "黑叠加", "traits": {"fsLayered": true}}, {"id": "t03_mono_outline_3d", "name": "T03 黑白立体描边", "cat": "光影纹理", "steps": 34, "hasBlurBg": true, "blurR": 48.4, "hasCavities": false, "hasInvert": true, "hasWhite": false, "hasBlack": false, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 4, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": [], "label": "T03 黑白立体描边", "traits": {"isWhiteOutline": true}}, {"id": "fx_fs_black_soft", "name": "黑软光", "cat": "全屏", "steps": 7, "hasBlurBg": false, "blurR": 25.0, "hasCavities": false, "hasInvert": true, "hasWhite": true, "hasBlack": true, "hasEmboss": false, "hasBevel": false, "bevelDepth": 0, "bevelSize": 0, "bevelStyle": "InrB", "hasSatin": false, "satinDist": 0, "hasStroke": true, "strokeSize": 2, "hasDropShadow": false, "shadowDist": 3, "shadowBlur": 6, "shadowAlpha": 40, "hasInnerGlow": false, "innerGlowSize": 0, "hasOuterGlow": false, "outerGlowSize": 0, "hasGlass": false, "hasNoise": false, "hasWave": false, "hasExpand": 0, "mainBlend": "source-over", "blends": ["SftL"], "label": "黑软光", "traits": {"fsSoftLight": true}}];
     const CORE_EFFECTS = [
       { id: "g00_clear_gem", label: "G00 无色立体宝石", cat: "玻璃透明" },
+      { id: "ps01_satin_bevel", label: "仿PS立体", name: "缎面压纹平行立体釉", cat: "填色" },
       { id: "m01_silver_gloss", label: "M01 亮面镀银", cat: "填色" },
       { id: "colorfill", label: "填色掐丝", cat: "填色" },
       { id: "gradient", label: "渐变掐丝", cat: "填色" },
@@ -2630,8 +2707,11 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       { name: "桃粉碧玉", g1: "#ffd4e5", g2: "#2a9d8f", wire: "#f5d796" },
     ];
 
-    // 13 Curated 6-Color Watermark Fill Schemes
+    // Curated 6-Color Watermark Fill Schemes (including 3 custom PS-Satin schemes at top)
     const SIX_COLOR_PALETTES = [
+      { id: "pal_hongjian_liuli", name: "红笺琉璃", tag: "古风彩笺", colors: ["#E8836B", "#F3B0BC", "#F5E49C", "#8ECBA4", "#9EE2EF", "#C1A3DF"] },
+      { id: "pal_pinkblue_silver", name: "粉蓝银霜", tag: "清甜稿风", colors: ["#A9E8FA", "#8ABFF9", "#F9C1E0", "#F6A1C7", "#F4E1F4", "#B8BDC4"] },
+      { id: "pal_apricot_tea", name: "暖杏茶紫", tag: "温柔复古", colors: ["#FCD8B8", "#FEDAA8", "#F2ACC6", "#BFBCD9", "#BFD8EC", "#C9A398"] },
       { id: "pal_tea", name: "童话茶话会", tag: "甜美马卡龙", colors: ["#F7C6D4", "#B9E4D2", "#FBF0B9", "#BFE0F8", "#F7E3D4", "#E4C8F2"] },
       { id: "pal_peony", name: "牡丹玉瓷", tag: "古风青绿", colors: ["#C6ECEB", "#7AC4C6", "#53B4DC", "#5F87B0", "#F4DEC9", "#F0BDCD"] },
       { id: "pal_matcha", name: "桃粉抹茶", tag: "甜系物语", colors: ["#FAD6DF", "#FBA7B6", "#FD919C", "#DFEAAD", "#C9DE7C", "#95B83E"] },
@@ -2836,7 +2916,16 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         trialBevelAlpha: 100,
         trialRimAlpha: 100,
         trialShAlpha: 20,
-        trialBlurR: 42
+        trialBlurR: 42,
+        psMode: "gufeng",
+        psFillCavity: false,
+        psBevelDepth: 7,
+        psBevelAngle: 49,
+        psSatinStrength: 100,
+        psWireStrength: 100,
+        psGlassLidAlpha: 0,
+        psAuxTexAlpha: 48,
+        psSoftShAlpha: 48
       }
     };
 
@@ -4122,7 +4211,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       };
 
       const isMultiFillActive = () =>
-        Boolean(fx.multiColorEnable || fx.version === "colorfill" || state.cavityColorMap.size > 0 || state.hasFreehandPaint);
+        Boolean(fx.multiColorEnable || fx.version === "colorfill" || fx.version === "ps01_satin_bevel" || state.cavityColorMap.size > 0 || state.hasFreehandPaint);
 
       const drawFreehandOutsideCavities = (targetCtx) => {
         if (!state.hasFreehandPaint || !state.fillPaintCanvas) return;
@@ -4261,7 +4350,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const permPosOf = new Int32Array(palLen);
         perm.forEach((cIdx, pos) => { permPosOf[cIdx] = pos; });
 
-        const useAutoPal = fx.multiColorEnable || fx.version === "colorfill";
+        const useAutoPal = fx.multiColorEnable || fx.version === "colorfill" || fx.version === "ps01_satin_bevel";
         const blushSpots = [[0.28, 0.30], [0.72, 0.32], [0.32, 0.70], [0.70, 0.68]];
         // Precompute harmonious neighbor indices per palette slot (hue distance < 95 deg) so intra-stroke blends never turn muddy gray-brown!
         const palHsl = pal.map(hexToHsl);
@@ -4444,6 +4533,511 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         bCtx.restore();
         freeCanvas(mcBody);
       };
+
+      // ==================== 仿PS立体 (ps01_satin_bevel · 水滴缎面双压纹 + 平行立体框) ====================
+      if (fx.version === "ps01_satin_bevel") {
+        const isGufeng = (fx.psMode || "gufeng") === "gufeng";
+        const useCav = Boolean(fx.psFillCavity && fx.cavityEnable && cavityCount > 0);
+        const psArr = new Uint8Array(total);
+        let minX = w, minY = h, maxX = -1, maxY = -1;
+        for (let i = 0; i < total; i++) {
+          const hVal = state.disabledCavities.has(compMap[i]) ? 0 : H[i];
+          const v = useCav ? Math.max(hVal, cavAlpha[i]) : hVal;
+          psArr[i] = v;
+          if (v > 4) {
+            const x = i % w, y = (i / w) | 0;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+        if (maxX < minX) {
+          cleanupTemps();
+          return outC;
+        }
+
+        const cPsMask = mkAlpha(psArr, 0, 0, 0);
+        const mcFull = buildMultiColorRegionCanvas(psArr);
+        const mcData = mcFull.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, w, h).data;
+        const curBgMode = state._renderingBgMode || state.bgMode;
+        const bgRef = (curBgMode === "original") ? bgCanvas : blurBgCanvas;
+
+        // 0. 底层黑素偏移柔光阴影 (Soft-Light Offset Shadow: X+14, Y+14 柔光透底不发黑)
+        const softShOp = Math.max(0, Math.min(1, (fx.psSoftShAlpha ?? 48) / 100));
+        if (softShOp > 0.01) {
+          const shOff = Math.max(2, Math.round(13 * rs));
+          const shC = mkTempCanvas();
+          const shG = shC.getContext("2d");
+          shG.filter = `blur(${(2.2 * rs).toFixed(1)}px)`;
+          shG.drawImage(cPsMask, shOff, shOff);
+          shG.filter = "none";
+          if (curBgMode !== "transparent") {
+            const patchC = mkTempCanvas();
+            const pg = patchC.getContext("2d");
+            pg.drawImage(shC, 0, 0);
+            pg.globalCompositeOperation = "source-in";
+            pg.drawImage(bgRef, 0, 0, w, h);
+            pg.globalCompositeOperation = "soft-light";
+            pg.fillStyle = "#000000";
+            pg.fillRect(0, 0, w, h);
+            pg.globalCompositeOperation = "destination-in";
+            pg.drawImage(shC, 0, 0);
+            outCtx.save();
+            outCtx.globalAlpha = softShOp * 0.92;
+            outCtx.drawImage(patchC, 0, 0);
+            outCtx.restore();
+          } else {
+            outCtx.save();
+            outCtx.globalAlpha = softShOp * 0.28;
+            outCtx.drawImage(shC, 0, 0);
+            outCtx.restore();
+          }
+        }
+        drawDropShadow(outCtx, psArr, { baseDist: 3.5, baseBlur: 5.5, defAlpha55: 0.24, maxAlpha: 0.85 });
+        drawOuterGlow(outCtx, psArr);
+
+        //Tight crop bbox for fast pixel shaders (Emboss 6px, Satin 12/19, Emboss 25px+USM, Parallel Extrude 7px/49°)
+        const bevDepthPx = Math.max(0, (Number(fx.psBevelDepth ?? 7)) * rs);
+        const pad = Math.ceil(Math.max(32 * rs, bevDepthPx + 8));
+        const bx0 = Math.max(0, minX - pad), by0 = Math.max(0, minY - pad);
+        const bx1 = Math.min(w - 1, maxX + pad), by1 = Math.min(h - 1, maxY + pad);
+        const bw = bx1 - bx0 + 1, bh = by1 - by0 + 1;
+
+        // Crop white mask of psArr inside bbox for fast multi-radius Gaussian fields
+        const whiteCrop = mkTempCanvas(bw, bh);
+        const wcCtx = whiteCrop.getContext("2d");
+        wcCtx.drawImage(mkAlpha(psArr, 255, 255, 255), -bx0, -by0);
+
+        const makeBlurredAlphaArr = (blurRad) => {
+          const bc = mkTempCanvas(bw, bh);
+          const bg = bc.getContext("2d", { willReadFrequently: true });
+          if (blurRad > 0.2) bg.filter = `blur(${blurRad.toFixed(1)}px)`;
+          bg.drawImage(whiteCrop, 0, 0);
+          bg.filter = "none";
+          const raw = bg.getImageData(0, 0, bw, bh).data;
+          const arr = new Float32Array(bw * bh);
+          for (let i = 0; i < arr.length; i++) arr[i] = raw[i * 4 + 3];
+          return arr;
+        };
+
+        // 7. 染色「立体化(平行)」外斜面框 (深度 7px, 角度 49° + 色卡 Color 模式 + 饱和度+60% / 亮度-17%)
+        if (bevDepthPx >= 0.5) {
+          const angRad = ((Number(fx.psBevelAngle ?? 49)) * Math.PI) / 180;
+          // Extrude direction (screen coords: 49° projects crisp 3D side-wall; sunlit top-left vs shaded bottom-right facets)
+          const ux = Math.cos(angRad), uy = Math.sin(angRad);
+          const gradBlur = makeBlurredAlphaArr(Math.max(0.9, 1.3 * rs));
+
+          // Build anti-aliased shaded colored bevel source canvas once, then sweep with subpixel bilinear drawImage!
+          const edgeSrcC = mkTempCanvas(bw, bh);
+          const edgeSrcCtx = edgeSrcC.getContext("2d");
+          const edgeImg = edgeSrcCtx.createImageData(bw, bh);
+          const ed = edgeImg.data;
+          let hasEdge = false;
+
+          for (let y = 1; y < bh - 1; y++) {
+            const wy = by0 + y;
+            const wRow = wy * w;
+            const bRow = y * bw;
+            for (let x = 1; x < bw - 1; x++) {
+              const wx = bx0 + x;
+              const a = psArr[wRow + wx];
+              if (a < 4) continue;
+              // Include anti-aliased outer fringe + 2.5px interior rim so subpixel sweep has zero gaps and silky curves
+              if (
+                a < 252 ||
+                psArr[wRow + wx - 1] < 245 || psArr[wRow + wx + 1] < 245 ||
+                psArr[wRow - w + wx] < 245 || psArr[wRow + w + wx] < 245 ||
+                (x >= 2 && x < bw - 2 && y >= 2 && y < bh - 2 && (
+                  psArr[wRow + wx - 2] < 220 || psArr[wRow + wx + 2] < 220 ||
+                  psArr[wRow - 2 * w + wx] < 220 || psArr[wRow + 2 * w + wx] < 220
+                ))
+              ) {
+                hasEdge = true;
+                const bi = bRow + x;
+                const gx = (gradBlur[bi - 1] - gradBlur[bi + 1]);
+                const gy = (gradBlur[bi - bw] - gradBlur[bi + bw]);
+                const gLen = Math.hypot(gx, gy) || 1;
+                const nx = gx / gLen, ny = gy / gLen;
+                // 3D parallel facet lighting (sunlit top-left facet vs deep sculpted bottom-right facet)
+                const lightDot = nx * (-0.65) + ny * (-0.76);
+                const facetL = Math.max(0.20, Math.min(0.84, 0.48 + lightDot * 0.34));
+
+                const mp = (wRow + wx) * 4;
+                const mr = mcData[mp], mg = mcData[mp + 1], mb = mcData[mp + 2];
+                // Color blend mode + HSL(+60% saturation, -17% lightness)
+                const hsl = hexToHsl(rgbToHex(mr, mg, mb));
+                const satBoost = Math.min(96, Math.round(hsl.s * 1.60 + 10));
+                const lumFinal = Math.max(16, Math.min(84, Math.round(facetL * 100 * 0.88)));
+                const [er, eg, eb] = hexToRgbTuple(hslToHex(hsl.h, satBoost, lumFinal));
+                const p4 = bi * 4;
+                ed[p4] = er;
+                ed[p4 + 1] = eg;
+                ed[p4 + 2] = eb;
+                ed[p4 + 3] = a;
+              }
+            }
+          }
+
+          if (hasEdge) {
+            edgeSrcCtx.putImageData(edgeImg, 0, 0);
+            const bevC = mkTempCanvas(bw, bh);
+            const bevCtx = bevC.getContext("2d");
+            const stepUnit = 0.55;
+            const maxK = Math.max(1, Math.ceil(bevDepthPx / stepUnit));
+
+            // Subpixel hardware-interpolated painter's sweep from farthest slice back to 1 (butter-smooth curves!)
+            for (let k = maxK; k >= 1; k--) {
+              const dist = Math.min(bevDepthPx, k * stepUnit);
+              bevCtx.drawImage(edgeSrcC, ux * dist, uy * dist);
+            }
+            outCtx.drawImage(bevC, bx0, by0);
+          }
+        }
+
+        // 1. 主体层：100% 饱满彩素层 + 水滴(圆润: 距离0%, 高度10, 柔和5%, 折射率1.34, 标注68%, 高光尺寸2%, 环境色169%, 小太阳右下角315°)
+        const bodyC = mkTempCanvas();
+        const bCtx = bodyC.getContext("2d");
+        const colorRef = mkTempCanvas();
+        const crG = colorRef.getContext("2d");
+        // Keep 100% pure pastel pigment base (matching 色卡 100% 正常剪贴合并到黑素, never muddied by dark background!)
+        crG.fillStyle = "#faf6f8";
+        crG.fillRect(0, 0, w, h);
+        if (curBgMode !== "transparent") {
+          crG.globalAlpha = 0.14;
+          crG.drawImage(bgRef, 0, 0, w, h);
+          crG.globalAlpha = 1.0;
+        }
+        crG.globalAlpha = Math.max(0.15, fx.card1Alpha / 100);
+        crG.drawImage(mcFull, 0, 0);
+        crG.globalAlpha = 1.0;
+
+        const waterRes = runGpuFilterCanvas("water", cPsMask, colorRef, {
+          distance: 0, flat: 16, height: 10, round: 7, smooth: 3.4,
+          refract: 134, shine: 68, shineSize: 4.0,
+          bottom: 92, shadow: 2, light: 315, mask: "alpha", threshold: 45, mix: 100
+        }, true, true);
+        if (waterRes) {
+          bCtx.drawImage(waterRes, 0, 0);
+          freeCanvas(waterRes);
+        } else {
+          bCtx.drawImage(cPsMask, 0, 0);
+          bCtx.globalCompositeOperation = "source-in";
+          bCtx.drawImage(colorRef, 0, 0);
+        }
+        // Reinforce pure multi-color hue ("环境颜色 169%")
+        bCtx.save();
+        bCtx.globalCompositeOperation = "source-atop";
+        bCtx.globalAlpha = Math.min(0.54, (fx.card1Alpha / 100) * 0.48);
+        bCtx.drawImage(mcFull, 0, 0);
+        bCtx.restore();
+
+        // 水滴层上方剪贴辅助图 (古风：刺绣织锦暗纹 / 稿风：细腻噪点纹, Overlay 48%)
+        const auxOp = Math.max(0, Math.min(1, (fx.psAuxTexAlpha ?? 48) / 100));
+        if (auxOp > 0.01) {
+          const tileC = mkTempCanvas(64, 64);
+          const tg = tileC.getContext("2d");
+          if (state.customAuxUploaded && state.auxImg) {
+            tg.drawImage(state.auxImg, 0, 0, 64, 64);
+          } else if (isGufeng) {
+            // 刺绣织锦斜纹辅助图 (Neutral #808080 silk satin-stitch weave)
+            tg.fillStyle = "#808080";
+            tg.fillRect(0, 0, 64, 64);
+            const tImg = tg.getImageData(0, 0, 64, 64);
+            const td = tImg.data;
+            for (let y = 0; y < 64; y++) {
+              for (let x = 0; x < 64; x++) {
+                const diag1 = (x + y) & 7;
+                const diag2 = (x - y + 64) & 7;
+                const warp = ((x >> 2) + (y >> 2)) & 1;
+                let v = 128;
+                if (diag1 < 2) v += warp ? 28 : 18;
+                else if (diag1 === 4) v -= 24;
+                if (diag2 === 0 && !warp) v += 20;
+                else if (diag2 === 3 && warp) v -= 18;
+                const p = (y * 64 + x) * 4;
+                td[p] = td[p + 1] = td[p + 2] = v;
+                td[p + 3] = 255;
+              }
+            }
+            tg.putImageData(tImg, 0, 0);
+          } else {
+            // 稿风细腻噪点辅助图 (Neutral #808080 fine grain)
+            const tImg = tg.createImageData(64, 64);
+            const td = tImg.data;
+            let s = 1337;
+            for (let i = 0; i < 64 * 64; i++) {
+              s = (s * 1664525 + 1013904223) >>> 0;
+              const n = ((s >>> 24) / 255 - 0.5) * 68;
+              const v = Math.max(0, Math.min(255, Math.round(128 + n)));
+              const p = i * 4;
+              td[p] = td[p + 1] = td[p + 2] = v;
+              td[p + 3] = 255;
+            }
+            tg.putImageData(tImg, 0, 0);
+          }
+          bCtx.save();
+          bCtx.globalCompositeOperation = "overlay";
+          bCtx.globalAlpha = auxOp;
+          bCtx.fillStyle = bCtx.createPattern(tileC, "repeat");
+          bCtx.fillRect(0, 0, w, h);
+          bCtx.restore();
+        }
+
+        // 2~4. 双层压纹(6px + 25px非锐化) + 自研缎面(古风12/19丝绸渐变 vs 稿风10/18多波段渐变)
+        const satinMul = Math.max(0, (fx.psSatinStrength ?? 100) / 100);
+        if (satinMul > 0.01) {
+          const bSmall = makeBlurredAlphaArr(Math.max(1.2, 2.2 * rs));
+          const bSatin = makeBlurredAlphaArr(Math.max(2.5, (isGufeng ? 19 : 18) * 0.42 * rs));
+          const bDeep  = makeBlurredAlphaArr(Math.max(3.5, 9.5 * rs));
+
+          // Helper to build gray emboss array (0..255 centered at 128) inside bbox
+          const buildGrayEmboss = (srcBlur, stepPx, gain, angDeg) => {
+            const rad = (angDeg * Math.PI) / 180;
+            const ox = Math.max(1, Math.round(Math.cos(rad) * stepPx * 0.5));
+            const oy = Math.max(1, Math.round(-Math.sin(rad) * stepPx * 0.5));
+            const out = new Float32Array(bw * bh).fill(128);
+            for (let y = oy; y < bh - oy; y++) {
+              const r = y * bw;
+              for (let x = ox; x < bw - ox; x++) {
+                const dVal = (srcBlur[(y - oy) * bw + (x + ox)] - srcBlur[(y + oy) * bw + (x - ox)]) / 255;
+                out[r + x] = Math.max(0, Math.min(255, 128 + dVal * 128 * gain));
+              }
+            }
+            return out;
+          };
+
+          // Layer 2: 压纹 高度6px, 数额500%, 小太阳右上角(45°), Overlay 70%
+          const emb6 = buildGrayEmboss(bSmall, 6 * rs, 3.6, 45);
+          // Layer 4: 压纹 高度25px, 数额500% + 非锐化滤镜(半径23px, 强度114%), Overlay
+          const emb25Raw = buildGrayEmboss(bDeep, 22 * rs, 3.2, 45);
+          // Fast separable box-blur approximation of radius ~10*rs on emb25Raw for Unsharp Mask (114%)!
+          const usmR = Math.max(2, Math.round(9 * rs));
+          const tmpH = new Float32Array(bw * bh);
+          const emb25Blur = new Float32Array(bw * bh);
+          for (let y = 0; y < bh; y++) {
+            const r = y * bw;
+            let sum = emb25Raw[r] * (usmR + 1);
+            for (let k = 1; k <= usmR; k++) sum += emb25Raw[r + Math.min(bw - 1, k)];
+            for (let x = 0; x < bw; x++) {
+              tmpH[r + x] = sum / (2 * usmR + 1);
+              sum += emb25Raw[r + Math.min(bw - 1, x + usmR + 1)] - emb25Raw[r + Math.max(0, x - usmR)];
+            }
+          }
+          for (let x = 0; x < bw; x++) {
+            let sum = tmpH[x] * (usmR + 1);
+            for (let k = 1; k <= usmR; k++) sum += tmpH[Math.min(bh - 1, k) * bw + x];
+            for (let y = 0; y < bh; y++) {
+              emb25Blur[y * bw + x] = sum / (2 * usmR + 1);
+              sum += tmpH[Math.min(bh - 1, y + usmR + 1) * bw + x] - tmpH[Math.max(0, y - usmR) * bw + x];
+            }
+          }
+
+          // Layer 3: 自研缎面 (小太阳右边 0°: 古风 dist=12 白-黑(43%)-白渐变; 稿风 dist=10 多波段高反差金属渐变)
+          const satDist = Math.max(2, Math.round((isGufeng ? 12 : 10) * 0.65 * rs));
+          const reliefC = mkTempCanvas(bw, bh);
+          const relCtx = reliefC.getContext("2d");
+          const relImg = relCtx.createImageData(bw, bh);
+          const rd = relImg.data;
+
+          const ovStep = (b, s, op) => {
+            const o = b < 0.5 ? (2 * b * s) : (1 - 2 * (1 - b) * (1 - s));
+            return b + (o - b) * op;
+          };
+
+          const wEmb6  = Math.min(1, 0.70 * satinMul);
+          const wSatin = Math.min(1, 0.83 * satinMul);
+          const wEmb25 = Math.min(1, (isGufeng ? 0.68 : 0.85) * satinMul);
+
+          for (let y = 0; y < bh; y++) {
+            const wRow = (by0 + y) * w + bx0;
+            const bRow = y * bw;
+            for (let x = 0; x < bw; x++) {
+              const a = psArr[wRow + x];
+              if (a < 3) continue;
+              const bi = bRow + x;
+
+              // Satin wave coordinate t in [0, 1] from opposing horizontal shifted blurs (小太阳在右边 0°)
+              const aL = bSatin[bRow + Math.max(0, x - satDist)] / 255;
+              const aR = bSatin[bRow + Math.min(bw - 1, x + satDist)] / 255;
+              const aC = bSatin[bi] / 255;
+              const tWave = Math.max(0, Math.min(1, 0.52 * Math.abs(aL - aR) + 0.48 * (1 - aC)));
+
+              let sLum;
+              if (isGufeng) {
+                // 置顶古风缎面渐变：白(0%) -> 黑(43%) -> 白(100%) 丝绸温润折光
+                const u = tWave < 0.43 ? (tWave / 0.43) : ((1 - tWave) / 0.57);
+                const smoothU = u * u * (3 - 2 * u);
+                sLum = 1.0 - 0.78 * smoothU; // gentle silk valley so colors stay luminous!
+              } else {
+                // 稿风缎面渐变：双波段高反差琉璃条纹
+                sLum = 0.5 + 0.46 * Math.cos(tWave * Math.PI * 3.0);
+              }
+
+              const e6 = emb6[bi] / 255;
+              const e25 = Math.max(0, Math.min(1, (emb25Raw[bi] + (emb25Raw[bi] - emb25Blur[bi]) * 1.14) / 255));
+
+              // Chain all 3 Overlay relief layers onto neutral 0.5 gray carrier -> single crisp Overlay pass!
+              let g = 0.5;
+              g = ovStep(g, e6, wEmb6);
+              g = ovStep(g, sLum, wSatin);
+              g = ovStep(g, e25, wEmb25);
+              g = Math.max(isGufeng ? 0.36 : 0.25, g);
+
+              const v255 = Math.max(0, Math.min(255, Math.round(g * 255)));
+              const p4 = bi * 4;
+              rd[p4] = rd[p4 + 1] = rd[p4 + 2] = v255;
+              rd[p4 + 3] = a;
+            }
+          }
+          relCtx.putImageData(relImg, 0, 0);
+
+          bCtx.save();
+          bCtx.globalCompositeOperation = "overlay";
+          bCtx.drawImage(reliefC, bx0, by0);
+          bCtx.globalCompositeOperation = "color";
+          bCtx.globalAlpha = 0.28;
+          bCtx.drawImage(mcFull, 0, 0);
+          bCtx.restore();
+        }
+
+        // 5. 四向内描2柔化掐丝文件夹 (±2px 添加/叠加 + 2.6px高斯模糊) + 彩色内描2 (+30%饱和, -2%亮度)
+        const wireMul = Math.max(0, (fx.psWireStrength ?? 100) / 100);
+        if (wireMul > 0.01) {
+          // Build exact 2px inner stroke of psArr inside bbox
+          const in2Px = Math.max(1, Math.round(2 * rs));
+          const inner2W = mkTempCanvas(bw, bh);
+          const i2wG = inner2W.getContext("2d");
+          i2wG.drawImage(whiteCrop, 0, 0);
+          // Erode by in2Px using 8-way intersection punch
+          const erC = mkTempCanvas(bw, bh);
+          const erG = erC.getContext("2d");
+          erG.drawImage(whiteCrop, 0, 0);
+          erG.globalCompositeOperation = "destination-in";
+          for (const [dx, dy] of [[-in2Px,0],[in2Px,0],[0,-in2Px],[0,in2Px],[-in2Px,-in2Px],[in2Px,-in2Px],[-in2Px,in2Px],[in2Px,in2Px]]) {
+            erG.drawImage(whiteCrop, dx, dy);
+          }
+          i2wG.globalCompositeOperation = "destination-out";
+          i2wG.drawImage(erC, 0, 0);
+
+          const inner2B = mkTempCanvas(bw, bh);
+          const i2bG = inner2B.getContext("2d");
+          i2bG.drawImage(inner2W, 0, 0);
+          i2bG.globalCompositeOperation = "source-in";
+          i2bG.fillStyle = "#000000";
+          i2bG.fillRect(0, 0, bw, bh);
+
+          // Colored inner2 (色卡剪贴内描2 + 饱和度+30%, 亮度-2%)
+          const inner2Col = mkTempCanvas(bw, bh);
+          const i2cG = inner2Col.getContext("2d");
+          i2cG.drawImage(inner2W, 0, 0);
+          i2cG.globalCompositeOperation = "source-in";
+          i2cG.filter = "saturate(130%) brightness(98%)";
+          i2cG.drawImage(mcFull, -bx0, -by0);
+          i2cG.filter = "none";
+
+          const off2 = Math.max(1, Math.round(2 * rs));
+          const blurWire = (2.4 * rs).toFixed(1);
+
+          // Overlay folder pass: 白(+2,-2) + 黑(-2,+2) + 黑(+2,+2) + 彩色内描2
+          const wfOv = mkTempCanvas(bw, bh);
+          const wfoG = wfOv.getContext("2d");
+          wfoG.filter = `blur(${blurWire}px)`;
+          wfoG.drawImage(inner2B, -off2, off2);
+          wfoG.drawImage(inner2B, off2, off2);
+          wfoG.drawImage(inner2W, off2, -off2);
+          wfoG.drawImage(inner2Col, 0, 0);
+          wfoG.filter = "none";
+          wfoG.globalCompositeOperation = "destination-in";
+          wfoG.drawImage(whiteCrop, 0, 0);
+
+          // Linear Dodge (添加) pass: 白(-2,-2) 柔化高光丝
+          const wfAdd = mkTempCanvas(bw, bh);
+          const wfaG = wfAdd.getContext("2d");
+          wfaG.filter = `blur(${blurWire}px)`;
+          wfaG.drawImage(inner2W, -off2, -off2);
+          wfaG.filter = "none";
+          wfaG.globalCompositeOperation = "destination-in";
+          wfaG.drawImage(whiteCrop, 0, 0);
+
+          bCtx.save();
+          bCtx.globalCompositeOperation = "overlay";
+          bCtx.globalAlpha = Math.min(1, 0.92 * wireMul);
+          bCtx.drawImage(wfOv, bx0, by0);
+          bCtx.globalCompositeOperation = "lighter";
+          bCtx.globalAlpha = Math.min(1, 0.68 * wireMul * Math.max(0.5, specMul));
+          bCtx.drawImage(wfAdd, bx0, by0);
+          // 文件夹外克隆一层彩色内描2 (柔化边缘显色)
+          bCtx.globalCompositeOperation = "source-over";
+          bCtx.filter = `blur(${(1.6 * rs).toFixed(1)}px)`;
+          bCtx.globalAlpha = Math.min(0.75, 0.45 * wireMul);
+          bCtx.drawImage(inner2Col, bx0, by0);
+          bCtx.filter = "none";
+          bCtx.restore();
+        }
+
+        // 铺白匀亮联动 (默认40%为原教程亮度)
+        if ((fx.silverBright ?? 40) !== 40) {
+          const bDiff = ((fx.silverBright ?? 40) - 40) / 100;
+          if (Math.abs(bDiff) > 0.01) {
+            bCtx.save();
+            bCtx.globalCompositeOperation = "soft-light";
+            bCtx.globalAlpha = Math.min(0.55, Math.abs(bDiff) * 0.75);
+            bCtx.fillStyle = bDiff > 0 ? "#ffffff" : "#000000";
+            bCtx.fillRect(0, 0, w, h);
+            bCtx.restore();
+          }
+        }
+
+        // Strict clip to psArr silhouette
+        bCtx.globalCompositeOperation = "destination-in";
+        bCtx.globalAlpha = 1;
+        bCtx.drawImage(cPsMask, 0, 0);
+        outCtx.drawImage(bodyC, 0, 0);
+
+        // 6. 稿风专属：左上偏移斜杠挖空反光玻璃盖 (外描2白框 + 斜杠挖空剪影, 偏移 -14px, 不透明度 ~46%)
+        const lidOp = Math.max(0, Math.min(1, (fx.psGlassLidAlpha ?? 0) / 100));
+        if (lidOp > 0.01) {
+          const lidC = mkTempCanvas(bw, bh);
+          const lg = lidC.getContext("2d");
+          // Fill white silhouette then punch diagonal slash bands ("画白色斜杠 -> 合并反转清除白色区")
+          lg.drawImage(whiteCrop, 0, 0);
+          lg.save();
+          lg.globalCompositeOperation = "destination-out";
+          lg.translate(bw * 0.5, bh * 0.5);
+          lg.rotate((-38 * Math.PI) / 180);
+          const diagSpan = Math.hypot(bw, bh);
+          const period = Math.max(28, Math.round(54 * rs));
+          for (let sx = -diagSpan; sx < diagSpan; sx += period) {
+            lg.fillStyle = "rgba(0,0,0,0.88)";
+            lg.fillRect(sx, -diagSpan, Math.round(period * 0.34), diagSpan * 2);
+            lg.fillRect(sx + Math.round(period * 0.46), -diagSpan, Math.round(period * 0.14), diagSpan * 2);
+          }
+          lg.restore();
+
+          // Merge white outer 2px stroke ("把外描2改为白色 和刚刚做的剪影上下合并")
+          const out2C = mkTempCanvas(bw, bh);
+          const o2g = out2C.getContext("2d");
+          const r2 = Math.max(1.2, 2.0 * rs);
+          for (let k = 0; k < 12; k++) {
+            const a = (k / 12) * Math.PI * 2;
+            o2g.drawImage(whiteCrop, Math.cos(a) * r2, Math.sin(a) * r2);
+          }
+          o2g.globalCompositeOperation = "destination-out";
+          o2g.drawImage(whiteCrop, 0, 0);
+          lg.globalCompositeOperation = "source-over";
+          lg.drawImage(out2C, 0, 0);
+
+          const lidShift = -Math.max(4, Math.round(13 * rs));
+          outCtx.save();
+          outCtx.globalAlpha = lidOp * 0.78;
+          outCtx.drawImage(lidC, bx0 + lidShift, by0 + lidShift);
+          outCtx.restore();
+        }
+
+        cleanupTemps();
+        return outC;
+      }
 
       // ==================== 填色掐丝渲染流程 ====================
       if (fx.version === "colorfill") {
@@ -11675,7 +12269,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const isLayerBlur = verId === "layer_blur";
       const isFsCat = verId === "fs_bold" || (typeof verId === "string" && (verId.startsWith("fs_") || verId.startsWith("a0"))) || (presetRec && presetRec.cat === "全屏");
       const isAcrylic = Boolean(presetRec && presetRec.traits && presetRec.traits.isAcrylic);
-      const isColorFill = verId === "colorfill";
+      const isColorFill = verId === "colorfill" || verId === "ps01_satin_bevel";
+      const isPsSatinBevel = verId === "ps01_satin_bevel";
       const isGradient = verId === "gradient";
       const isClearGem = verId === "g00_clear_gem";
 
@@ -11707,11 +12302,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const isPopularAnime = verId === "a06_popular";
       const isTrialCard = verId === "a07_trial_card";
       const isAnimeMist = verId === "a04_soft_mist_frame" || verId === "a05_soft_mist_tint";
+      setFlex("psSatinBevelExtraBox", isPsSatinBevel);
       setFlex("popularAnimeExtraBox", isPopularAnime);
       setFlex("trialCardExtraBox", isTrialCard);
       setFlex("animeMistExtraBox", isAnimeMist);
       const supportsCustomTint = typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || (verId.startsWith("a0") && !isAnimeMist && !isPopularAnime && !isTrialCard));
       setFlex("fsCustomTintBox", supportsCustomTint);
+      if (isPsSatinBevel && typeof syncPsSatinBevelUI === "function") syncPsSatinBevelUI();
       if (isPopularAnime && typeof syncPopularAnimeUI === "function") syncPopularAnimeUI();
       if (isTrialCard && typeof syncTrialCardUI === "function") syncTrialCardUI();
       if (isAnimeMist && typeof syncAnimeMistUI === "function") syncAnimeMistUI();
@@ -11726,7 +12323,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     }
 
     function syncMultiVsSingleColorUI() {
-      const isMulti = Boolean(state.fx.multiColorEnable || state.fx.version === "colorfill");
+      const isMulti = Boolean(state.fx.multiColorEnable || state.fx.version === "colorfill" || state.fx.version === "ps01_satin_bevel");
       const sixBody = document.getElementById("sixColorInnerBody");
       const singleRow = document.getElementById("singleColorCard1Row");
       if (sixBody) sixBody.style.display = isMulti ? "flex" : "none";
@@ -11736,10 +12333,19 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     function selectEffectVersion(verId, labelText) {
       pushFxUndo("切换效果");
       state.fx.version = verId;
-      if (verId === "colorfill") {
+      if (verId === "colorfill" || verId === "ps01_satin_bevel") {
         state.fx.multiColorEnable = true;
         const chkMc = document.getElementById("chkMultiColorEnable");
         if (chkMc) chkMc.checked = true;
+        if (verId === "ps01_satin_bevel" && (!state.fx.sixPaletteId || state.fx.sixPaletteId === "pal_tea")) {
+          const defPal = SIX_COLOR_PALETTES.find(p => p.id === "pal_hongjian_liuli");
+          if (defPal) {
+            state.fx.sixPaletteId = defPal.id;
+            state.fx.sixColors = [...defPal.colors];
+            renderSixPalettesUI();
+            renderActiveSixSwatchesUI();
+          }
+        }
       }
       // Assign this effect to the currently selected layer/folder independently!
       const cur = getSelectedLayer();
@@ -11761,6 +12367,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       document.getElementById("waterWireExtraBox").style.display = verId === "g02_water_wire" ? "flex" : "none";
       document.getElementById("blurLayerExtraBox").style.display = verId === "layer_blur" ? "flex" : "none";
       document.getElementById("fsExtraBox").style.display = isFsEditable ? "flex" : "none";
+      const psBoxEl = document.getElementById("psSatinBevelExtraBox");
+      if (psBoxEl) psBoxEl.style.display = verId === "ps01_satin_bevel" ? "flex" : "none";
       const isPopularSel = verId === "a06_popular";
       const popBoxEl = document.getElementById("popularAnimeExtraBox");
       if (popBoxEl) popBoxEl.style.display = isPopularSel ? "flex" : "none";
@@ -13767,6 +14375,112 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         showToast("已切换为清晰原底图（仅保留水印外扩2局部柔雾模糊底）");
       };
     }
+
+    // ==================== 仿PS立体 (ps01_satin_bevel) 专属参数与三套配色绑定 ====================
+    function syncPsSatinBevelUI() {
+      const fx = state.fx;
+      const curMode = fx.psMode || "gufeng";
+      document.querySelectorAll("#psModeSeg .seg-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.psmode === curMode);
+      });
+      document.querySelectorAll("#psQuickPalRow .ps-pal-btn").forEach((b) => {
+        const active = b.dataset.palid === fx.sixPaletteId;
+        b.style.borderColor = active ? "rgba(255,217,142,0.85)" : "";
+        b.style.background = active ? "rgba(255,217,142,0.16)" : "";
+      });
+      const chkCav = document.getElementById("chkPsFillCavity");
+      if (chkCav) chkCav.checked = Boolean(fx.psFillCavity);
+
+      const setR = (rId, vId, val, suf) => {
+        const r = document.getElementById(rId), v = document.getElementById(vId);
+        if (r) r.value = val;
+        if (v) v.textContent = `${val}${suf}`;
+      };
+      setR("rngPsBevelDepth", "valPsBevelDepth", fx.psBevelDepth ?? 7, " px");
+      setR("rngPsBevelAngle", "valPsBevelAngle", fx.psBevelAngle ?? 49, "°");
+      setR("rngPsSatinStrength", "valPsSatinStrength", fx.psSatinStrength ?? 100, "%");
+      setR("rngPsWireStrength", "valPsWireStrength", fx.psWireStrength ?? 100, "%");
+      setR("rngPsGlassLid", "valPsGlassLid", fx.psGlassLidAlpha ?? 0, "%");
+      setR("rngPsAuxTex", "valPsAuxTex", fx.psAuxTexAlpha ?? 48, "%");
+      setR("rngPsSoftSh", "valPsSoftSh", fx.psSoftShAlpha ?? 48, "%");
+    }
+
+    document.querySelectorAll("#psModeSeg .seg-btn").forEach((btn) => {
+      btn.onclick = () => {
+        const m = btn.dataset.psmode || "gufeng";
+        pushFxUndo("切换仿PS古风/稿风模式");
+        state.fx.psMode = m;
+        state.fx.psGlassLidAlpha = (m === "gaofeng") ? 46 : 0;
+        syncPsSatinBevelUI();
+        scheduleRender(0);
+      };
+    });
+
+    document.querySelectorAll("#psQuickPalRow .ps-pal-btn").forEach((btn) => {
+      btn.onclick = () => {
+        const pid = btn.dataset.palid;
+        const palObj = SIX_COLOR_PALETTES.find(p => p.id === pid);
+        if (!palObj) return;
+        pushFxUndo("切换仿PS配色方案");
+        state.fx.sixPaletteId = palObj.id;
+        state.fx.sixColors = [...palObj.colors];
+        state.fx.multiColorEnable = true;
+        const chkMc = document.getElementById("chkMultiColorEnable");
+        if (chkMc) chkMc.checked = true;
+        syncMultiVsSingleColorUI();
+        renderSixPalettesUI();
+        renderActiveSixSwatchesUI();
+        syncPsSatinBevelUI();
+        scheduleRender(0);
+        showToast(`已套用配色方案：${palObj.name}（${palObj.tag}）`);
+      };
+    });
+
+    const btnPsShuf = document.getElementById("btnPsShuffleSeed");
+    if (btnPsShuf) {
+      btnPsShuf.onclick = () => {
+        pushFxUndo("切换仿PS色块排布");
+        state.fx.fillSeed = ((state.fx.fillSeed || 1) % 97) + 1;
+        state.fx.multiColorEnable = true;
+        scheduleRender(0);
+        showToast(`已切换 6 色排布与晕染序列 #${state.fx.fillSeed}`);
+      };
+    }
+
+    const chkPsCavEl = document.getElementById("chkPsFillCavity");
+    if (chkPsCavEl) {
+      chkPsCavEl.onchange = (e) => {
+        pushFxUndo("开关仿PS空洞填色");
+        state.fx.psFillCavity = Boolean(e.target.checked);
+        if (state.fx.psFillCavity) {
+          state.fx.cavityEnable = true;
+          const c = document.getElementById("chkCavityEnable");
+          if (c) c.checked = true;
+        }
+        syncPsSatinBevelUI();
+        scheduleRender(0);
+      };
+    }
+
+    const bindPsSlider = (id, key, isFloat = false) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.onpointerdown = () => pushFxUndo("调节仿PS立体参数");
+      const handler = (e) => {
+        state.fx[key] = isFloat ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
+        syncPsSatinBevelUI();
+        scheduleRender(25);
+      };
+      el.oninput = handler;
+      el.onchange = handler;
+    };
+    bindPsSlider("rngPsBevelDepth", "psBevelDepth", true);
+    bindPsSlider("rngPsBevelAngle", "psBevelAngle", false);
+    bindPsSlider("rngPsSatinStrength", "psSatinStrength", false);
+    bindPsSlider("rngPsWireStrength", "psWireStrength", false);
+    bindPsSlider("rngPsGlassLid", "psGlassLidAlpha", false);
+    bindPsSlider("rngPsAuxTex", "psAuxTexAlpha", false);
+    bindPsSlider("rngPsSoftSh", "psSoftShAlpha", false);
 
     // ==================== 流行效果 (a06_popular) 黑芯原版 + 白芯A/B 参数绑定 ====================
     const POP_PRESET_CONFIGS = {
