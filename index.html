@@ -541,6 +541,16 @@
       border-color: rgba(82, 199, 160, 0.72);
       color: #b8ffea;
     }
+    .badge-alock {
+      color: #d4c4ff !important;
+      border-color: rgba(168, 140, 255, 0.6) !important;
+      background: rgba(168, 140, 255, 0.18) !important;
+    }
+    #btnQuickAlphaLock.is-on, #btnBrushAlphaLock.is-on {
+      background: rgba(168, 140, 255, 0.26);
+      border-color: rgba(185, 162, 255, 0.85);
+      color: #f0eaff;
+    }
     .layer-item.drop-target {
       outline: 2px dashed var(--gold);
       background: rgba(230, 185, 110, 0.22);
@@ -905,10 +915,15 @@
       #ctxEyedropperGroup, #ctxEraserGroup, #ctxBrushGroup, #ctxLassoGroup, #ctxCavityGroup {
         width: 100%; max-width: 100%; flex-wrap: wrap !important; gap: 5px !important; align-items: center;
       }
-      #ctxEraserGroup, #ctxBrushGroup { padding-right: 26px; box-sizing: border-box; }
+      #ctxEraserGroup { padding-right: 26px; box-sizing: border-box; }
+      #ctxBrushGroup { padding: 0; gap: 5px 4px !important; }
+      #ctxBrushGroup .brush-row-top { flex: 1 1 calc(100% - 28px); margin-right: 26px; display: flex; align-items: center; gap: 5px; min-width: 0; }
+      #ctxBrushGroup .brush-row-fill { flex: 1 1 100%; display: flex; gap: 4px; }
+      #ctxBrushGroup .brush-row-fill > button { flex: 1 1 calc(33.333% - 4px); min-width: 0; justify-content: center; padding: 5px 4px; font-size: 11px; }
+      #ctxBrushGroup .brush-row-sub { flex: 1 1 100%; display: flex; align-items: center; gap: 5px; min-width: 0; }
       .context-bar > div, .context-bar .seg-group, .context-bar .seg-btn, .context-bar button, .context-bar span, .context-bar label { flex-shrink: 0; white-space: nowrap; }
-      #ctxEraserGroup input[type="range"], #ctxBrushGroup input[type="range"] { flex: 1 1 52px; width: auto; min-width: 44px; height: 18px; }
-      #ctxEraserGroup .field-val, #ctxBrushGroup .field-val { min-width: 30px; font-size: 10px; }
+      #ctxEraserGroup input[type="range"], #ctxBrushGroup input[type="range"] { flex: 1 1 52px; width: auto; min-width: 40px; height: 18px; }
+      #ctxEraserGroup .field-val, #ctxBrushGroup .field-val { min-width: 28px; font-size: 10px; }
       #ctxLassoGroup { padding: 0; gap: 5px 4px !important; }
       #ctxLassoGroup #lassoModeGroup { flex: 1 1 calc(100% - 28px); margin-right: 26px; display: flex; gap: 3px; }
       #ctxLassoGroup #lassoModeGroup .seg-btn { flex: 1 1 0; text-align: center; padding: 4px 5px !important; font-size: 11px !important; }
@@ -1154,19 +1169,30 @@
           <span class="field-val" id="valEraserSoft">25%</span>
           <button class="btn btn-sm" id="btnCloseEraserBar" style="margin-left:4px;">完成 ✕</button>
         </div>
-        <div id="ctxBrushGroup" class="row" style="display:none;flex-wrap:wrap;gap:5px;">
-          <input type="color" id="colBrushColor" value="#000000" title="画笔颜色" style="width:28px;height:24px;padding:1px;border-radius:5px;" />
-          <button class="btn btn-sm" id="btnBrushPick" style="padding:3px 7px;font-size:11px;" title="从画布吸色到画笔">吸色</button>
-          <span>粗细</span>
-          <input type="range" id="rngBrushSize" min="2" max="240" value="24" />
-          <span class="field-val" id="valBrushSize">24px</span>
-          <span>柔边</span>
-          <input type="range" id="rngBrushSoft" min="0" max="100" value="0" />
-          <span class="field-val" id="valBrushSoft">0%</span>
-          <span>浓度</span>
-          <input type="range" id="rngBrushOpacity" min="5" max="100" value="100" />
-          <span class="field-val" id="valBrushOpacity">100%</span>
-          <button class="btn btn-sm" id="btnCloseBrushBar" style="margin-left:4px;">完成 ✕</button>
+        <div id="ctxBrushGroup" class="row" style="display:none;flex-wrap:wrap;gap:6px;">
+          <div class="brush-row-top" style="display:inline-flex;align-items:center;gap:5px;">
+            <input type="color" id="colBrushColor" value="#000000" title="画笔与填充颜色（默认纯黑）" style="width:28px;height:24px;padding:1px;border-radius:5px;" />
+            <button type="button" class="btn btn-sm" id="btnBrushQuickBlack" style="padding:3px 6px;font-size:10.5px;background:#0c0e14;color:#fff;border-color:rgba(255,255,255,0.32);" title="一键切为纯黑色">黑</button>
+            <button type="button" class="btn btn-sm" id="btnBrushQuickWhite" style="padding:3px 6px;font-size:10.5px;background:#f4f6fb;color:#111;border-color:rgba(255,255,255,0.5);" title="一键切为纯白色">白</button>
+            <button type="button" class="btn btn-sm" id="btnBrushPick" style="padding:3px 7px;font-size:11px;" title="从画布吸色到画笔">吸色</button>
+            <span>粗细</span>
+            <input type="range" id="rngBrushSize" min="2" max="240" value="24" />
+            <span class="field-val" id="valBrushSize">24px</span>
+          </div>
+          <div class="brush-row-fill" style="display:inline-flex;align-items:center;gap:5px;">
+            <button type="button" class="btn btn-sm" id="btnBrushAutoFill" style="color:#96eed0;border-color:rgba(82,199,160,0.45);" title="开启后用手指或鼠标在画布上涂抹绕一圈，圈住的区域会自动实心填满当前画笔颜色">◉ 开启填充</button>
+            <button type="button" class="btn btn-sm" id="btnBrushAlphaLock" style="color:#d4c4ff;border-color:rgba(168,140,255,0.45);" title="开启当前图层的「阿尔法锁」（锁定透明像素）：开启后无论手涂、绕圈填充还是填满整层，都只作用于已有不透明图案内部，绝不涂出透明边界">🔒 阿尔法锁</button>
+            <button type="button" class="btn btn-sm btn-primary" id="btnBrushFillWhole" title="用当前画笔颜色一键填满整层（若当前图层开启了阿尔法锁，则只给已有图案换色、保持透明底不变）">🪣 填满整层</button>
+          </div>
+          <div class="brush-row-sub" style="display:inline-flex;align-items:center;gap:5px;">
+            <span>柔边</span>
+            <input type="range" id="rngBrushSoft" min="0" max="100" value="0" />
+            <span class="field-val" id="valBrushSoft">0%</span>
+            <span>浓度</span>
+            <input type="range" id="rngBrushOpacity" min="5" max="100" value="100" />
+            <span class="field-val" id="valBrushOpacity">100%</span>
+            <button type="button" class="btn btn-sm" id="btnCloseBrushBar" style="margin-left:4px;">完成 ✕</button>
+          </div>
         </div>
         <div id="ctxLassoGroup" class="row" style="display:none;flex-wrap:wrap;">
           <div class="seg-group" id="lassoModeGroup">
@@ -1284,11 +1310,14 @@
           </div>
           <div class="grid-2">
             <button class="btn btn-primary" id="btnAddWatermark" title="从相册或本地导入一张或多张透明黑素、贴图作为新图层">+ 导入黑素/贴图</button>
+            <button class="btn" id="btnAddBlankLayer" style="color:#ffd98e;border-color:rgba(230,185,110,0.45);" title="新建一张与画布同尺寸的透明空白图层，可直接填充纯色、局部涂抹或配合混合模式做氛围层">+ 新建空白图层</button>
             <button class="btn" id="btnAddText" title="新建可编辑文字图层，支持切换字体、竖排与外框">+ 添加文字层</button>
             <button class="btn" id="btnImportBg" title="更换画布底图图片，长图会自动适配画布比例不裁切">更换底图</button>
-            <button class="btn" id="btnResetDemo" title="清空当前图层并重新载入示例水印方便试效果">载入示例字素</button>
           </div>
-          <button class="btn btn-sm" id="btnOpenBatchShortcut" style="color:#96eed0;border-color:rgba(82,199,160,0.4);justify-content:center;" title="把当前调好的水印与效果，一次性批量套到多张底图上并打包导出">📦 批量套底图（同水印套多张底图）</button>
+          <div class="grid-2">
+            <button class="btn btn-sm" id="btnResetDemo" style="justify-content:center;" title="清空当前图层并重新载入示例水印方便试效果">载入示例字素</button>
+            <button class="btn btn-sm" id="btnOpenBatchShortcut" style="color:#96eed0;border-color:rgba(82,199,160,0.4);justify-content:center;" title="把当前调好的水印与效果，一次性批量套到多张底图上并打包导出">📦 批量套底图</button>
+          </div>
           <input type="file" id="fileWatermark" accept="image/*" multiple hidden />
           <input type="file" id="fileBg" accept="image/*" hidden />
         </div>
@@ -1297,6 +1326,7 @@
           <div class="card-title">
             <span>图层列表<span class="desktop-only">（可拖入文件夹）</span></span>
             <div class="row" style="gap:4px;">
+              <button class="btn btn-sm" id="btnNewBlankQuick" title="新建空白透明图层（可直接填充颜色或手绘）" style="color:#ffd98e;">📄+</button>
               <button class="btn btn-sm" id="btnNewFolder" title="新建图层文件夹" style="color:#f5d796;">📁+</button>
               <button class="btn btn-sm" id="btnMergeDown" title="向下合并图层（选中文件夹时合并文件夹内所有层）" style="color:#96eed0;">合并</button>
               <button class="btn btn-sm" id="btnLayerUp" title="上移一层">↑</button>
@@ -1308,9 +1338,10 @@
             </div>
           </div>
           <div class="layer-list" id="layerList"></div>
-          <div class="grid-3" style="padding-top:4px;gap:5px;">
-            <button class="btn btn-sm" id="btnQuickCloneBlur" style="color:#a8dcff;justify-content:center;padding:5px 4px;font-size:11px;" title="选中任意图层或画布底图，一键克隆一层独立高斯模糊图层（可用 ↑ ↓ 自由调位置、橡皮局部擦除）">✦ 克隆模糊层</button>
+          <div class="grid-2" style="padding-top:4px;gap:5px;">
+            <button class="btn btn-sm" id="btnQuickAlphaLock" style="color:#d4c4ff;justify-content:center;padding:5px 4px;font-size:11px;" title="阿尔法锁（锁定当前图层透明像素）：开启后手涂、绕圈填充、填满整层均只作用于已有图案内部，绝不溢出透明底，再次点击关闭">🔒 阿尔法锁</button>
             <button class="btn btn-sm" id="btnQuickClipMask" style="color:#ffd98e;justify-content:center;padding:5px 4px;font-size:11px;" title="剪贴蒙版（向下剪辑）：让当前图层只显示在正下方图层的图案轮廓内，再次点击取消">✂️ 剪贴蒙版</button>
+            <button class="btn btn-sm" id="btnQuickCloneBlur" style="color:#a8dcff;justify-content:center;padding:5px 4px;font-size:11px;" title="选中任意图层或画布底图，一键克隆一层独立高斯模糊图层（可用 ↑ ↓ 自由调位置、橡皮局部擦除）">✦ 克隆模糊层</button>
             <button class="btn btn-sm" id="btnQuickBakeEffect" style="color:#96eed0;justify-content:center;padding:5px 4px;font-size:11px;" title="把当前图层的特效直接写入像素，之后可以再给这层叠加第二个不同效果（支持 Ctrl+Z 撤销）">✨ 烘焙效果</button>
           </div>
           <div id="quickLayerBlurBox" style="display:none;flex-direction:column;gap:4px;padding:7px 9px;margin-top:2px;background:rgba(125,166,255,0.08);border:1px solid rgba(125,166,255,0.28);border-radius:8px;">
@@ -1368,6 +1399,30 @@
           </div>
 
           <div id="normalLayerPropsBody" style="display:flex;flex-direction:column;gap:10px;">
+          <div id="layerFillColorBox" style="display:flex;flex-direction:column;gap:7px;padding:8px;background:rgba(230,185,110,0.07);border-radius:8px;border:1px solid rgba(230,185,110,0.28);">
+            <div class="row-between">
+              <span style="font-size:11px;color:#ffe4a8;font-weight:600;">🎨 图层填充颜色（支持空白层 & 选区）</span>
+              <div class="row" style="gap:5px;">
+                <input type="color" id="colLayerFill" value="#ffffff" style="width:28px;height:24px;padding:1px;border-radius:5px;" title="选择要填充到图层的颜色" />
+                <button type="button" class="btn btn-sm" id="btnPickLayerFill" style="padding:2px 7px;font-size:10.5px;" title="从画布吸取颜色用于填充图层">吸色</button>
+              </div>
+            </div>
+            <div class="grid-2">
+              <button type="button" class="btn btn-sm btn-primary" id="btnFillLayerSolid" style="justify-content:center;" title="将当前选中的空白图层（或套索选区内）一键填满所选颜色；未选普通层时会自动新建纯色层">🪣 填充整层 / 选区</button>
+              <button type="button" class="btn btn-sm" id="btnFillLayerAlpha" style="justify-content:center;color:#a8dcff;" title="锁定透明像素填色：仅给当前图层已有的不透明图案换色，保持透明底不变">🔒 仅填图案换色</button>
+            </div>
+            <div id="layerFillPresets" style="display:flex;flex-wrap:wrap;gap:4px;">
+              <button type="button" class="bg-tint-chip" data-lfill="#ffffff"><i style="background:#ffffff"></i>纯白</button>
+              <button type="button" class="bg-tint-chip" data-lfill="#000000"><i style="background:#000000"></i>纯黑</button>
+              <button type="button" class="bg-tint-chip" data-lfill="#808080"><i style="background:#808080"></i>中性灰</button>
+              <button type="button" class="bg-tint-chip" data-lfill="#fff5f8"><i style="background:#fff5f8"></i>奶白</button>
+              <button type="button" class="bg-tint-chip" data-lfill="#ffc6da"><i style="background:#ffc6da"></i>樱粉</button>
+              <button type="button" class="bg-tint-chip" data-lfill="#ffd8b8"><i style="background:#ffd8b8"></i>蜜桃</button>
+              <button type="button" class="bg-tint-chip" data-lfill="#b8dbff"><i style="background:#b8dbff"></i>雾蓝</button>
+              <button type="button" class="bg-tint-chip" data-lfill="#1b2030"><i style="background:#1b2030"></i>暗夜</button>
+            </div>
+          </div>
+
           <div style="display:flex;flex-direction:column;gap:6px;padding:8px;background:rgba(0,0,0,0.22);border-radius:8px;border:1px solid var(--border);">
             <div class="row-between">
               <span style="font-size:11px;color:#c8d4ec;font-weight:600;">选区与蒙版（支持图层 & 文件夹）</span>
@@ -1669,6 +1724,78 @@
               <button type="button" class="bg-tint-chip" data-c1="#ff4fd8" data-c2="#00e5ff"><i style="background:linear-gradient(135deg,#ff4fd8,#00e5ff)"></i>霓虹</button>
               <button type="button" class="bg-tint-chip" data-c1="#222633" data-c2="#4a5166"><i style="background:#222633"></i>墨黑</button>
               <button type="button" class="bg-tint-chip" data-c1="#ffffff" data-c2="#eef4ff"><i style="background:#ffffff"></i>纯白</button>
+            </div>
+          </div>
+
+          <div id="popularAnimeExtraBox" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border);">
+            <div class="row-between">
+              <span class="card-sub" style="color:#ffd6e5;font-weight:600;">流行效果 · 自带图效三圈叠加（原片精确数值）</span>
+            </div>
+            <div class="seg-group" id="popPresetSeg" style="display:flex;width:100%;">
+              <button type="button" class="seg-btn active" data-ppreset="main" style="flex:1;padding:4px 4px;font-size:10.5px;" title="视频主字原值：#000000黑芯 + 6px纯白内描 + 12px(#6C6C6C)外灰描 + X+3,Y+5纯黑硬影">主字(6白+12灰)</button>
+              <button type="button" class="seg-btn" data-ppreset="sub" style="flex:1;padding:4px 4px;font-size:10.5px;" title="视频夹心副字原值：#8B8B8B浅灰芯 + 4px纯白描边 + 8px纯黑50%柔和外圈">夹心副字(#8B灰)</button>
+              <button type="button" class="seg-btn" data-ppreset="tag" style="flex:1;padding:4px 4px;font-size:10.5px;" title="视频前缀小标原值：#000000黑芯 + 7px纯白描边 + X+3,Y0硬影">前缀小标(7白)</button>
+            </div>
+
+            <div class="grid-3" style="gap:6px;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;">
+              <div class="row" style="gap:4px;">
+                <input type="color" id="colPopCore" value="#000000" style="width:24px;height:20px;padding:0;border-radius:4px;" title="字芯灰阶（主字#000000浓透，副字#8B8B8B浅透）" />
+                <span style="font-size:10.5px;color:#c8d4ec;">字芯色</span>
+              </div>
+              <div class="row" style="gap:4px;">
+                <input type="color" id="colPopInner" value="#ffffff" style="width:24px;height:20px;padding:0;border-radius:4px;" title="第1圈内描边颜色（默认纯白#FFFFFF）" />
+                <span style="font-size:10.5px;color:#c8d4ec;">内白描</span>
+              </div>
+              <div class="row" style="gap:4px;">
+                <input type="color" id="colPopOuter" value="#6c6c6c" style="width:24px;height:20px;padding:0;border-radius:4px;" title="第2圈外灰描颜色（主字默认#6C6C6C，副字#000000配50%透明度）" />
+                <span style="font-size:10.5px;color:#c8d4ec;">外灰描</span>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <div class="field-head"><span>内圈白描宽度</span><span class="field-val" id="valPopInnerW">6 px</span></div>
+                <input type="range" id="rngPopInnerW" min="1" max="24" step="0.5" value="6" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>外圈灰描总宽</span><span class="field-val" id="valPopOuterW">12 px</span></div>
+                <input type="range" id="rngPopOuterW" min="1" max="42" step="0.5" value="12" />
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-head"><span>外圈灰描不透明度</span><span class="field-val" id="valPopOuterAlpha">100%</span></div>
+              <input type="range" id="rngPopOuterAlpha" min="0" max="100" step="1" value="100" />
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:5px;padding:7px 8px;background:rgba(0,0,0,0.22);border-radius:7px;">
+              <div class="row-between">
+                <span style="font-size:11px;color:#d0dcf4;font-weight:600;">底层阿尔法锁硬影偏移（默认 X+3, Y+5）</span>
+                <input type="color" id="colPopSh" value="#000000" style="width:24px;height:20px;padding:0;border-radius:4px;" title="底层偏移硬影颜色（默认#000000）" />
+              </div>
+              <div class="grid-3" style="gap:6px;">
+                <div class="field">
+                  <div class="field-head"><span>水平 X</span><span class="field-val" id="valPopShDx">3 px</span></div>
+                  <input type="range" id="rngPopShDx" min="-16" max="24" step="1" value="3" />
+                </div>
+                <div class="field">
+                  <div class="field-head"><span>垂直 Y</span><span class="field-val" id="valPopShDy">5 px</span></div>
+                  <input type="range" id="rngPopShDy" min="-16" max="24" step="1" value="5" />
+                </div>
+                <div class="field">
+                  <div class="field-head"><span>硬影浓度</span><span class="field-val" id="valPopShAlpha">100%</span></div>
+                  <input type="range" id="rngPopShAlpha" min="0" max="100" step="1" value="100" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-head"><span>内置局部模糊底（选不透明度裁切模糊底）</span><span class="field-val" id="valPopBlurR">38 px</span></div>
+              <input type="range" id="rngPopBlurR" min="0" max="90" step="2" value="38" />
+            </div>
+
+            <div style="font-size:10.5px;color:#b8c8e8;line-height:1.42;padding:5px 8px;background:rgba(125,166,255,0.08);border:1px solid rgba(125,166,255,0.22);border-radius:7px;">
+              💡 已完整还原原教程「6白描 + 12(#6C6C6C)灰描 + X+3,Y+5硬黑影 + 局部模糊底100%覆盖」；若字号很大可等比拉宽内外描边，切「透明底」可直接导出自带图效灰黑白母版 PNG。
             </div>
           </div>
 
@@ -2504,16 +2631,18 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       bgBlurR: 22, // independent blurred-background radius
       bgTintColor: "#ffd6e5",
       bgTintAlpha: 0,
+      bgDeleted: false,
       bgImg: null,
       auxImg: null,
       layers: [],
       selectedLayerId: null,
+      layerFillColor: "#ffffff",
       lockAspect: true, // PS-style Lock Aspect Ratio (true = proportional no distortion; false = free X/Y transform)
       tool: "move", // move | lasso | eraser | cavity | pan
       compareRaw: false,
       view: { zoom: 0.35, panX: 0, panY: 0, spaceDown: false },
       eraser: { size: 48, softness: 25 },
-      brush: { color: "#000000", size: 24, softness: 0, opacity: 100 },
+      brush: { color: "#000000", size: 24, softness: 0, opacity: 100, autoFill: false },
       eyeTarget: "card1", // card1 | card2 | grad1 | grad2
       lasso: { shapes: [], activePoints: [], mode: "add", alphaMask: null },
       undoStack: [],
@@ -2606,7 +2735,19 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         animeRimLit: 0,
         animeRimAlpha: 100,
         animeShadowColor: "#14151a",
-        animeShadowAlpha: 58
+        animeShadowAlpha: 58,
+        popPreset: "main",
+        popCoreHex: "#000000",
+        popInnerHex: "#ffffff",
+        popInnerW: 6,
+        popOuterHex: "#6c6c6c",
+        popOuterW: 12,
+        popOuterAlpha: 100,
+        popShHex: "#000000",
+        popShDx: 3,
+        popShDy: 5,
+        popShAlpha: 100,
+        popBlurR: 38
       }
     };
 
@@ -2632,6 +2773,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     const blurBgCtx = blurBgCanvas.getContext("2d", { willReadFrequently: true });
     const animeMistBlurCanvas = document.createElement("canvas");
     const animeMistBlurCtx = animeMistBlurCanvas.getContext("2d", { willReadFrequently: true });
+    const popLocalBlurCanvas = document.createElement("canvas");
+    const popLocalBlurCtx = popLocalBlurCanvas.getContext("2d", { willReadFrequently: true });
     const qiasiMaskCanvas = document.createElement("canvas");
     const qiasiMaskCtx = qiasiMaskCanvas.getContext("2d", { willReadFrequently: true });
     const qiasiResultCanvas = document.createElement("canvas");
@@ -2640,6 +2783,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     let bgCacheKey = "";
     let displayBlurKey = "";
     let animeMistBlurKey = "";
+    let popLocalBlurKey = "";
     let _bgBuildVersion = 0;
     // Mobile / iOS preview renders at lightweight 960px resolution to eliminate GPU OOM & stutter;
     // PNG export / bake / merge ALWAYS switch activeRenderScale = 1 for full 2000x2000 HD output!
@@ -2676,9 +2820,11 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       freeCanvas(blurBgCanvas);
       freeCanvas(displayBlurBgCanvas);
       freeCanvas(animeMistBlurCanvas);
+      freeCanvas(popLocalBlurCanvas);
       bgCacheKey = "";
       displayBlurKey = "";
       animeMistBlurKey = "";
+      popLocalBlurKey = "";
       if (releaseGpu && sharedGpuEngine) {
         try { sharedGpuEngine.dispose(); } catch (_) {}
         sharedGpuEngine = null;
@@ -2842,6 +2988,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (bgCacheKey === key) return;
       bgCacheKey = key;
       animeMistBlurKey = "";
+      popLocalBlurKey = "";
       _bgBuildVersion++;
 
       bgCanvas.width = w; bgCanvas.height = h;
@@ -2967,6 +3114,18 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const s = Math.max(0, Math.min(100, hsl.s + (Number(fxObj.animeRimSat) || 0)));
       const l = Math.max(4, Math.min(95, hsl.l + (Number(fxObj.animeRimLit) || 0)));
       return { baseHex, finalHex: hslToHex(h, s, l) };
+    }
+
+    function ensurePopularLocalBlurBg(w, h, rs, rawBlur) {
+      const bVal = Math.max(0, Number(rawBlur ?? 38));
+      const key = `${w}x${h}|${_bgBuildVersion}|${bVal.toFixed(1)}|${rs.toFixed(3)}|${state.bgTintColor}|${state.bgTintAlpha}`;
+      if (popLocalBlurKey === key && popLocalBlurCanvas.width === w && popLocalBlurCanvas.height === h) {
+        return popLocalBlurCanvas;
+      }
+      popLocalBlurKey = key;
+      blurCanvasExact1to1(bgCanvas, popLocalBlurCanvas, popLocalBlurCtx, bVal * rs);
+      if (state.bgTintAlpha > 0) applyBgTintToCtx(popLocalBlurCtx, w, h);
+      return popLocalBlurCanvas;
     }
 
     // Create a crisp demo watermark layer with enclosed cavities (so user sees instant cloisonne effect!)
@@ -3118,6 +3277,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         type: opts.type || "image",
         parentId: opts.parentId || null,
         collapsed: false,
+        alphaLock: Boolean(opts.alphaLock),
         maskCanvas: null,
         source,
         srcW: source ? (source.naturalWidth || source.width) : 400,
@@ -5645,115 +5805,238 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         };
 
         if (fx.version === "a06_popular") {
-          // 流行效果（日漫自带图效叠加风）：圆润宽白描边 + 右下(+3,+5)错位硬柔暗影 + 主次双灰阶黑芯自动叠加(Overlay)透出底图高饱和原色
-          const stHex = fx.customStrokeEnable ? (fx.customStrokeColor || "#ffffff") : "#ffffff";
-          const rPop = (fx.customStrokeEnable ? Math.max(2.0, (fx.customStrokeW ?? 5.5) * 1.55) : 5.4) * sc;
+          // 流行效果（自带图效小水印 · 原教程1:1精确数值还原）：
+          // 主字原值：字芯 #000000 + 第1圈内白描 6px(#FFFFFF) + 第2圈外灰描 12px(#6C6C6C) + 合并后克隆下层阿尔法锁涂黑(#000000)移动 X+3, Y+5
+          // 夹心副字原值：字芯 #8B8B8B + 第1圈内白描 4px(#FFFFFF) + 第2圈外描边 8px(#000000, 不透明度50%)
+          // 上图套用原值：选水印不透明度 -> 克隆一层模糊底并清除外部 -> 水印层 100% 覆盖 (Overlay) 叠在局部模糊底上！
+          const rIn = Math.max(0.5, (Number(fx.popInnerW ?? 6)) * sc);
+          const rOut = Math.max(rIn, (Number(fx.popOuterW ?? 12)) * sc);
+          const hasOuterRing = (rOut > rIn + 0.08) && ((fx.popOuterAlpha ?? 100) > 0);
+          const outerOp = Math.max(0, Math.min(1, (fx.popOuterAlpha ?? 100) / 100));
 
-          // 1. 圆润饱满外描边剪影（双圈圆周采样，转角圆滑如圆体描边）
-          const popSilW = mkTmp();
-          const pwg = popSilW.getContext("2d");
-          for (const ringMul of [0.52, 1.0]) {
-            const rr = rPop * ringMul;
-            const steps = ringMul < 0.8 ? 12 : 22;
-            for (let k = 0; k < steps; k++) {
-              const ang = (k / steps) * Math.PI * 2;
-              pwg.drawImage(cHWhite, Math.cos(ang) * rr, Math.sin(ang) * rr);
+          const [crR, crG, crB] = hexToRgbTuple(fx.popCoreHex || "#000000");
+          const [inR, inG, inB] = hexToRgbTuple(fx.popInnerHex || "#ffffff");
+          const [ouR, ouG, ouB] = hexToRgbTuple(fx.popOuterHex || "#6c6c6c");
+          const [shR, shG, shB] = hexToRgbTuple(fx.popShHex || "#000000");
+
+          const dxSh = (Number(fx.popShDx ?? 3)) * sc;
+          const dySh = (Number(fx.popShDy ?? 5)) * sc;
+          const shOp = Math.max(0, Math.min(1, (fx.popShAlpha ?? 100) / 100));
+
+          // Find tight active bounding box of H to run exact subpixel Euclidean Distance Transform (EDT)
+          let minX = w, minY = h, maxX = -1, maxY = -1;
+          for (let y = 0; y < h; y++) {
+            const row = y * w;
+            for (let x = 0; x < w; x++) {
+              if (H[row + x] > 2) {
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+              }
             }
           }
-          pwg.drawImage(cHWhite, 0, 0);
+          if (maxX < minX) {
+            cleanupTemps();
+            return outC;
+          }
 
-          // 着色外框（默认纯白 #FFFFFF）与右下错位阴影层（#121216）
-          const popStrokeC = mkTmp();
-          const psg = popStrokeC.getContext("2d");
-          psg.drawImage(popSilW, 0, 0);
-          psg.globalCompositeOperation = "source-in";
-          psg.fillStyle = stHex;
-          psg.fillRect(0, 0, w, h);
+          const pad = Math.ceil(rOut + 4);
+          const bx0 = Math.max(0, minX - pad), by0 = Math.max(0, minY - pad);
+          const bx1 = Math.min(w - 1, maxX + pad), by1 = Math.min(h - 1, maxY + pad);
+          const bw = bx1 - bx0 + 1, bh = by1 - by0 + 1;
+          const bTotal = bw * bh;
 
-          const popShadowSil = mkTmp();
-          const pdg = popShadowSil.getContext("2d");
-          pdg.drawImage(popSilW, 0, 0);
-          pdg.globalCompositeOperation = "source-in";
-          pdg.fillStyle = fx.shadowCustom ? (fx.shadowColor || "#121218") : "#121218";
-          pdg.fillRect(0, 0, w, h);
+          // Subpixel-seeded 2D Exact Euclidean Distance Transform (vector-grade smooth round strokes at any width!)
+          const INF = 1e12;
+          const field = new Float32Array(bTotal);
+          for (let y = 0; y < bh; y++) {
+            const srcRow = (by0 + y) * w + bx0;
+            const dstRow = y * bw;
+            for (let x = 0; x < bw; x++) {
+              const a = H[srcRow + x];
+              if (a >= 252) {
+                field[dstRow + x] = 0;
+              } else if (a > 2) {
+                const sub = (1 - a / 255) * 0.85;
+                field[dstRow + x] = sub * sub;
+              } else {
+                field[dstRow + x] = INF;
+              }
+            }
+          }
 
-          // 纯净外白圈（镂空字芯，用于暗部底图托底护边）
-          const outerRingOnly = mkTmp();
-          const org = outerRingOnly.getContext("2d");
-          org.drawImage(popStrokeC, 0, 0);
-          org.globalCompositeOperation = "destination-out";
-          org.drawImage(cHWhite, 0, 0);
+          const maxDim = Math.max(bw, bh);
+          const f1d = new Float64Array(maxDim);
+          const d1d = new Float64Array(maxDim);
+          const v1d = new Int32Array(maxDim);
+          const z1d = new Float64Array(maxDim + 1);
+          const runEdt1D = (n) => {
+            let k = 0;
+            v1d[0] = 0;
+            z1d[0] = -Infinity;
+            z1d[1] = Infinity;
+            for (let q = 1; q < n; q++) {
+              let sVal;
+              const fq = f1d[q] + q * q;
+              do {
+                const vk = v1d[k];
+                sVal = (fq - (f1d[vk] + vk * vk)) / (2 * (q - vk));
+                if (sVal <= z1d[k]) k--;
+                else break;
+              } while (k >= 0);
+              k++;
+              v1d[k] = q;
+              z1d[k] = sVal;
+              z1d[k + 1] = Infinity;
+            }
+            k = 0;
+            for (let q = 0; q < n; q++) {
+              while (z1d[k + 1] < q) k++;
+              const dx = q - v1d[k];
+              d1d[q] = dx * dx + f1d[v1d[k]];
+            }
+          };
 
-          // 2. 字芯主次双灰阶：粗主笔呈深炭黑(#121216，叠加染色浓郁)，细副笔自然呈清透中灰(#5e5e66，叠加轻透有层次)
-          const coreSoft = mkTmp();
-          const csg = coreSoft.getContext("2d");
-          csg.filter = `blur(${Math.max(0.8, 1.45 * sc).toFixed(2)}px)`;
-          csg.drawImage(cHBlack, 0, 0);
-          csg.filter = "none";
+          for (let y = 0; y < bh; y++) {
+            const rOff = y * bw;
+            for (let x = 0; x < bw; x++) f1d[x] = field[rOff + x];
+            runEdt1D(bw);
+            for (let x = 0; x < bw; x++) field[rOff + x] = d1d[x];
+          }
+          for (let x = 0; x < bw; x++) {
+            for (let y = 0; y < bh; y++) f1d[y] = field[y * bw + x];
+            runEdt1D(bh);
+            for (let y = 0; y < bh; y++) field[y * bw + x] = d1d[y];
+          }
 
-          const innerCore = mkTmp();
-          const icg = innerCore.getContext("2d");
-          icg.fillStyle = "#5c5c64";
-          icg.fillRect(0, 0, w, h);
-          icg.globalCompositeOperation = "destination-in";
-          icg.drawImage(cHWhite, 0, 0);
-          icg.globalCompositeOperation = "source-atop";
-          icg.globalAlpha = 0.86;
-          icg.drawImage(coreSoft, 0, 0);
+          // Synthesize exact 3-layer concentric vector-smooth stamp + Alpha-Locked shadow mask inside bbox
+          const topCropC = document.createElement("canvas");
+          topCropC.width = bw; topCropC.height = bh;
+          _temps.push(topCropC);
+          const topCtx = topCropC.getContext("2d");
+          const topImg = topCtx.createImageData(bw, bh);
+          const td = topImg.data;
 
-          // 3. 组装「自带图效」标准灰黑白母版 stampC（右下 +3,+5 错位立体阴影 + 宽白边 + 双灰阶字芯）
-          const dxSh = Math.round(3.2 * sc);
-          const dySh = Math.round(5.0 * sc);
-          const shAlphaMul = fx.dropShadow ? Math.max(0.15, Math.min(1, (fx.shadowAlpha ?? 55) / 55 * 0.64)) : 0;
+          const shCropC = document.createElement("canvas");
+          shCropC.width = bw; shCropC.height = bh;
+          _temps.push(shCropC);
+          const shCropCtx = shCropC.getContext("2d");
+          const shImg = shCropCtx.createImageData(bw, bh);
+          const sd = shImg.data;
 
+          const invAa = 1 / 0.92;
+          for (let y = 0; y < bh; y++) {
+            const srcRow = (by0 + y) * w + bx0;
+            const bRow = y * bw;
+            for (let x = 0; x < bw; x++) {
+              const idx = bRow + x;
+              const dist = Math.sqrt(field[idx]);
+              if (dist > rOut + 0.6) continue;
+
+              // Bottom-to-top Porter-Duff premultiplied composition: Outer Gray -> Inner White -> Core
+              let pr = 0, pg = 0, pb = 0, pa = 0;
+              if (hasOuterRing) {
+                const cOut = Math.max(0, Math.min(1, (rOut + 0.46 - dist) * invAa)) * outerOp;
+                if (cOut > 0) {
+                  pr = ouR * cOut; pg = ouG * cOut; pb = ouB * cOut; pa = cOut;
+                }
+              }
+              const cIn = Math.max(0, Math.min(1, (rIn + 0.46 - dist) * invAa));
+              if (cIn > 0) {
+                const inv = 1 - cIn;
+                pr = inR * cIn + pr * inv;
+                pg = inG * cIn + pg * inv;
+                pb = inB * cIn + pb * inv;
+                pa = cIn + pa * inv;
+              }
+              const cCore = H[srcRow + x] / 255;
+              if (cCore > 0) {
+                const inv = 1 - cCore;
+                pr = crR * cCore + pr * inv;
+                pg = crG * cCore + pg * inv;
+                pb = crB * cCore + pb * inv;
+                pa = cCore + pa * inv;
+              }
+
+              if (pa > 0.002) {
+                const p4 = idx * 4;
+                const a255 = Math.min(255, Math.round(pa * 255));
+                td[p4] = Math.min(255, Math.round(pr / pa));
+                td[p4 + 1] = Math.min(255, Math.round(pg / pa));
+                td[p4 + 2] = Math.min(255, Math.round(pb / pa));
+                td[p4 + 3] = a255;
+
+                // Alpha-Locked solid shadow silhouette (matches duplicating merged layer -> Alpha Lock -> Fill #000000)
+                sd[p4] = shR;
+                sd[p4 + 1] = shG;
+                sd[p4 + 2] = shB;
+                sd[p4 + 3] = Math.round(a255 * shOp);
+              }
+            }
+          }
+          topCtx.putImageData(topImg, 0, 0);
+          shCropCtx.putImageData(shImg, 0, 0);
+
+          // Assemble complete "自带图效" stampC (shifted hard shadow + concentric gray/white/core stamp)
           const stampC = mkTmp();
           const stg = stampC.getContext("2d");
-          if (shAlphaMul > 0.01) {
-            stg.save();
-            stg.filter = `blur(${Math.max(0.4, 0.75 * sc).toFixed(2)}px)`;
-            stg.globalAlpha = shAlphaMul;
-            stg.drawImage(popShadowSil, dxSh, dySh);
-            stg.restore();
+          if (shOp > 0.005 && (Math.abs(dxSh) > 0.05 || Math.abs(dySh) > 0.05)) {
+            stg.drawImage(shCropC, bx0 + dxSh, by0 + dySh);
           }
-          stg.drawImage(popStrokeC, 0, 0);
-          stg.drawImage(innerCore, 0, 0);
+          stg.drawImage(topCropC, bx0, by0);
 
-          // 4. 有底图时自动执行真实「叠加 (Overlay)」融色透图效；透明底导出时直接输出标准自带图效灰黑白母版 PNG
+          // Optional brightness lift linkage (default 40% = neutral 1.0x exact tutorial tone)
           const curBgMode = state._renderingBgMode || state.bgMode;
           if (curBgMode !== "transparent") {
-            const bgRef = mkTmp();
-            const brg = bgRef.getContext("2d");
-            if (curBgMode === "blurred") {
+            // Exact 03:11-03:15 workflow:
+            // Layer 3 (Normal 100%): Clipped blurred background strictly inside watermark opacity
+            // Layer 4 (Overlay 100%): stampC overlaid directly onto Layer 3!
+            const usePopBlur = Number(fx.popBlurR ?? 38);
+            let baseBackdrop;
+            if (usePopBlur > 0.5) {
+              baseBackdrop = ensurePopularLocalBlurBg(w, h, rs, usePopBlur);
+            } else if (curBgMode === "blurred") {
               ensureDisplayBlurCache();
-              brg.drawImage(displayBlurBgCanvas, 0, 0, w, h);
+              baseBackdrop = displayBlurBgCanvas;
             } else {
-              brg.drawImage(bgCanvas, 0, 0, w, h);
-              if (state.bgTintAlpha > 0) applyBgTintToCtx(brg, w, h);
+              baseBackdrop = bgCanvas;
             }
-            // Clip underlying illustration to stamp silhouette
+
             const fused = mkTmp();
             const fg = fused.getContext("2d");
             fg.drawImage(stampC, 0, 0);
             fg.globalCompositeOperation = "source-in";
-            fg.drawImage(bgRef, 0, 0);
+            fg.drawImage(baseBackdrop, 0, 0, w, h);
 
-            // Apply genuine Overlay blend so black/gray core absorbs saturated anime colors & white border glows!
+            if ((fx.silverBright ?? 40) !== 40) {
+              const bDiff = ((fx.silverBright ?? 40) - 40) / 100;
+              if (bDiff > 0.01) {
+                fg.globalCompositeOperation = "source-atop";
+                fg.globalAlpha = Math.min(0.45, bDiff * 0.6);
+                fg.fillStyle = "#ffffff";
+                fg.fillRect(0, 0, w, h);
+              }
+            }
+
             fg.globalCompositeOperation = "overlay";
-            fg.globalAlpha = 0.96;
+            fg.globalAlpha = 1.0;
             fg.drawImage(stampC, 0, 0);
 
-            // Subtle white rim safeguard so white border stays crisp even over very dark hair/clothes
-            fg.globalCompositeOperation = "source-over";
-            fg.globalAlpha = 0.34;
-            fg.drawImage(outerRingOnly, 0, 0);
+            fg.globalCompositeOperation = "destination-in";
+            fg.globalAlpha = 1.0;
+            fg.drawImage(stampC, 0, 0);
 
             outCtx.drawImage(fused, 0, 0);
           } else {
             outCtx.drawImage(stampC, 0, 0);
           }
 
-          drawOuterGlow(outCtx, S, { color: stHex, punchOutArr: S });
-          return finishAnimeOut();
+          if (fx.outerGlow) {
+            drawOuterGlow(outCtx, S, { color: fx.glowColor || "#ffffff", punchOutArr: S });
+          }
+          cleanupTemps();
+          return outC;
         }
 
         if (fx.version === "a01_frost_silver") {
@@ -7313,8 +7596,28 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         overlayCtx.restore();
       }
 
+      // 1b. Live Closed-Fill Brush preview ("开启填充" 闭合涂抹实时填充预览)
+      if (dragState && dragState.type === "brush_fill" && dragState.pts && dragState.pts.length >= 2) {
+        overlayCtx.save();
+        overlayCtx.beginPath();
+        dragState.pts.forEach((p, idx) => {
+          if (idx === 0) overlayCtx.moveTo(p.x, p.y);
+          else overlayCtx.lineTo(p.x, p.y);
+        });
+        overlayCtx.closePath();
+        overlayCtx.fillStyle = state.brush.color || "#000000";
+        overlayCtx.globalAlpha = Math.max(0.22, Math.min(0.88, (state.brush.opacity ?? 100) / 100 * 0.82));
+        overlayCtx.fill();
+        overlayCtx.globalAlpha = 0.92;
+        overlayCtx.lineWidth = Math.max(1.5, 2 / state.view.zoom);
+        overlayCtx.strokeStyle = "#52c7a0";
+        overlayCtx.setLineDash([6 / state.view.zoom, 4 / state.view.zoom]);
+        overlayCtx.stroke();
+        overlayCtx.restore();
+      }
+
       // 2. Draw Eraser / Brush preview circle
-      if ((state.tool === "eraser" || state.tool === "brush") && hoverCanvasPt) {
+      if ((state.tool === "eraser" || (state.tool === "brush" && !state.brush.autoFill)) && hoverCanvasPt) {
         const previewSize = state.tool === "brush" ? state.brush.size : state.eraser.size;
         overlayCtx.save();
         overlayCtx.beginPath();
@@ -7469,6 +7772,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       state.undoStack.push({
         type: "bg",
         label,
+        bgDeleted: Boolean(state.bgDeleted),
         bgImg: state.bgImg,
         bgMode: state.bgMode,
         bgBlurR: state.bgBlurR,
@@ -7510,6 +7814,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         return;
       }
       if (item.type === "bg") {
+        state.bgDeleted = Boolean(item.bgDeleted);
         state.bgImg = item.bgImg;
         state.bgMode = item.bgMode;
         state.bgBlurR = item.bgBlurR;
@@ -7701,7 +8006,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         }
         g.clip();
       }
-      g.globalCompositeOperation = "source-over";
+      g.globalCompositeOperation = layer.alphaLock ? "source-atop" : "source-over";
       g.globalAlpha = alpha;
       if (soft > 0.02) {
         const grad = g.createRadialGradient(localPt.x, localPt.y, r * (1 - soft), localPt.x, localPt.y, r);
@@ -8121,7 +8426,29 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       showToast(`已移除「${layer.name}」蒙版`);
     }
 
+    function deleteCanvasBackground() {
+      pushBgUndo("删除画布底图");
+      state.bgDeleted = true;
+      state.bgImg = null;
+      state.bgMode = "transparent";
+      state.bgTintAlpha = 0;
+      bgCacheKey = "";
+      displayBlurKey = "";
+      state.selectedLayerId = state.layers.length ? state.layers[state.layers.length - 1].id : null;
+      document.querySelectorAll("#bgModeGroup .seg-btn, #propBgModeGroup .seg-btn").forEach(b => b.classList.toggle("active", b.dataset.bg === "transparent"));
+      if (typeof syncBgBlurUI === "function") syncBgBlurUI();
+      if (typeof syncBgTintControls === "function") syncBgTintControls();
+      syncLayerUI();
+      drawOverlayHandles();
+      scheduleRender(0);
+      showToast("已删除画布底图（点「更换底图」可重新导入，Ctrl+Z 可撤销）");
+    }
+
     function clearSelectedLayerPixels() {
+      if (state.selectedLayerId === "__bg__") {
+        deleteCanvasBackground();
+        return;
+      }
       const layer = getSelectedLayer();
       if (!layer) return;
       if (layer.type === "folder") {
@@ -8353,6 +8680,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (state.eyeTarget === "card1") return state.fx.card1;
       if (state.eyeTarget === "card2") return state.fx.card2;
       if (state.eyeTarget === "brush") return state.brush.color;
+      if (state.eyeTarget === "layerFill") return state.layerFillColor || "#ffffff";
       if (state.eyeTarget === "grad1") return state.fx.gradColor1;
       if (state.eyeTarget === "animeRim") return resolveAnimeRimFinalColor(state.fx, bgCanvas).finalHex;
       if (state.eyeTarget === "shadow") return state.fx.shadowColor || "#000000";
@@ -8396,6 +8724,14 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         state.brush.color = hex;
         const cb = document.getElementById("colBrushColor");
         if (cb) cb.value = hex;
+      } else if (state.eyeTarget === "layerFill") {
+        state.layerFillColor = hex;
+        const clf = document.getElementById("colLayerFill");
+        if (clf) clf.value = hex;
+        const curL = getSelectedLayer();
+        if (curL && curL._hasSolidFill) {
+          recolorFilledLayerPreserveAlpha(curL, hex, false);
+        }
       } else if (state.eyeTarget === "grad1") {
         state.fx.gradColor1 = hex; document.getElementById("colGrad1").value = hex;
       } else if (state.eyeTarget === "stroke") {
@@ -8787,6 +9123,11 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           showToast("全屏平铺模式下请先点「按选区/新建蒙版」用画笔编辑蒙版");
           return;
         }
+        if (state.brush.autoFill) {
+          dragState = { type: "brush_fill", layer, isMaskEdit, pts: [pt] };
+          drawOverlayHandles();
+          return;
+        }
         pushUndoSnapshot(layer, isMaskEdit);
         paintBrushAtPoint(layer, pt);
         dragState = { type: "brush", layer, lastPt: pt };
@@ -9039,6 +9380,14 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           scheduleRender(40);
         }
         dragState.lastPt = pt;
+      } else if (dragState.type === "brush_fill") {
+        const pt = clientToCanvas(e.clientX, e.clientY);
+        const pts = dragState.pts;
+        const last = pts[pts.length - 1];
+        if (!last || Math.hypot(pt.x - last.x, pt.y - last.y) > 2.5 / state.view.zoom) {
+          pts.push(pt);
+          drawOverlayHandles();
+        }
       } else if (dragState.type === "scaleX" || dragState.type === "scaleY" || dragState.type === "scaleXY") {
         const pt = clientToCanvas(e.clientX, e.clientY);
         const l = dragState.layer;
@@ -9112,6 +9461,74 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (dragState && dragState.type === "eyedropper") {
         hideEyeLoupe();
         if (state.eyeTarget !== "brush") scheduleRender(0);
+      }
+      if (dragState && dragState.type === "brush_fill") {
+        const { layer, isMaskEdit, pts } = dragState;
+        dragState = null;
+        if (pts && pts.length >= 3) {
+          pushUndoSnapshot(layer, isMaskEdit);
+          const alpha = Math.max(0.05, Math.min(1, (state.brush.opacity ?? 100) / 100));
+          const hex = state.brush.color || "#000000";
+          if (isMaskEdit) {
+            const mask = ensureLayerMask(layer);
+            const mg = mask.getContext("2d");
+            mg.save();
+            mg.globalAlpha = alpha;
+            mg.fillStyle = "#ffffff";
+            mg.beginPath();
+            pts.forEach((p, idx) => { if (idx === 0) mg.moveTo(p.x, p.y); else mg.lineTo(p.x, p.y); });
+            mg.closePath();
+            mg.fill();
+            mg.restore();
+          } else {
+            const src = ensureEditableSource(layer);
+            const g = src.getContext("2d");
+            const polyC = document.createElement("canvas");
+            polyC.width = src.width; polyC.height = src.height;
+            const pg = polyC.getContext("2d");
+            pg.fillStyle = hex;
+            pg.beginPath();
+            pts.forEach((p, idx) => {
+              const lp = canvasPtToLayerLocal(layer, p);
+              if (idx === 0) pg.moveTo(lp.x, lp.y);
+              else pg.lineTo(lp.x, lp.y);
+            });
+            pg.closePath();
+            pg.fill();
+            if (hasSelection()) {
+              const selM = runAtFullResolution(() => buildSelectionMaskCanvas());
+              const localSel = document.createElement("canvas");
+              localSel.width = src.width; localSel.height = src.height;
+              const lsg = localSel.getContext("2d");
+              const { sx, sy } = getEffectiveScaleXY(layer);
+              const fx = layer.flipX ? -1 : 1, fy = layer.flipY ? -1 : 1;
+              lsg.save();
+              lsg.translate(src.width / 2, src.height / 2);
+              lsg.scale(1 / (sx * fx), 1 / (sy * fy));
+              lsg.rotate((-(layer.rotation || 0) * Math.PI) / 180);
+              lsg.translate(-layer.x, -layer.y);
+              lsg.drawImage(selM, 0, 0, state.width, state.height);
+              lsg.restore();
+              pg.globalCompositeOperation = "destination-in";
+              pg.drawImage(localSel, 0, 0);
+              freeCanvas(localSel);
+              freeCanvas(selM);
+            }
+            g.save();
+            g.globalCompositeOperation = layer.alphaLock ? "source-atop" : "source-over";
+            g.globalAlpha = alpha;
+            g.drawImage(polyC, 0, 0);
+            g.restore();
+            freeCanvas(polyC);
+          }
+          drawOverlayHandles();
+          syncLayerUI();
+          scheduleRender(0);
+        } else {
+          drawOverlayHandles();
+          showToast("已开启填充画笔：按住圈出一块区域即可实心填色，或直接点上方「🪣 填满整层」");
+        }
+        return;
       }
       if (dragState && (dragState.type === "eraser" || dragState.type === "brush")) {
         syncLayerUI();
@@ -9369,11 +9786,12 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const fxTag = layer.qiasi ? `<span class="badge">${efObj ? efObj.label : "效果"}</span>` : "";
         const maskTag = layer.maskCanvas ? `<span class="badge badge-mask">蒙版</span>` : "";
         const clipTag = layer.clipped ? `<span class="badge badge-clip">↳ 剪贴</span>` : "";
+        const alockTag = layer.alphaLock ? `<span class="badge badge-alock">🔒 阿尔法锁</span>` : "";
         const bakedTag = (!layer.qiasi && layer.bakedCount) ? `<span class="badge badge-baked">✨ 已烘焙${layer.bakedCount > 1 ? "×" + layer.bakedCount : ""}</span>` : "";
         const bmMap = { multiply: "叠底", overlay: "叠加", "soft-light": "柔光", "hard-light": "强光", screen: "滤色", lighter: "添加" };
         const bmTag = bmMap[layer.blendMode] ? `<span style="color:#8cb2ff;">${bmMap[layer.blendMode]}</span>` : "";
         const childCount = layer.type === "folder" ? `<span>${state.layers.filter(c => c.parentId === layer.id).length}层</span>` : "";
-        meta.innerHTML = `<div class="layer-name">${layer.clipped ? "↳ " : ""}${layer.name}</div><div class="layer-info">${clipTag}${fxTag}${bakedTag}${maskTag}${modeTag}${bmTag}${childCount}<span>${layer.opacity}%</span></div>`;
+        meta.innerHTML = `<div class="layer-name">${layer.clipped ? "↳ " : ""}${layer.name}</div><div class="layer-info">${alockTag}${clipTag}${fxTag}${bakedTag}${maskTag}${modeTag}${bmTag}${childCount}<span>${layer.opacity}%</span></div>`;
 
         const eye = document.createElement("button");
         eye.className = "eye-btn" + (layer.visible ? " on" : "");
@@ -9463,7 +9881,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       bgItem.append(bgThumb, bgMeta, bgEye);
 
       const bgPos = getBgLayerPos();
-      let bgRowInserted = false;
+      let bgRowInserted = Boolean(state.bgDeleted);
       roots.forEach((root) => {
         const rIdx = state.layers.indexOf(root);
         if (!bgRowInserted && rIdx < bgPos) {
@@ -9484,6 +9902,17 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         qCloneBtn.textContent = isBgSelected ? "✦ 克隆底图模糊" : "✦ 克隆模糊层";
       }
       const cur = getSelectedLayer();
+      const isAlphaLocked = Boolean(cur && cur.type !== "folder" && cur.alphaLock);
+      const qAlockBtn = document.getElementById("btnQuickAlphaLock");
+      if (qAlockBtn) {
+        qAlockBtn.classList.toggle("is-on", isAlphaLocked);
+        qAlockBtn.textContent = isAlphaLocked ? "🔒 阿尔法锁 ✓" : "🔒 阿尔法锁";
+      }
+      const bAlockBtn = document.getElementById("btnBrushAlphaLock");
+      if (bAlockBtn) {
+        bAlockBtn.classList.toggle("is-on", isAlphaLocked);
+        bAlockBtn.textContent = isAlphaLocked ? "🔒 阿尔法锁 ✓" : "🔒 阿尔法锁";
+      }
       const qClipBtn = document.getElementById("btnQuickClipMask");
       if (qClipBtn) {
         const isClipped = Boolean(cur && cur.clipped);
@@ -9547,6 +9976,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       document.getElementById("lblOpacity").textContent = cur.type === "folder" ? "文件夹不透明度" : "不透明度";
       document.getElementById("lblBlendMode").textContent = cur.type === "folder" ? "文件夹混合模式" : "混合模式";
       document.getElementById("singleLayerTransformBox").style.display = cur.type === "folder" ? "none" : "flex";
+      const lFillBox = document.getElementById("layerFillColorBox");
+      if (lFillBox) lFillBox.style.display = cur.type === "folder" ? "none" : "flex";
+      const colLF = document.getElementById("colLayerFill");
+      if (colLF && cur.fillHex) colLF.value = cur.fillHex;
       document.getElementById("chkLayerQiasi").checked = cur.qiasi;
       document.getElementById("maskStatusText").textContent = cur.maskCanvas ? "已启用蒙版（橡皮/套索直接编辑蒙版）" : "无蒙版";
 
@@ -10315,7 +10748,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (!isBlur || !isMobile) setBgBlurPop(false);
     }
     function setGlobalBgMode(mode, openMobilePop = false) {
-      if (mode !== "transparent") state._lastVisibleBgMode = mode;
+      if (mode !== "transparent") {
+        state._lastVisibleBgMode = mode;
+        state.bgDeleted = false;
+      }
       state.bgMode = mode;
       document.querySelectorAll("#bgModeGroup .seg-btn, #propBgModeGroup .seg-btn").forEach(b => b.classList.toggle("active", b.dataset.bg === mode));
       syncBgBlurUI();
@@ -10696,10 +11132,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       setFlex("waterWireExtraBox", verId === "g02_water_wire");
       setFlex("blurLayerExtraBox", verId === "layer_blur");
       setFlex("fsExtraBox", isFsEditable);
+      const isPopularAnime = verId === "a06_popular";
       const isAnimeMist = verId === "a04_soft_mist_frame" || verId === "a05_soft_mist_tint";
+      setFlex("popularAnimeExtraBox", isPopularAnime);
       setFlex("animeMistExtraBox", isAnimeMist);
-      const supportsCustomTint = typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || (verId.startsWith("a0") && !isAnimeMist));
+      const supportsCustomTint = typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || (verId.startsWith("a0") && !isAnimeMist && !isPopularAnime));
       setFlex("fsCustomTintBox", supportsCustomTint);
+      if (isPopularAnime && typeof syncPopularAnimeUI === "function") syncPopularAnimeUI();
       if (isAnimeMist && typeof syncAnimeMistUI === "function") syncAnimeMistUI();
       const curEfObj = ALL_EFFECTS.find(e => e.id === verId);
       const presetSumEl = document.getElementById("presetCurrentSummary");
@@ -10747,11 +11186,14 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       document.getElementById("waterWireExtraBox").style.display = verId === "g02_water_wire" ? "flex" : "none";
       document.getElementById("blurLayerExtraBox").style.display = verId === "layer_blur" ? "flex" : "none";
       document.getElementById("fsExtraBox").style.display = isFsEditable ? "flex" : "none";
+      const isPopularSel = verId === "a06_popular";
+      const popBoxEl = document.getElementById("popularAnimeExtraBox");
+      if (popBoxEl) popBoxEl.style.display = isPopularSel ? "flex" : "none";
       const isAnimeMistSel = verId === "a04_soft_mist_frame" || verId === "a05_soft_mist_tint";
       const animeMistBoxEl = document.getElementById("animeMistExtraBox");
       if (animeMistBoxEl) animeMistBoxEl.style.display = isAnimeMistSel ? "flex" : "none";
       const fsCustomTintBox = document.getElementById("fsCustomTintBox");
-      if (fsCustomTintBox) fsCustomTintBox.style.display = (typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || (verId.startsWith("a0") && !isAnimeMistSel))) ? "flex" : "none";
+      if (fsCustomTintBox) fsCustomTintBox.style.display = (typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || (verId.startsWith("a0") && !isAnimeMistSel && !isPopularSel))) ? "flex" : "none";
       buildGpuParamsUI(verId);
       updateEffectPanelVisibility(verId);
       renderEffectLibraryUI();
@@ -10923,6 +11365,66 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       state.brush.opacity = parseInt(e.target.value, 10) || 100;
       document.getElementById("valBrushOpacity").textContent = `${state.brush.opacity}%`;
     };
+    function setBrushHexQuick(hex) {
+      state.brush.color = hex;
+      const cb = document.getElementById("colBrushColor");
+      if (cb) cb.value = hex;
+      drawOverlayHandles();
+    }
+    const btnBrushQuickBlackEl = document.getElementById("btnBrushQuickBlack");
+    if (btnBrushQuickBlackEl) btnBrushQuickBlackEl.onclick = () => setBrushHexQuick("#000000");
+    const btnBrushQuickWhiteEl = document.getElementById("btnBrushQuickWhite");
+    if (btnBrushQuickWhiteEl) btnBrushQuickWhiteEl.onclick = () => setBrushHexQuick("#ffffff");
+
+    const btnBrushAutoFillEl = document.getElementById("btnBrushAutoFill");
+    function syncBrushAutoFillUI() {
+      if (!btnBrushAutoFillEl) return;
+      const on = !!state.brush.autoFill;
+      btnBrushAutoFillEl.textContent = on ? "🟢 填充：开启" : "◉ 开启填充";
+      btnBrushAutoFillEl.style.background = on ? "rgba(82, 199, 160, 0.26)" : "";
+      btnBrushAutoFillEl.style.borderColor = on ? "rgba(110, 235, 195, 0.85)" : "rgba(82, 199, 160, 0.45)";
+      btnBrushAutoFillEl.style.color = on ? "#ffffff" : "#96eed0";
+    }
+    if (btnBrushAutoFillEl) {
+      btnBrushAutoFillEl.onclick = () => {
+        state.brush.autoFill = !state.brush.autoFill;
+        syncBrushAutoFillUI();
+        drawOverlayHandles();
+        showToast(state.brush.autoFill ? "🟢 已开启画笔自动填充：在画布上涂抹绕圈松手即自动填满实心色块" : "已切回普通描线画笔");
+      };
+    }
+    function toggleSelectedAlphaLock() {
+      if (state.selectedLayerId === "__bg__") {
+        showToast("画布底图无需开启阿尔法锁，请先选中一个水印或普通图层");
+        return;
+      }
+      const l = getSelectedLayer();
+      if (!l || l.type === "folder") {
+        showToast("请先选中一个普通图层再开启「🔒 阿尔法锁」");
+        return;
+      }
+      l.alphaLock = !l.alphaLock;
+      syncLayerUI();
+      showToast(l.alphaLock
+        ? `🔒 已为「${l.name}」开启阿尔法锁：画笔手涂、绕圈填充与填满整层均只作用于已有图案内部，绝不涂出透明底`
+        : `🔓 已解除「${l.name}」的阿尔法锁`);
+    }
+
+    const btnBrushAlphaLockEl = document.getElementById("btnBrushAlphaLock");
+    if (btnBrushAlphaLockEl) {
+      btnBrushAlphaLockEl.onclick = toggleSelectedAlphaLock;
+    }
+    const btnQuickAlphaLockEl = document.getElementById("btnQuickAlphaLock");
+    if (btnQuickAlphaLockEl) {
+      btnQuickAlphaLockEl.onclick = toggleSelectedAlphaLock;
+    }
+    const btnBrushFillWholeEl = document.getElementById("btnBrushFillWhole");
+    if (btnBrushFillWholeEl) {
+      btnBrushFillWholeEl.onclick = () => {
+        const curL = getSelectedLayer();
+        fillSelectedLayerWithColor(state.brush.color || "#000000", Boolean(curL && curL.alphaLock));
+      };
+    }
     const btnCloseBrushBarEl = document.getElementById("btnCloseBrushBar");
     if (btnCloseBrushBarEl) btnCloseBrushBarEl.onclick = () => setTool("move");
     document.getElementById("toolUndo").onclick = performUndo;
@@ -11332,6 +11834,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (typeof syncShadowControlsUI === "function") syncShadowControlsUI();
       if (typeof syncFsTintUI === "function") syncFsTintUI();
       if (typeof syncAnimeMistUI === "function") syncAnimeMistUI();
+      if (typeof syncPopularAnimeUI === "function") syncPopularAnimeUI();
       buildGpuParamsUI(verId);
       updateEffectPanelVisibility(verId);
       renderEffectLibraryUI();
@@ -11629,6 +12132,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         type: "image",
         parentId: null,
         collapsed: false,
+        alphaLock: false,
         maskCanvas: null,
         source: bgCopy,
         srcW: bgCopy.width,
@@ -11665,7 +12169,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (!f) return;
       loadImageFile(f, (img) => {
         pushBgUndo("更换底图");
+        state.bgDeleted = false;
         state.bgImg = img;
+        if (state.bgMode === "transparent") {
+          state.bgMode = state._lastVisibleBgMode || "original";
+          document.querySelectorAll("#bgModeGroup .seg-btn, #propBgModeGroup .seg-btn").forEach(b => b.classList.toggle("active", b.dataset.bg === state.bgMode));
+          if (typeof syncBgBlurUI === "function") syncBgBlurUI();
+        }
         const fitted = state.userLockedCanvasSize ? false : fitCanvasToBgImage(img);
         bgCacheKey = "";
         displayBlurKey = "";
@@ -11675,6 +12185,162 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       });
       e.target.value = "";
     };
+
+    function createBlankLayer(initialFillHex = null) {
+      const blankCount = state.layers.filter(l => typeof l.name === "string" && (l.name.startsWith("空白图层") || l.name.startsWith("纯色图层"))).length + 1;
+      const c = document.createElement("canvas");
+      c.width = state.width;
+      c.height = state.height;
+      if (initialFillHex) {
+        const g = c.getContext("2d");
+        g.fillStyle = initialFillHex;
+        g.fillRect(0, 0, c.width, c.height);
+      }
+      const l = addLayerFromSource(initialFillHex ? `纯色图层 ${blankCount}` : `空白图层 ${blankCount}`, c, { qiasi: false });
+      l.isBlankCreated = true;
+      l._hasSolidFill = Boolean(initialFillHex);
+      l.fillHex = initialFillHex || state.layerFillColor || "#ffffff";
+      syncLayerUI();
+      scheduleRender(0);
+      showToast(initialFillHex ? `已新建「${l.name}」并填充 ${initialFillHex}` : `已新建「${l.name}」· 可直接在下方选择颜色点「🪣 填充整层」`);
+      return l;
+    }
+
+    function recolorFilledLayerPreserveAlpha(layer, hex, commitSync = true) {
+      if (!layer || layer.type === "folder") return;
+      const src = ensureEditableSource(layer);
+      const g = src.getContext("2d");
+      g.save();
+      g.globalCompositeOperation = "source-in";
+      g.fillStyle = hex;
+      g.fillRect(0, 0, src.width, src.height);
+      g.restore();
+      layer.fillHex = hex;
+      if (commitSync) syncLayerUI();
+      scheduleRender(25);
+    }
+
+    function fillSelectedLayerWithColor(hex, alphaOnly = false) {
+      const fillHex = hex || state.layerFillColor || "#ffffff";
+      state.layerFillColor = fillHex;
+      const colInput = document.getElementById("colLayerFill");
+      if (colInput) colInput.value = fillHex;
+
+      let l = getSelectedLayer();
+      if (!l || l.type === "folder") {
+        if (alphaOnly) {
+          showToast("请先选中一个已有图案的普通图层");
+          return;
+        }
+        createBlankLayer(fillHex);
+        return;
+      }
+
+      pushUndoSnapshot(l, false);
+      const src = ensureEditableSource(l);
+      const g = src.getContext("2d");
+      const effectiveAlphaOnly = Boolean(alphaOnly || l.alphaLock);
+
+      if (effectiveAlphaOnly && !hasSelection()) {
+        g.save();
+        g.globalCompositeOperation = "source-in";
+        g.fillStyle = fillHex;
+        g.fillRect(0, 0, src.width, src.height);
+        g.restore();
+        l.fillHex = fillHex;
+        syncLayerUI();
+        scheduleRender(0);
+        showToast(`🔒 已在阿尔法锁下将「${l.name}」的图案换色为 ${fillHex.toUpperCase()}（透明底不变，Ctrl+Z 可撤销）`);
+        return;
+      }
+
+      if (hasSelection()) {
+        // Fill strictly inside active selection mapped to layer-local space (respecting alphaLock via source-atop if enabled!)
+        const selFull = runAtFullResolution(() => buildSelectionMaskCanvas());
+        const patch = document.createElement("canvas");
+        patch.width = src.width; patch.height = src.height;
+        const pg = patch.getContext("2d");
+        const { sx, sy } = getEffectiveScaleXY(l);
+        const fx = l.flipX ? -1 : 1, fy = l.flipY ? -1 : 1;
+        pg.save();
+        pg.translate(src.width / 2, src.height / 2);
+        pg.scale(1 / (sx * fx), 1 / (sy * fy));
+        pg.rotate((-(l.rotation || 0) * Math.PI) / 180);
+        pg.translate(-l.x, -l.y);
+        pg.drawImage(selFull, 0, 0, state.width, state.height);
+        pg.restore();
+        pg.globalCompositeOperation = "source-in";
+        pg.fillStyle = fillHex;
+        pg.fillRect(0, 0, patch.width, patch.height);
+        g.save();
+        g.globalCompositeOperation = effectiveAlphaOnly ? "source-atop" : "source-over";
+        g.drawImage(patch, 0, 0);
+        g.restore();
+        freeCanvas(patch);
+        freeCanvas(selFull);
+        l.fillHex = fillHex;
+        syncLayerUI();
+        scheduleRender(0);
+        showToast(`已在「${l.name}」选区内填充 ${fillHex.toUpperCase()}（Ctrl+Z 可撤销）`);
+        return;
+      }
+
+      g.clearRect(0, 0, src.width, src.height);
+      g.fillStyle = fillHex;
+      g.fillRect(0, 0, src.width, src.height);
+      l._hasSolidFill = true;
+      l.fillHex = fillHex;
+      if (typeof l.name === "string" && l.name.startsWith("空白图层")) {
+        l.name = l.name.replace("空白图层", "纯色图层");
+      }
+      syncLayerUI();
+      scheduleRender(0);
+      showToast(`已为「${l.name}」填满颜色 ${fillHex.toUpperCase()}（可调不透明度/混合模式，Ctrl+Z 可撤销）`);
+    }
+
+    const btnAddBlankLayerEl = document.getElementById("btnAddBlankLayer");
+    if (btnAddBlankLayerEl) btnAddBlankLayerEl.onclick = () => createBlankLayer(null);
+    const btnNewBlankQuickEl = document.getElementById("btnNewBlankQuick");
+    if (btnNewBlankQuickEl) btnNewBlankQuickEl.onclick = () => createBlankLayer(null);
+
+    const colLayerFillEl = document.getElementById("colLayerFill");
+    if (colLayerFillEl) {
+      colLayerFillEl.onpointerdown = () => {
+        const curL = getSelectedLayer();
+        if (curL && curL._hasSolidFill) pushUndoSnapshot(curL, false);
+      };
+      colLayerFillEl.oninput = (e) => {
+        state.layerFillColor = e.target.value;
+        const curL = getSelectedLayer();
+        if (curL && curL._hasSolidFill) {
+          recolorFilledLayerPreserveAlpha(curL, state.layerFillColor, false);
+        }
+      };
+      colLayerFillEl.onchange = () => {
+        const curL = getSelectedLayer();
+        if (curL && curL._hasSolidFill) syncLayerUI();
+      };
+    }
+    const btnPickLayerFillEl = document.getElementById("btnPickLayerFill");
+    if (btnPickLayerFillEl) {
+      btnPickLayerFillEl.onclick = () => {
+        const curL = getSelectedLayer();
+        if (curL && curL._hasSolidFill) pushUndoSnapshot(curL, false);
+        state.eyeTarget = "layerFill";
+        setTool("eyedropper");
+        showToast("点按或滑动画面吸取图层填充色");
+      };
+    }
+    const btnFillLayerSolidEl = document.getElementById("btnFillLayerSolid");
+    if (btnFillLayerSolidEl) btnFillLayerSolidEl.onclick = () => fillSelectedLayerWithColor(state.layerFillColor, false);
+    const btnFillLayerAlphaEl = document.getElementById("btnFillLayerAlpha");
+    if (btnFillLayerAlphaEl) btnFillLayerAlphaEl.onclick = () => fillSelectedLayerWithColor(state.layerFillColor, true);
+    document.querySelectorAll("#layerFillPresets .bg-tint-chip").forEach((chip) => {
+      chip.onclick = () => {
+        const hex = chip.dataset.lfill || "#ffffff";
+        fillSelectedLayerWithColor(hex, false);
+      };
+    });
 
     document.getElementById("btnAddText").onclick = () => {
       addLayerFromSource("文字字素", null, { type: "text", text: "掐丝镀银", fontSize: 200, textFrame: true });
@@ -11864,8 +12530,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     }
     document.getElementById("btnLayerDel").onclick = () => {
       if (state.selectedLayerId === "__bg__") {
-        setGlobalBgMode("transparent", false);
-        showToast("已隐藏画布底图（切为透明底，点底图右侧 👁 可恢复）");
+        deleteCanvasBackground();
         return;
       }
       const idx = state.layers.findIndex(l => l.id === state.selectedLayerId);
@@ -11885,7 +12550,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const sharedM = state.layers.some(l => l.maskCanvas === target.maskCanvas) || state.undoStack.some(u => u.canvas === target.maskCanvas);
         if (!sharedM) freeCanvas(target.maskCanvas);
       }
-      state.selectedLayerId = state.layers.length ? state.layers[state.layers.length - 1].id : "__bg__";
+      state.selectedLayerId = state.layers.length ? state.layers[state.layers.length - 1].id : (state.bgDeleted ? null : "__bg__");
       syncLayerUI(); scheduleRender(0);
       showToast(`已删除「${target.name}」`);
     };
@@ -12513,6 +13178,81 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         showToast("已切换为清晰原底图（仅保留水印外扩2局部柔雾模糊底）");
       };
     }
+
+    // ==================== 流行效果 (a06_popular) 原教程精确参数绑定 ====================
+    const POP_PRESET_CONFIGS = {
+      main: { popPreset: "main", popCoreHex: "#000000", popInnerHex: "#ffffff", popInnerW: 6, popOuterHex: "#6c6c6c", popOuterW: 12, popOuterAlpha: 100, popShHex: "#000000", popShDx: 3, popShDy: 5, popShAlpha: 100 },
+      sub:  { popPreset: "sub",  popCoreHex: "#8b8b8b", popInnerHex: "#ffffff", popInnerW: 4, popOuterHex: "#000000", popOuterW: 8,  popOuterAlpha: 50,  popShHex: "#000000", popShDx: 0, popShDy: 0, popShAlpha: 0 },
+      tag:  { popPreset: "tag",  popCoreHex: "#000000", popInnerHex: "#ffffff", popInnerW: 7, popOuterHex: "#6c6c6c", popOuterW: 7,  popOuterAlpha: 0,   popShHex: "#000000", popShDx: 3, popShDy: 0, popShAlpha: 100 }
+    };
+
+    function syncPopularAnimeUI() {
+      const fx = state.fx;
+      document.querySelectorAll("#popPresetSeg .seg-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.ppreset === (fx.popPreset || "main"));
+      });
+      const setC = (id, v) => {
+        const el = document.getElementById(id);
+        if (el && typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v)) el.value = v;
+      };
+      setC("colPopCore", fx.popCoreHex || "#000000");
+      setC("colPopInner", fx.popInnerHex || "#ffffff");
+      setC("colPopOuter", fx.popOuterHex || "#6c6c6c");
+      setC("colPopSh", fx.popShHex || "#000000");
+
+      const setR = (rId, vId, val, suf) => {
+        const r = document.getElementById(rId), v = document.getElementById(vId);
+        if (r) r.value = val;
+        if (v) v.textContent = `${val}${suf}`;
+      };
+      setR("rngPopInnerW", "valPopInnerW", fx.popInnerW ?? 6, " px");
+      setR("rngPopOuterW", "valPopOuterW", fx.popOuterW ?? 12, " px");
+      setR("rngPopOuterAlpha", "valPopOuterAlpha", fx.popOuterAlpha ?? 100, "%");
+      setR("rngPopShDx", "valPopShDx", fx.popShDx ?? 3, " px");
+      setR("rngPopShDy", "valPopShDy", fx.popShDy ?? 5, " px");
+      setR("rngPopShAlpha", "valPopShAlpha", fx.popShAlpha ?? 100, "%");
+      setR("rngPopBlurR", "valPopBlurR", fx.popBlurR ?? 38, " px");
+    }
+
+    document.querySelectorAll("#popPresetSeg .seg-btn").forEach((btn) => {
+      btn.onclick = () => {
+        const pk = btn.dataset.ppreset || "main";
+        if (POP_PRESET_CONFIGS[pk]) {
+          pushFxUndo("切换流行效果子预设");
+          Object.assign(state.fx, POP_PRESET_CONFIGS[pk]);
+          syncPopularAnimeUI();
+          scheduleRender(0);
+        }
+      };
+    });
+    bindColor("colPopCore", (e) => { state.fx.popCoreHex = e.target.value; state.fx.popPreset = "custom"; syncPopularAnimeUI(); scheduleRender(20); });
+    bindColor("colPopInner", (e) => { state.fx.popInnerHex = e.target.value; state.fx.popPreset = "custom"; syncPopularAnimeUI(); scheduleRender(20); });
+    bindColor("colPopOuter", (e) => { state.fx.popOuterHex = e.target.value; state.fx.popPreset = "custom"; syncPopularAnimeUI(); scheduleRender(20); });
+    bindColor("colPopSh", (e) => { state.fx.popShHex = e.target.value; state.fx.popPreset = "custom"; syncPopularAnimeUI(); scheduleRender(20); });
+
+    const bindPopSlider = (id, key, isFloat = false) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.onpointerdown = () => pushFxUndo("调节流行效果参数");
+      const handler = (e) => {
+        state.fx[key] = isFloat ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
+        if (key === "popInnerW" && state.fx.popOuterW < state.fx.popInnerW) {
+          state.fx.popOuterW = state.fx.popInnerW;
+        }
+        if (key !== "popBlurR") state.fx.popPreset = "custom";
+        syncPopularAnimeUI();
+        scheduleRender(25);
+      };
+      el.oninput = handler;
+      el.onchange = handler;
+    };
+    bindPopSlider("rngPopInnerW", "popInnerW", true);
+    bindPopSlider("rngPopOuterW", "popOuterW", true);
+    bindPopSlider("rngPopOuterAlpha", "popOuterAlpha", false);
+    bindPopSlider("rngPopShDx", "popShDx", false);
+    bindPopSlider("rngPopShDy", "popShDy", false);
+    bindPopSlider("rngPopShAlpha", "popShAlpha", false);
+    bindPopSlider("rngPopBlurR", "popBlurR", false);
 
     document.getElementById("chkCavityEnable").onchange = (e) => { pushFxUndo("开关填色"); state.fx.cavityEnable = e.target.checked; scheduleRender(0); };
     document.getElementById("chkBevel").onchange = (e) => { pushFxUndo("开关浮雕"); state.fx.bevelEnable = e.target.checked; scheduleRender(0); };
