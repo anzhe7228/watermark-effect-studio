@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -885,43 +885,51 @@
       .row-drag.dragging { background: #222d44; }
       .row-drag.dragging span { background: #a8dcff; width: 84px; }
       body.mobile-canvas-max .row-drag { display: flex !important; }
-      .stage-toolbar .btn-sm { padding: 1px 4px; font-size: 10px; }
+      .stage-toolbar .btn-sm { padding: 2px 6px; font-size: 10.5px; }
       #canvasDimLabel { display: none; }
+      @media (max-width: 640px) {
+        #cavityCountLabel, #btnFooterAbout { display: none !important; }
+      }
       #btnMobileTogglePanel { display: inline-flex !important; }
       .context-bar {
         position: fixed; top: 0; left: 6px; right: 6px; transform: none; max-width: none;
         flex-wrap: wrap; overflow: visible;
-        padding: 4px 30px 4px 6px; gap: 4px; font-size: 10px;
+        padding: 6px; gap: 5px; font-size: 11px;
       }
       body.ctx-bar-docked .viewport { padding-top: 56px; }
-      .ctx-close { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255,255,255,.32); background: rgba(255,255,255,.14); color: #fff; font-size: 11px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; z-index: 2; }
+      .ctx-close { position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255,255,255,.32); background: rgba(255,255,255,.14); color: #fff; font-size: 11px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; z-index: 2; }
       .ctx-close:active { background: rgba(255,255,255,.32); }
       .ctx-num { width: 46px; height: 24px; box-sizing: border-box; font-size: 16px !important; text-align: center; border-radius: 5px; border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.1); color: #fff; padding: 0 2px; }
       .ctx-num:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,.16); }
       #btnCloseEraserBar, #btnCloseBrushBar, #btnCloseEyeBar, #btnCloseCavityBar { display: none !important; }
       #ctxEyedropperGroup, #ctxEraserGroup, #ctxBrushGroup, #ctxLassoGroup, #ctxCavityGroup {
-        width: 100%; max-width: 100%; flex-wrap: wrap !important; gap: 4px 5px !important; align-items: center;
+        width: 100%; max-width: 100%; flex-wrap: wrap !important; gap: 5px !important; align-items: center;
       }
+      #ctxEraserGroup, #ctxBrushGroup { padding-right: 26px; box-sizing: border-box; }
       .context-bar > div, .context-bar .seg-group, .context-bar .seg-btn, .context-bar button, .context-bar span, .context-bar label { flex-shrink: 0; white-space: nowrap; }
       #ctxEraserGroup input[type="range"], #ctxBrushGroup input[type="range"] { flex: 1 1 52px; width: auto; min-width: 44px; height: 18px; }
       #ctxEraserGroup .field-val, #ctxBrushGroup .field-val { min-width: 30px; font-size: 10px; }
-      #ctxLassoGroup { padding: 0; gap: 4px 3px !important; }
-      #ctxLassoGroup #lassoModeGroup { flex: 1 1 100%; display: flex; gap: 3px; }
-      #ctxLassoGroup #lassoModeGroup .seg-btn { flex: 1 1 0; text-align: center; padding: 3px 4px !important; font-size: 10px !important; }
-      #ctxLassoGroup #wandTolBox { flex: 1 1 100%; min-width: 0; margin: 0; gap: 4px; }
+      #ctxLassoGroup { padding: 0; gap: 5px 4px !important; }
+      #ctxLassoGroup #lassoModeGroup { flex: 1 1 calc(100% - 28px); margin-right: 26px; display: flex; gap: 3px; }
+      #ctxLassoGroup #lassoModeGroup .seg-btn { flex: 1 1 0; text-align: center; padding: 4px 5px !important; font-size: 11px !important; }
+      #ctxLassoGroup #wandTolBox { flex: 1 1 100%; min-width: 0; margin: 0; gap: 5px; }
       #ctxLassoGroup #wandTolBox input[type="range"] { flex: 1 1 auto; width: auto; min-width: 0; height: 18px; }
-      #ctxLassoGroup #wandTolBox span { font-size: 10px; }
+      #ctxLassoGroup #wandTolBox span { font-size: 11px; }
       #ctxLassoGroup #wandTolBox #valWandTol { flex: 0 0 46px; width: 46px; max-width: 46px; }
       #ctxLassoGroup #btnCutMoveSel, #ctxLassoGroup #btnCopyMoveSel, #ctxLassoGroup #btnClearInside, #ctxLassoGroup #btnClearOutside, #ctxLassoGroup #btnMaskFromSel, #ctxLassoGroup #btnCancelLasso {
-        flex: 1 1 0; min-width: 0; font-size: 10px; padding: 4px 2px; letter-spacing: -0.3px; line-height: 1.25; text-align: center; justify-content: center;
+        flex: 1 1 calc(33.333% - 4px); min-width: calc(33.333% - 6px); max-width: calc(33.333% - 2px);
+        box-sizing: border-box; font-size: 11px; padding: 5px 4px; gap: 3px;
+        letter-spacing: 0; line-height: 1.25; text-align: center; justify-content: center;
+        overflow: hidden; text-overflow: ellipsis;
       }
-      #ctxEyedropperGroup #eyeTargetGroup { flex: 0 1 auto; display: inline-flex; gap: 2px; }
-      #ctxEyedropperGroup #eyeTargetGroup .seg-btn { padding: 3px 5px !important; font-size: 10px !important; }
+      #ctxEyedropperGroup #eyeTargetGroup { flex: 1 1 calc(100% - 28px); margin-right: 26px; display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 2px; }
+      #ctxEyedropperGroup #eyeTargetGroup::-webkit-scrollbar { display: none; }
+      #ctxEyedropperGroup #eyeTargetGroup .seg-btn { flex: 0 0 auto; padding: 3px 6px !important; font-size: 10.5px !important; }
       #ctxEyedropperGroup .eye-hsl-row { flex: 1 1 100%; display: flex; align-items: center; gap: 4px; min-width: 0; }
       #ctxEyedropperGroup .eye-hsl-row input[type="range"] { flex: 1 1 36px; width: auto !important; min-width: 32px; height: 18px; }
       #ctxEyedropperGroup .eye-hsl-row span { font-size: 10px; flex-shrink: 0; }
       #ctxCavityGroup #cavityModeGroup {
-        flex: 1 1 100%; max-width: 100%; display: flex; flex-wrap: nowrap;
+        flex: 1 1 calc(100% - 28px); max-width: calc(100% - 26px); margin-right: 26px; display: flex; flex-wrap: nowrap;
         overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 2px;
       }
       #ctxCavityGroup #cavityModeGroup::-webkit-scrollbar { display: none; }
@@ -7172,15 +7180,18 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       overlayCtx.setLineDash([8 / state.view.zoom, 5 / state.view.zoom]);
       overlayCtx.strokeRect(-hw, -hh, hw * 2, hh * 2);
 
-      // Corner + Edge-midpoint handles
+      // Corner + Edge-midpoint handles (hide cramped midpoint handles on mobile when box is thin so center stays clean for dragging)
       overlayCtx.setLineDash([]);
-      const r = 6 / state.view.zoom;
+      const isMobOverlay = window.innerWidth <= 900;
+      const shwO = hw * state.view.zoom, shhO = hh * state.view.zoom;
+      const r = (isMobOverlay ? 5.5 : 6) / state.view.zoom;
       overlayCtx.fillStyle = "#ffffff";
       overlayCtx.strokeStyle = "#4b7cf3";
       const allHandles = [
-        [-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh],
-        [0, -hh], [hw, 0], [0, hh], [-hw, 0]
+        [-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]
       ];
+      if (!isMobOverlay || shhO >= 34) allHandles.push([0, -hh], [0, hh]);
+      if (!isMobOverlay || shwO >= 34) allHandles.push([hw, 0], [-hw, 0]);
       for (const [cx, cy] of allHandles) {
         overlayCtx.beginPath();
         overlayCtx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -8659,7 +8670,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           viewport.classList.add("dragging");
           return;
         }
-        // Check if clicking near any of the 4 corner handles for direct scaling
+        // Check if clicking directly on visible corner/midpoint handles (never swallow interior move area!)
+        const isMobMove = window.innerWidth <= 900;
         const rad = (-layer.rotation * Math.PI) / 180;
         const dx = pt.x - layer.x, dy = pt.y - layer.y;
         const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
@@ -8667,45 +8679,61 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const { sx: effSX, sy: effSY } = getEffectiveScaleXY(layer);
         const hw = (layer.srcW * effSX) / 2;
         const hh = (layer.srcH * effSY) / 2;
-        const hitR = (window.innerWidth <= 900 ? 26 : 16) / state.view.zoom;
-        const hitEdgeX = [[hw, 0], [-hw, 0]].some(([cx, cy]) => Math.hypot(lx - cx, ly - cy) <= hitR);
-        const hitEdgeY = [[0, -hh], [0, hh]].some(([cx, cy]) => Math.hypot(lx - cx, ly - cy) <= hitR);
+        const shw = hw * state.view.zoom;
+        const shh = hh * state.view.zoom;
+        const cornerHitR = (isMobMove ? 15 : 11) / state.view.zoom;
+        const edgeHitR   = (isMobMove ? 12 : 9) / state.view.zoom;
+        const movePadR   = (isMobMove ? 14 : 8) / state.view.zoom;
+
+        // Protect the inner body of the watermark so touching inside ALWAYS moves cleanly even on small/thin layers
+        const innerSafeX = Math.max(hw * 0.58, hw - cornerHitR * 0.85);
+        const innerSafeY = Math.max(hh * 0.58, hh - cornerHitR * 0.85);
+        const inMoveCore = Math.abs(lx) < innerSafeX && Math.abs(ly) < innerSafeY;
+
         const cornerPts = [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]];
-        const hitCorner = cornerPts.some(([cx, cy]) => Math.hypot(lx - cx, ly - cy) <= hitR);
+        const distToCenter = Math.hypot(lx, ly);
+        const hitCorner = !inMoveCore && cornerPts.some(([cx, cy]) => {
+          const d = Math.hypot(lx - cx, ly - cy);
+          return d <= cornerHitR && d < distToCenter * 1.05;
+        });
+        const allowEdgeX = !isMobMove || shw >= 34;
+        const allowEdgeY = !isMobMove || shh >= 34;
+        const hitEdgeX = !inMoveCore && !hitCorner && allowEdgeX && [[hw, 0], [-hw, 0]].some(([cx, cy]) => Math.hypot(lx - cx, ly - cy) <= edgeHitR);
+        const hitEdgeY = !inMoveCore && !hitCorner && allowEdgeY && [[0, -hh], [0, hh]].some(([cx, cy]) => Math.hypot(lx - cx, ly - cy) <= edgeHitR);
+
         // Also hit clamped in-canvas corner handles if box extends outside canvas
         const fCos = Math.cos((layer.rotation * Math.PI) / 180);
         const fSin = Math.sin((layer.rotation * Math.PI) / 180);
         const cPad = Math.max(24, 18 / state.view.zoom);
-        const hitClamped = cornerPts.some(([cx, cy]) => {
+        const hitClamped = !inMoveCore && cornerPts.some(([cx, cy]) => {
           const wx = layer.x + cx * fCos - cy * fSin;
           const wy = layer.y + cx * fSin + cy * fCos;
           if (wx < 8 || wx > state.width - 8 || wy < 8 || wy > state.height - 8) {
             const vx = Math.max(cPad, Math.min(state.width - cPad, wx));
             const vy = Math.max(cPad, Math.min(state.height - cPad, wy));
-            return Math.hypot(pt.x - vx, pt.y - vy) <= hitR * 1.3;
+            const d = Math.hypot(pt.x - vx, pt.y - vy);
+            return d <= cornerHitR * 1.15 && d < distToCenter;
           }
           return false;
         });
-        const hitBorder = (Math.abs(Math.abs(lx) - hw) <= hitR && Math.abs(ly) <= hh + hitR) ||
-                          (Math.abs(Math.abs(ly) - hh) <= hitR && Math.abs(lx) <= hw + hitR);
-        if (hitEdgeX && !hitCorner) {
+        if (hitEdgeX) {
           pushTransformUndo(layer);
           dragState = { type: "scaleX", layer, startLX: Math.max(10, Math.abs(lx)), startScaleX: layer.scaleX ?? 1 };
           return;
         }
-        if (hitEdgeY && !hitCorner) {
+        if (hitEdgeY) {
           pushTransformUndo(layer);
           dragState = { type: "scaleY", layer, startLY: Math.max(10, Math.abs(ly)), startScaleY: layer.scaleY ?? 1 };
           return;
         }
-        if (hitCorner || hitClamped || hitBorder) {
+        if (hitCorner || hitClamped) {
           pushTransformUndo(layer);
           const startDist = Math.max(10, Math.hypot(dx, dy));
           dragState = { type: "scale", layer, startDist, startScale: layer.scale };
           return;
         }
         // If clicked outside the layer bounding box, pan viewport smoothly instead of locking
-        if (Math.abs(lx) > hw + hitR || Math.abs(ly) > hh + hitR) {
+        if (Math.abs(lx) > hw + movePadR || Math.abs(ly) > hh + movePadR) {
           dragState = { type: "pan", sx: e.clientX, sy: e.clientY, px: state.view.panX, py: state.view.panY };
           viewport.classList.add("dragging");
           return;
@@ -8885,11 +8913,16 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         syncLayerUI();
         scheduleRender(0);
       }
-      if (dragState && dragState.type === "move" && dragState.layer.x === dragState.lx && dragState.layer.y === dragState.ly) {
-        if (state.undoStack.length && state.undoStack[state.undoStack.length - 1].type === "transform") state.undoStack.pop();
-      }
-      if (dragState && dragState.type === "scale" && dragState.layer.scale === dragState.startScale) {
-        if (state.undoStack.length && state.undoStack[state.undoStack.length - 1].type === "transform") state.undoStack.pop();
+      if (dragState && (dragState.type === "move" || dragState.type === "scale" || dragState.type === "scaleX" || dragState.type === "scaleY")) {
+        const moved = (dragState.type === "move" && (dragState.layer.x !== dragState.lx || dragState.layer.y !== dragState.ly)) ||
+                      (dragState.type === "scale" && dragState.layer.scale !== dragState.startScale) ||
+                      (dragState.type === "scaleX" && (dragState.layer.scaleX ?? 1) !== dragState.startScaleX) ||
+                      (dragState.type === "scaleY" && (dragState.layer.scaleY ?? 1) !== dragState.startScaleY);
+        if (!moved) {
+          if (state.undoStack.length && state.undoStack[state.undoStack.length - 1].type === "transform") state.undoStack.pop();
+        } else {
+          scheduleRender(0);
+        }
       }
       dragState = null;
     });
@@ -9017,11 +9050,15 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     function compactCtxLabels() {
       const isMob = window.innerWidth <= 900;
       const pairs = isMob ? [
+        ["btnCutMoveSel", "✂️ 剪切移动"],
+        ["btnCopyMoveSel", "⧉ 复制新层"],
         ["btnClearInside", "清除选区内"],
         ["btnClearOutside", "清除选区外"],
         ["btnMaskFromSel", "转为蒙版"],
         ["btnCancelLasso", "取消选区"]
       ] : [
+        ["btnCutMoveSel", "✂️ 剪切并移动"],
+        ["btnCopyMoveSel", "⧉ 复制为新层"],
         ["btnClearInside", "清除选区内 (Del)"],
         ["btnClearOutside", "清除选区外"],
         ["btnMaskFromSel", "转为蒙版"],
@@ -10877,7 +10914,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
       }
       const fname = "水印效果工作室_离线版.html";
-      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const cleanHtml = html.charCodeAt(0) === 0xFEFF ? html.slice(1) : html;
+      const blob = new Blob(["\uFEFF", cleanHtml], { type: "text/html;charset=utf-8" });
       // On iOS / mobile browsers where <a download> on blob URLs is ignored, invoke native Share / Save to Files sheet!
       if (isIOS && typeof File === "function" && navigator.canShare) {
         try {
@@ -12910,8 +12948,39 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     </div>
   </div>
 
+  <div class="guide-mask" id="updateNoticeMask" style="z-index:245;">
+    <div class="guide-card" style="width:min(360px, 90vw);gap:12px;padding:16px;">
+      <div class="guide-head">
+        <span class="guide-title">✨ 更新提示</span>
+        <button class="guide-close" id="btnUpdateNoticeClose" aria-label="关闭">✕</button>
+      </div>
+      <div class="guide-body" style="gap:8px;font-size:13px;line-height:1.65;">
+        <div>• 修复「一点水印就缩放、没法移动」</div>
+        <div>• 修复「手机端套索工具选项挤在一起看不清」</div>
+      </div>
+      <button class="btn btn-primary" id="btnUpdateNoticeOk" style="align-self:flex-end;padding:6px 18px;">关闭</button>
+    </div>
+  </div>
+
   <script>
     (function () {
+      var uMask = document.getElementById("updateNoticeMask");
+      var U_KEY = "effectStudio_updateSeen_20261126_v1";
+      var uSeen = false;
+      try { uSeen = !!localStorage.getItem(U_KEY); } catch (e) {}
+      function closeUpdateNotice() {
+        if (uMask) uMask.classList.remove("show");
+        try { localStorage.setItem(U_KEY, "1"); } catch (e) {}
+      }
+      if (uMask) {
+        var uc1 = document.getElementById("btnUpdateNoticeClose");
+        var uc2 = document.getElementById("btnUpdateNoticeOk");
+        if (uc1) uc1.addEventListener("click", closeUpdateNotice);
+        if (uc2) uc2.addEventListener("click", closeUpdateNotice);
+        uMask.addEventListener("click", function (e) { if (e.target === uMask) closeUpdateNotice(); });
+        if (!uSeen) setTimeout(function () { uMask.classList.add("show"); }, 220);
+      }
+
       var mask = document.getElementById("guideMask");
       if (!mask) return;
       var KEY = "effectStudio_guideSeen_v1";
@@ -12930,7 +12999,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       mask.addEventListener("click", function (e) { if (e.target === mask) closeGuide(); });
       var seen = false;
       try { seen = !!localStorage.getItem(KEY); } catch (e) {}
-      if (!seen) setTimeout(openGuide, 950);
+      if (!seen && uSeen) setTimeout(openGuide, 950);
     })();
 
     // ==================== 长按弹出文字说明 ====================
