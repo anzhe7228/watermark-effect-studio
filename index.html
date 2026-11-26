@@ -1729,43 +1729,67 @@
 
           <div id="popularAnimeExtraBox" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border);">
             <div class="row-between">
-              <span class="card-sub" style="color:#ffd6e5;font-weight:600;">流行效果 · 自带图效三圈叠加（原片精确数值）</span>
+              <span class="card-sub" style="color:#ffd6e5;font-weight:600;">流行效果 · 自带图效叠加（黑芯 / 白芯双系）</span>
+              <label class="switch" style="font-size:10.5px;color:#a8dcff;" title="开启后对亮白字芯/亮白贴纸圈做恒亮提纯，深蓝/黑发暗底上白字依然清透净白不发灰">
+                <input type="checkbox" id="chkPopWhiteGuard" /> 亮白防发灰
+              </label>
             </div>
-            <div class="seg-group" id="popPresetSeg" style="display:flex;width:100%;">
-              <button type="button" class="seg-btn active" data-ppreset="main" style="flex:1;padding:4px 4px;font-size:10.5px;" title="视频主字原值：#000000黑芯 + 6px纯白内描 + 12px(#6C6C6C)外灰描 + X+3,Y+5纯黑硬影">主字(6白+12灰)</button>
-              <button type="button" class="seg-btn" data-ppreset="sub" style="flex:1;padding:4px 4px;font-size:10.5px;" title="视频夹心副字原值：#8B8B8B浅灰芯 + 4px纯白描边 + 8px纯黑50%柔和外圈">夹心副字(#8B灰)</button>
-              <button type="button" class="seg-btn" data-ppreset="tag" style="flex:1;padding:4px 4px;font-size:10.5px;" title="视频前缀小标原值：#000000黑芯 + 7px纯白描边 + X+3,Y0硬影">前缀小标(7白)</button>
+            <div id="popPresetSeg" style="display:flex;flex-direction:column;gap:4px;width:100%;">
+              <div class="seg-group" style="display:flex;width:100%;">
+                <button type="button" class="seg-btn active" data-ppreset="main" style="flex:1;padding:4px 4px;font-size:10.5px;" title="视频主字原值：#000000黑芯 + 6px纯白内描 + 12px(#6C6C6C)外灰描 + X+3,Y+5纯黑硬影">黑芯原版</button>
+                <button type="button" class="seg-btn" data-ppreset="whiteA" style="flex:1;padding:4px 4px;font-size:10.5px;" title="调校白芯版 A：恒亮净白字芯 + 3.6px吸底图深色细内描 + 6.8px轻透灰收边 + 柔和偏移影">白芯A·细深边</button>
+                <button type="button" class="seg-btn" data-ppreset="whiteB" style="flex:1;padding:4px 4px;font-size:10.5px;" title="调校白芯版 B：恒亮净白字芯 + 3.6px深色内描 + 9.2px亮白外贴纸圈 + 13px(#6C6C6C)灰封边">白芯B·双圈贴纸</button>
+              </div>
+              <div class="seg-group" style="display:flex;width:100%;">
+                <button type="button" class="seg-btn" data-ppreset="sub" style="flex:1;padding:4px 4px;font-size:10.5px;" title="视频夹心副字原值：#8B8B8B浅灰芯 + 4px纯白描边 + 8px纯黑50%柔和外圈">夹心副字(#8B灰)</button>
+                <button type="button" class="seg-btn" data-ppreset="tag" style="flex:1;padding:4px 4px;font-size:10.5px;" title="视频前缀小标原值：#000000黑芯 + 7px纯白描边 + X+3,Y0硬影">前缀小标(7白)</button>
+              </div>
             </div>
 
-            <div class="grid-3" style="gap:6px;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;">
-              <div class="row" style="gap:4px;">
-                <input type="color" id="colPopCore" value="#000000" style="width:24px;height:20px;padding:0;border-radius:4px;" title="字芯灰阶（主字#000000浓透，副字#8B8B8B浅透）" />
-                <span style="font-size:10.5px;color:#c8d4ec;">字芯色</span>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px 6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;">
+              <div class="row" style="gap:3px;">
+                <input type="color" id="colPopCore" value="#000000" style="width:22px;height:20px;padding:0;border-radius:4px;" title="字芯颜色（黑芯#000000浓透，白芯#FFFFFF恒亮净白，副字#8B8B8B浅透）" />
+                <span style="font-size:10px;color:#c8d4ec;">字芯</span>
               </div>
-              <div class="row" style="gap:4px;">
-                <input type="color" id="colPopInner" value="#ffffff" style="width:24px;height:20px;padding:0;border-radius:4px;" title="第1圈内描边颜色（默认纯白#FFFFFF）" />
-                <span style="font-size:10.5px;color:#c8d4ec;">内白描</span>
+              <div class="row" style="gap:3px;">
+                <input type="color" id="colPopInner" value="#ffffff" style="width:22px;height:20px;padding:0;border-radius:4px;" title="第1圈内描边颜色（黑芯款默认#FFFFFF，白芯款为深色细内描）" />
+                <span style="font-size:10px;color:#c8d4ec;">1圈描</span>
               </div>
-              <div class="row" style="gap:4px;">
-                <input type="color" id="colPopOuter" value="#6c6c6c" style="width:24px;height:20px;padding:0;border-radius:4px;" title="第2圈外灰描颜色（主字默认#6C6C6C，副字#000000配50%透明度）" />
-                <span style="font-size:10.5px;color:#c8d4ec;">外灰描</span>
+              <div class="row" style="gap:3px;">
+                <input type="color" id="colPopOuter" value="#6c6c6c" style="width:22px;height:20px;padding:0;border-radius:4px;" title="第2圈描边颜色（黑芯款#6C6C6C外灰，白芯B为#FFFFFF外贴纸圈）" />
+                <span style="font-size:10px;color:#c8d4ec;">2圈描</span>
+              </div>
+              <div class="row" style="gap:3px;">
+                <input type="color" id="colPopSeal" value="#6c6c6c" style="width:22px;height:20px;padding:0;border-radius:4px;" title="第3圈外封边颜色（白芯B双圈贴纸默认#6C6C6C灰封边）" />
+                <span style="font-size:10px;color:#c8d4ec;">3圈封</span>
               </div>
             </div>
 
             <div class="grid-2">
               <div class="field">
-                <div class="field-head"><span>内圈白描宽度</span><span class="field-val" id="valPopInnerW">6 px</span></div>
-                <input type="range" id="rngPopInnerW" min="1" max="24" step="0.5" value="6" />
+                <div class="field-head"><span>第1圈内描宽度</span><span class="field-val" id="valPopInnerW">6 px</span></div>
+                <input type="range" id="rngPopInnerW" min="0.6" max="24" step="0.2" value="6" />
               </div>
               <div class="field">
-                <div class="field-head"><span>外圈灰描总宽</span><span class="field-val" id="valPopOuterW">12 px</span></div>
-                <input type="range" id="rngPopOuterW" min="1" max="42" step="0.5" value="12" />
+                <div class="field-head"><span>第2圈描边总宽</span><span class="field-val" id="valPopOuterW">12 px</span></div>
+                <input type="range" id="rngPopOuterW" min="1" max="42" step="0.2" value="12" />
               </div>
             </div>
 
             <div class="field">
-              <div class="field-head"><span>外圈灰描不透明度</span><span class="field-val" id="valPopOuterAlpha">100%</span></div>
+              <div class="field-head"><span>第2圈描边不透明度</span><span class="field-val" id="valPopOuterAlpha">100%</span></div>
               <input type="range" id="rngPopOuterAlpha" min="0" max="100" step="1" value="100" />
+            </div>
+
+            <div class="grid-2" style="padding:5px 7px;background:rgba(255,255,255,0.025);border-radius:6px;">
+              <div class="field">
+                <div class="field-head"><span>第3圈封边总宽</span><span class="field-val" id="valPopSealW">13 px</span></div>
+                <input type="range" id="rngPopSealW" min="1" max="52" step="0.2" value="13" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>第3圈封边浓度</span><span class="field-val" id="valPopSealAlpha">0%</span></div>
+                <input type="range" id="rngPopSealAlpha" min="0" max="100" step="1" value="0" />
+              </div>
             </div>
 
             <div style="display:flex;flex-direction:column;gap:5px;padding:7px 8px;background:rgba(0,0,0,0.22);border-radius:7px;">
@@ -1795,7 +1819,7 @@
             </div>
 
             <div style="font-size:10.5px;color:#b8c8e8;line-height:1.42;padding:5px 8px;background:rgba(125,166,255,0.08);border:1px solid rgba(125,166,255,0.22);border-radius:7px;">
-              💡 已完整还原原教程「6白描 + 12(#6C6C6C)灰描 + X+3,Y+5硬黑影 + 局部模糊底100%覆盖」；若字号很大可等比拉宽内外描边，切「透明底」可直接导出自带图效灰黑白母版 PNG。
+              💡 同时内置「黑芯原版」与两款调校白芯预设（「白芯A·细深边」干净利落、「白芯B·双圈贴纸」甜系双层贴纸圈，暗色底图上白芯恒亮不发灰）；字号很大时可等比拉宽描边。
             </div>
           </div>
 
@@ -2790,12 +2814,16 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         animeShadowColor: "#14151a",
         animeShadowAlpha: 58,
         popPreset: "main",
+        popWhiteGuard: false,
         popCoreHex: "#000000",
         popInnerHex: "#ffffff",
         popInnerW: 6,
         popOuterHex: "#6c6c6c",
         popOuterW: 12,
         popOuterAlpha: 100,
+        popSealHex: "#6c6c6c",
+        popSealW: 13,
+        popSealAlpha: 0,
         popShHex: "#000000",
         popShDx: 3,
         popShDy: 5,
@@ -5956,19 +5984,36 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         };
 
         if (fx.version === "a06_popular") {
-          // 流行效果（自带图效小水印 · 原教程1:1精确数值还原）：
-          // 主字原值：字芯 #000000 + 第1圈内白描 6px(#FFFFFF) + 第2圈外灰描 12px(#6C6C6C) + 合并后克隆下层阿尔法锁涂黑(#000000)移动 X+3, Y+5
-          // 夹心副字原值：字芯 #8B8B8B + 第1圈内白描 4px(#FFFFFF) + 第2圈外描边 8px(#000000, 不透明度50%)
-          // 上图套用原值：选水印不透明度 -> 克隆一层模糊底并清除外部 -> 水印层 100% 覆盖 (Overlay) 叠在局部模糊底上！
-          const rIn = Math.max(0.5, (Number(fx.popInnerW ?? 6)) * sc);
+          // 流行效果（自带图效小水印 · 黑芯原版 + 调校白芯版 A/B 双系完整还原）：
+          // 黑芯原版：字芯 #000000 + 第1圈内白描 6px(#FFFFFF) + 第2圈外灰描 12px(#6C6C6C) + 阿尔法锁硬影(#000000) X+3, Y+5
+          // 白芯版 A：恒亮净白芯(#FFFFFF) + 3.6px深色细内描(#08080C) + 6.8px轻透灰收边(#888888, 85%) + X+2, Y+3(55%)
+          // 白芯版 B：恒亮净白芯(#FFFFFF) + 3.6px深色内描(#050508) + 9.2px亮白外贴纸圈(#FFFFFF) + 13px(#6C6C6C)外灰封边 + X+3, Y+4(88%)
+          const rIn = Math.max(0.4, (Number(fx.popInnerW ?? 6)) * sc);
           const rOut = Math.max(rIn, (Number(fx.popOuterW ?? 12)) * sc);
-          const hasOuterRing = (rOut > rIn + 0.08) && ((fx.popOuterAlpha ?? 100) > 0);
           const outerOp = Math.max(0, Math.min(1, (fx.popOuterAlpha ?? 100) / 100));
+          const hasOuterRing = (rOut > rIn + 0.08) && (outerOp > 0.005);
+
+          const sealOp = Math.max(0, Math.min(1, (fx.popSealAlpha ?? 0) / 100));
+          const rSeal = Math.max(rOut, (Number(fx.popSealW ?? 13)) * sc);
+          const hasSealRing = (sealOp > 0.005) && (rSeal > rOut + 0.08);
+          const rMax = hasSealRing ? rSeal : (hasOuterRing ? rOut : rIn);
 
           const [crR, crG, crB] = hexToRgbTuple(fx.popCoreHex || "#000000");
           const [inR, inG, inB] = hexToRgbTuple(fx.popInnerHex || "#ffffff");
           const [ouR, ouG, ouB] = hexToRgbTuple(fx.popOuterHex || "#6c6c6c");
+          const [seR, seG, seB] = hexToRgbTuple(fx.popSealHex || "#6c6c6c");
           const [shR, shG, shB] = hexToRgbTuple(fx.popShHex || "#000000");
+
+          const useGuard = Boolean(fx.popWhiteGuard);
+          const calcLumGuard = (r, g, b, maxG, thr) => {
+            const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            return lum > thr ? maxG * Math.min(1, (lum - (thr - 0.08)) / (1 - (thr - 0.08))) : 0;
+          };
+          const gSealF = useGuard ? calcLumGuard(seR, seG, seB, 0.88, 0.72) : 0;
+          const gOutF  = useGuard ? calcLumGuard(ouR, ouG, ouB, 0.88, 0.72) : 0;
+          const gInF   = useGuard ? calcLumGuard(inR, inG, inB, 0.88, 0.72) : 0;
+          const gCoreF = useGuard ? calcLumGuard(crR, crG, crB, 1.00, 0.65) : 0;
+          const anyGuard = useGuard && (gSealF > 0 || gOutF > 0 || gInF > 0 || gCoreF > 0);
 
           const dxSh = (Number(fx.popShDx ?? 3)) * sc;
           const dySh = (Number(fx.popShDy ?? 5)) * sc;
@@ -5992,7 +6037,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
             return outC;
           }
 
-          const pad = Math.ceil(rOut + 4);
+          const pad = Math.ceil(rMax + 4);
           const bx0 = Math.max(0, minX - pad), by0 = Math.max(0, minY - pad);
           const bx1 = Math.min(w - 1, maxX + pad), by1 = Math.min(h - 1, maxY + pad);
           const bw = bx1 - bx0 + 1, bh = by1 - by0 + 1;
@@ -6061,7 +6106,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
             for (let y = 0; y < bh; y++) field[y * bw + x] = d1d[y];
           }
 
-          // Synthesize exact 3-layer concentric vector-smooth stamp + Alpha-Locked shadow mask inside bbox
+          // Synthesize exact concentric vector-smooth stamp + Alpha-Locked shadow + optional luminous white guard inside bbox
           const topCropC = document.createElement("canvas");
           topCropC.width = bw; topCropC.height = bh;
           _temps.push(topCropC);
@@ -6076,6 +6121,16 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           const shImg = shCropCtx.createImageData(bw, bh);
           const sd = shImg.data;
 
+          let guardCropC = null, guardCropCtx = null, guardImg = null, gd = null;
+          if (anyGuard) {
+            guardCropC = document.createElement("canvas");
+            guardCropC.width = bw; guardCropC.height = bh;
+            _temps.push(guardCropC);
+            guardCropCtx = guardCropC.getContext("2d");
+            guardImg = guardCropCtx.createImageData(bw, bh);
+            gd = guardImg.data;
+          }
+
           const invAa = 1 / 0.92;
           for (let y = 0; y < bh; y++) {
             const srcRow = (by0 + y) * w + bx0;
@@ -6083,14 +6138,37 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
             for (let x = 0; x < bw; x++) {
               const idx = bRow + x;
               const dist = Math.sqrt(field[idx]);
-              if (dist > rOut + 0.6) continue;
+              if (dist > rMax + 0.65) continue;
 
-              // Bottom-to-top Porter-Duff premultiplied composition: Outer Gray -> Inner White -> Core
+              // Bottom-to-top Porter-Duff premultiplied composition: 3rd Seal -> 2nd Outer -> 1st Inner -> Core
               let pr = 0, pg = 0, pb = 0, pa = 0;
+              let gr = 0, gg = 0, gb = 0, ga = 0;
+
+              if (hasSealRing) {
+                const cSeal = Math.max(0, Math.min(1, (rSeal + 0.46 - dist) * invAa)) * sealOp;
+                if (cSeal > 0) {
+                  pr = seR * cSeal; pg = seG * cSeal; pb = seB * cSeal; pa = cSeal;
+                  if (anyGuard && gSealF > 0) {
+                    const lg = cSeal * gSealF;
+                    gr = seR * lg; gg = seG * lg; gb = seB * lg; ga = lg;
+                  }
+                }
+              }
               if (hasOuterRing) {
                 const cOut = Math.max(0, Math.min(1, (rOut + 0.46 - dist) * invAa)) * outerOp;
                 if (cOut > 0) {
-                  pr = ouR * cOut; pg = ouG * cOut; pb = ouB * cOut; pa = cOut;
+                  const inv = 1 - cOut;
+                  pr = ouR * cOut + pr * inv;
+                  pg = ouG * cOut + pg * inv;
+                  pb = ouB * cOut + pb * inv;
+                  pa = cOut + pa * inv;
+                  if (anyGuard) {
+                    const lg = cOut * gOutF;
+                    gr = ouR * lg + gr * inv;
+                    gg = ouG * lg + gg * inv;
+                    gb = ouB * lg + gb * inv;
+                    ga = lg + ga * inv;
+                  }
                 }
               }
               const cIn = Math.max(0, Math.min(1, (rIn + 0.46 - dist) * invAa));
@@ -6100,6 +6178,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
                 pg = inG * cIn + pg * inv;
                 pb = inB * cIn + pb * inv;
                 pa = cIn + pa * inv;
+                if (anyGuard) {
+                  const lg = cIn * gInF;
+                  gr = inR * lg + gr * inv;
+                  gg = inG * lg + gg * inv;
+                  gb = inB * lg + gb * inv;
+                  ga = lg + ga * inv;
+                }
               }
               const cCore = H[srcRow + x] / 255;
               if (cCore > 0) {
@@ -6108,6 +6193,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
                 pg = crG * cCore + pg * inv;
                 pb = crB * cCore + pb * inv;
                 pa = cCore + pa * inv;
+                if (anyGuard) {
+                  const lg = cCore * gCoreF;
+                  gr = crR * lg + gr * inv;
+                  gg = crG * lg + gg * inv;
+                  gb = crB * lg + gb * inv;
+                  ga = lg + ga * inv;
+                }
               }
 
               if (pa > 0.002) {
@@ -6123,13 +6215,21 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
                 sd[p4 + 1] = shG;
                 sd[p4 + 2] = shB;
                 sd[p4 + 3] = Math.round(a255 * shOp);
+
+                if (anyGuard && ga > 0.008) {
+                  gd[p4] = Math.min(255, Math.round(gr / ga));
+                  gd[p4 + 1] = Math.min(255, Math.round(gg / ga));
+                  gd[p4 + 2] = Math.min(255, Math.round(gb / ga));
+                  gd[p4 + 3] = Math.min(255, Math.round(ga * 255));
+                }
               }
             }
           }
           topCtx.putImageData(topImg, 0, 0);
           shCropCtx.putImageData(shImg, 0, 0);
+          if (anyGuard) guardCropCtx.putImageData(guardImg, 0, 0);
 
-          // Assemble complete "自带图效" stampC (shifted hard shadow + concentric gray/white/core stamp)
+          // Assemble complete "自带图效" stampC (shifted hard shadow + concentric rings/core stamp)
           const stampC = mkTmp();
           const stg = stampC.getContext("2d");
           if (shOp > 0.005 && (Math.abs(dxSh) > 0.05 || Math.abs(dySh) > 0.05)) {
@@ -6137,12 +6237,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           }
           stg.drawImage(topCropC, bx0, by0);
 
-          // Optional brightness lift linkage (default 40% = neutral 1.0x exact tutorial tone)
           const curBgMode = state._renderingBgMode || state.bgMode;
           if (curBgMode !== "transparent") {
-            // Exact 03:11-03:15 workflow:
-            // Layer 3 (Normal 100%): Clipped blurred background strictly inside watermark opacity
-            // Layer 4 (Overlay 100%): stampC overlaid directly onto Layer 3!
             const usePopBlur = Number(fx.popBlurR ?? 38);
             let baseBackdrop;
             if (usePopBlur > 0.5) {
@@ -6173,6 +6269,17 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
             fg.globalCompositeOperation = "overlay";
             fg.globalAlpha = 1.0;
             fg.drawImage(stampC, 0, 0);
+
+            if (anyGuard && guardCropC) {
+              // Luminous white-core & white-sticker guard: keeps white crisp & bright even over dark hair/deep-blue backgrounds!
+              fg.globalCompositeOperation = "screen";
+              fg.globalAlpha = 0.78;
+              fg.drawImage(guardCropC, bx0, by0);
+              fg.globalCompositeOperation = "source-over";
+              fg.globalAlpha = 0.42;
+              fg.drawImage(guardCropC, bx0, by0);
+              fg.globalAlpha = 1.0;
+            }
 
             fg.globalCompositeOperation = "destination-in";
             fg.globalAlpha = 1.0;
@@ -13661,11 +13768,13 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       };
     }
 
-    // ==================== 流行效果 (a06_popular) 原教程精确参数绑定 ====================
+    // ==================== 流行效果 (a06_popular) 黑芯原版 + 白芯A/B 参数绑定 ====================
     const POP_PRESET_CONFIGS = {
-      main: { popPreset: "main", popCoreHex: "#000000", popInnerHex: "#ffffff", popInnerW: 6, popOuterHex: "#6c6c6c", popOuterW: 12, popOuterAlpha: 100, popShHex: "#000000", popShDx: 3, popShDy: 5, popShAlpha: 100 },
-      sub:  { popPreset: "sub",  popCoreHex: "#8b8b8b", popInnerHex: "#ffffff", popInnerW: 4, popOuterHex: "#000000", popOuterW: 8,  popOuterAlpha: 50,  popShHex: "#000000", popShDx: 0, popShDy: 0, popShAlpha: 0 },
-      tag:  { popPreset: "tag",  popCoreHex: "#000000", popInnerHex: "#ffffff", popInnerW: 7, popOuterHex: "#6c6c6c", popOuterW: 7,  popOuterAlpha: 0,   popShHex: "#000000", popShDx: 3, popShDy: 0, popShAlpha: 100 }
+      main:   { popPreset: "main",   popWhiteGuard: false, popCoreHex: "#000000", popInnerHex: "#ffffff", popInnerW: 6,   popOuterHex: "#6c6c6c", popOuterW: 12,  popOuterAlpha: 100, popSealHex: "#6c6c6c", popSealW: 12,  popSealAlpha: 0,   popShHex: "#000000", popShDx: 3, popShDy: 5, popShAlpha: 100 },
+      whiteA: { popPreset: "whiteA", popWhiteGuard: true,  popCoreHex: "#ffffff", popInnerHex: "#08080c", popInnerW: 3.6, popOuterHex: "#888888", popOuterW: 6.8, popOuterAlpha: 85,  popSealHex: "#6c6c6c", popSealW: 6.8, popSealAlpha: 0,   popShHex: "#000000", popShDx: 2, popShDy: 3, popShAlpha: 55  },
+      whiteB: { popPreset: "whiteB", popWhiteGuard: true,  popCoreHex: "#ffffff", popInnerHex: "#050508", popInnerW: 3.6, popOuterHex: "#ffffff", popOuterW: 9.2, popOuterAlpha: 100, popSealHex: "#6c6c6c", popSealW: 13,  popSealAlpha: 100, popShHex: "#000000", popShDx: 3, popShDy: 4, popShAlpha: 88  },
+      sub:    { popPreset: "sub",    popWhiteGuard: false, popCoreHex: "#8b8b8b", popInnerHex: "#ffffff", popInnerW: 4,   popOuterHex: "#000000", popOuterW: 8,   popOuterAlpha: 50,  popSealHex: "#6c6c6c", popSealW: 8,   popSealAlpha: 0,   popShHex: "#000000", popShDx: 0, popShDy: 0, popShAlpha: 0   },
+      tag:    { popPreset: "tag",    popWhiteGuard: false, popCoreHex: "#000000", popInnerHex: "#ffffff", popInnerW: 7,   popOuterHex: "#6c6c6c", popOuterW: 7,   popOuterAlpha: 0,   popSealHex: "#6c6c6c", popSealW: 7,   popSealAlpha: 0,   popShHex: "#000000", popShDx: 3, popShDy: 0, popShAlpha: 100 }
     };
 
     function syncPopularAnimeUI() {
@@ -13673,6 +13782,9 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       document.querySelectorAll("#popPresetSeg .seg-btn").forEach((b) => {
         b.classList.toggle("active", b.dataset.ppreset === (fx.popPreset || "main"));
       });
+      const chkWG = document.getElementById("chkPopWhiteGuard");
+      if (chkWG) chkWG.checked = Boolean(fx.popWhiteGuard);
+
       const setC = (id, v) => {
         const el = document.getElementById(id);
         if (el && typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v)) el.value = v;
@@ -13680,6 +13792,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       setC("colPopCore", fx.popCoreHex || "#000000");
       setC("colPopInner", fx.popInnerHex || "#ffffff");
       setC("colPopOuter", fx.popOuterHex || "#6c6c6c");
+      setC("colPopSeal", fx.popSealHex || "#6c6c6c");
       setC("colPopSh", fx.popShHex || "#000000");
 
       const setR = (rId, vId, val, suf) => {
@@ -13690,6 +13803,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       setR("rngPopInnerW", "valPopInnerW", fx.popInnerW ?? 6, " px");
       setR("rngPopOuterW", "valPopOuterW", fx.popOuterW ?? 12, " px");
       setR("rngPopOuterAlpha", "valPopOuterAlpha", fx.popOuterAlpha ?? 100, "%");
+      setR("rngPopSealW", "valPopSealW", fx.popSealW ?? 13, " px");
+      setR("rngPopSealAlpha", "valPopSealAlpha", fx.popSealAlpha ?? 0, "%");
       setR("rngPopShDx", "valPopShDx", fx.popShDx ?? 3, " px");
       setR("rngPopShDy", "valPopShDy", fx.popShDy ?? 5, " px");
       setR("rngPopShAlpha", "valPopShAlpha", fx.popShAlpha ?? 100, "%");
@@ -13707,9 +13822,28 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         }
       };
     });
-    bindColor("colPopCore", (e) => { state.fx.popCoreHex = e.target.value; state.fx.popPreset = "custom"; syncPopularAnimeUI(); scheduleRender(20); });
+    const chkPopWGEl = document.getElementById("chkPopWhiteGuard");
+    if (chkPopWGEl) {
+      chkPopWGEl.onchange = (e) => {
+        pushFxUndo("切换流行效果亮白防发灰");
+        state.fx.popWhiteGuard = Boolean(e.target.checked);
+        state.fx.popPreset = "custom";
+        syncPopularAnimeUI();
+        scheduleRender(0);
+      };
+    }
+    bindColor("colPopCore", (e) => {
+      const hex = e.target.value;
+      state.fx.popCoreHex = hex;
+      const [r, g, b] = hexToRgbTuple(hex);
+      if ((0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.72) state.fx.popWhiteGuard = true;
+      state.fx.popPreset = "custom";
+      syncPopularAnimeUI();
+      scheduleRender(20);
+    });
     bindColor("colPopInner", (e) => { state.fx.popInnerHex = e.target.value; state.fx.popPreset = "custom"; syncPopularAnimeUI(); scheduleRender(20); });
     bindColor("colPopOuter", (e) => { state.fx.popOuterHex = e.target.value; state.fx.popPreset = "custom"; syncPopularAnimeUI(); scheduleRender(20); });
+    bindColor("colPopSeal", (e) => { state.fx.popSealHex = e.target.value; state.fx.popPreset = "custom"; syncPopularAnimeUI(); scheduleRender(20); });
     bindColor("colPopSh", (e) => { state.fx.popShHex = e.target.value; state.fx.popPreset = "custom"; syncPopularAnimeUI(); scheduleRender(20); });
 
     const bindPopSlider = (id, key, isFloat = false) => {
@@ -13721,6 +13855,9 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         if (key === "popInnerW" && state.fx.popOuterW < state.fx.popInnerW) {
           state.fx.popOuterW = state.fx.popInnerW;
         }
+        if ((key === "popInnerW" || key === "popOuterW") && state.fx.popSealW < state.fx.popOuterW) {
+          state.fx.popSealW = state.fx.popOuterW;
+        }
         if (key !== "popBlurR") state.fx.popPreset = "custom";
         syncPopularAnimeUI();
         scheduleRender(25);
@@ -13731,6 +13868,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     bindPopSlider("rngPopInnerW", "popInnerW", true);
     bindPopSlider("rngPopOuterW", "popOuterW", true);
     bindPopSlider("rngPopOuterAlpha", "popOuterAlpha", false);
+    bindPopSlider("rngPopSealW", "popSealW", true);
+    bindPopSlider("rngPopSealAlpha", "popSealAlpha", false);
     bindPopSlider("rngPopShDx", "popShDx", false);
     bindPopSlider("rngPopShDy", "popShDy", false);
     bindPopSlider("rngPopShAlpha", "popShAlpha", false);
