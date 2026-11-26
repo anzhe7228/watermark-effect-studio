@@ -2324,7 +2324,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           eng.draw(ExtraGpuShaders.color, eng.a, { source: eng.original }, { mode, values, tint });
           eng.draw(eng.compose, null, { effect: eng.a, original: eng.original }, { amount: (params.mix ?? 100) / 100, keepAlpha: 1 });
         } else if (filterName === "lineart") {
-          eng.draw(ExtraGpuShaders.line, eng.a, { source: eng.original }, { unit: [Math.max(1, (params.width || 1) * s) / w, Math.max(1, (params.width || 1) * s) / h], black: (params.black || 8) / 100, white: Math.max((params.black || 8) / 100 + 0.001, (params.white || 92) / 100), mid: (params.mid || 50) / 100, strength: (params.strength || 180) / 100, edges: params.method === "edges" ? 1 : 0, whiteBackground: 0 });
+          const bVal = Math.max(0, Math.min(0.99, (params.black ?? 20) / 100));
+          const wVal = Math.max(bVal + 0.005, Math.min(1.0, (params.white ?? 80) / 100));
+          const mVal = Math.max(0.01, Math.min(0.99, (params.mid ?? 50) / 100));
+          eng.draw(ExtraGpuShaders.line, eng.a, { source: eng.original }, { unit: [1 / w, 1 / h], black: bVal, white: wVal, mid: mVal, strength: 1.0, edges: 0, whiteBackground: 0 });
           eng.draw(eng.compose, null, { effect: eng.a, original: eng.original }, { amount: (params.mix ?? 100) / 100, keepAlpha: 0 });
         } else if (filterName === "motion" || filterName === "zoomblur") {
           const ang = (params.angle || 0) * Math.PI / 180;
@@ -2350,7 +2353,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       gpu_adjust: { fn: "adjust", useRef: false, defaults: { brightness: 10, contrast: 15, mix: 100 }, sliders: [["brightness","亮度",-100,100,1],["contrast","对比度",-100,99,1],["mix","强度",0,100,1]] },
       gpu_hsl: { fn: "hsl", useRef: false, defaults: { hue: 0, saturation: 15, lightness: 5, mix: 100 }, sliders: [["hue","色相",-180,180,1],["saturation","饱和度",-100,100,1],["lightness","明度",-100,100,1]] },
       gpu_balance: { fn: "balance", useRef: false, defaults: { red: 0, green: 0, blue: 15, mix: 100 }, sliders: [["red","青 ← 红",-100,100,1],["green","洋红 ← 绿",-100,100,1],["blue","黄 ← 蓝",-100,100,1]] },
-      gpu_lineart: { fn: "lineart", useRef: false, defaults: { method: "edges", black: 10, white: 88, mid: 50, width: 1.2, strength: 200, mix: 100 }, sliders: [["black","黑场",0,90,1],["white","白场",10,100,1],["width","线宽",0.5,4,0.1],["strength","强度",20,400,5]] },
+      gpu_lineart: { fn: "lineart", useRef: false, defaults: { method: "luminance", black: 20, white: 80, mid: 50, mix: 100 }, sliders: [["black","黑色",0,100,1],["white","白色",0,100,1],["mid","中间",5,95,1]] },
       gpu_motion: { fn: "motion", useRef: false, defaults: { radius: 25, angle: 0, mix: 100 }, sliders: [["radius","运动距离",0,150,1],["angle","运动方向",0,360,1],["mix","强度",0,100,1]] },
       gpu_zoomblur: { fn: "zoomblur", useRef: false, defaults: { radius: 45, cx: 0.5, cy: 0.5, centerRadius: 40, mix: 100 }, sliders: [["radius","模糊强度",0,180,1],["centerRadius","中心清晰区",0,300,2],["mix","混合度",0,100,1]] },
     };
@@ -6633,6 +6636,41 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
     }
 
+    // ibisPaint X (爱笔思画) exact Luminance-to-Alpha Line Art Extractor (CPU fallback & native-resolution baker)
+    function extractLineArtCanvas2D(srcEl, blackPct = 20, whitePct = 80, midPct = 50) {
+      const w = srcEl.naturalWidth || srcEl.width || 1;
+      const h = srcEl.naturalHeight || srcEl.height || 1;
+      const out = document.createElement("canvas");
+      out.width = w; out.height = h;
+      const ctx = out.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(srcEl, 0, 0, w, h);
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const d = imgData.data;
+      const b = Math.max(0, Math.min(0.99, (blackPct ?? 20) / 100));
+      const wh = Math.max(b + 0.005, Math.min(1.0, (whitePct ?? 80) / 100));
+      const m = Math.max(0.01, Math.min(0.99, (midPct ?? 50) / 100));
+      const invSpan = 1 / (wh - b);
+      const lut = new Uint8Array(1025);
+      for (let k = 0; k <= 1024; k++) {
+        const g = k / 1024;
+        const t = (g - b) * invSpan;
+        if (t <= 0) { lut[k] = 255; continue; }
+        if (t >= 1) { lut[k] = 0; continue; }
+        const go = t <= m ? (t * (1 - m) / m) : (1 - (1 - t) * m / (1 - m));
+        lut[k] = Math.max(0, Math.min(255, Math.round((1 - go) * 255)));
+      }
+      for (let i = 0; i < d.length; i += 4) {
+        const a = d[i + 3] / 255;
+        const lum = (0.298912 * d[i] + 0.586611 * d[i + 1] + 0.114478 * d[i + 2]) / 255;
+        const g = lum * a + (1 - a);
+        const idx = g <= 0 ? 0 : (g >= 1 ? 1024 : ((g * 1024 + 0.5) | 0));
+        d[i] = 0; d[i + 1] = 0; d[i + 2] = 0;
+        d[i + 3] = lut[idx];
+      }
+      ctx.putImageData(imgData, 0, 0);
+      return out;
+    }
+
     function renderLayerBlurOrGpu(rawC, effectId, layerMeta = null) {
       let effectOut;
       if (effectId === "layer_blur") {
@@ -6643,7 +6681,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const spec = GPU_FILTER_SPECS[effectId];
         const pCur = gpuParamState[effectId];
         const refC = state.bgMode === "blurred" ? displayBlurBgCanvas : bgCanvas;
-        const res = runGpuFilterCanvas(spec.fn, rawC, refC, pCur, spec.useRef, true);
+        let res = runGpuFilterCanvas(spec.fn, rawC, refC, pCur, spec.useRef, true);
+        if (!res && effectId === "gpu_lineart") {
+          res = extractLineArtCanvas2D(rawC, pCur.black, pCur.white, pCur.mid);
+        }
         if (spec.isStarWater && res) {
           // 3-Stage Starlight Meniscus Enhancer for Black-Silhouette Watermarks ("W01 星芒水滴"):
           // Preserves plump 3D WebGL2 water refraction inside strokes while lifting thin starbursts,
@@ -6774,10 +6815,11 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         }
       }
       const isBgBlurHelper = Boolean(layerMeta && typeof layerMeta.name === "string" && (layerMeta.name === "底图 · 模糊层" || layerMeta.name.endsWith("· 模糊底")));
+      const isPureExtract = effectId === "gpu_lineart";
       const fx = state.fx;
-      const wantShadow = !isBgBlurHelper && fx.dropShadow && fx.shadowAlpha > 0;
-      const wantGlow = !isBgBlurHelper && fx.outerGlow && fx.glowRadius > 0;
-      const wantStroke = !isBgBlurHelper && fx.customStrokeEnable && (fx.customStrokeW ?? 2.5) > 0 && (fx.customStrokeAlpha ?? 100) > 0;
+      const wantShadow = !isBgBlurHelper && !isPureExtract && fx.dropShadow && fx.shadowAlpha > 0;
+      const wantGlow = !isBgBlurHelper && !isPureExtract && fx.outerGlow && fx.glowRadius > 0;
+      const wantStroke = !isBgBlurHelper && !isPureExtract && fx.customStrokeEnable && (fx.customStrokeW ?? 2.5) > 0 && (fx.customStrokeAlpha ?? 100) > 0;
       if (!wantShadow && !wantGlow && !wantStroke) return effectOut;
 
       const w = effectOut.width, h = effectOut.height;
@@ -10434,10 +10476,25 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const valEl = div.querySelector(".field-val");
         rng.oninput = () => {
           p[key] = parseFloat(rng.value);
-          valEl.textContent = p[key];
+          valEl.textContent = verId === "gpu_lineart" ? `${p[key]}%` : p[key];
           scheduleRender(40);
         };
+        if (verId === "gpu_lineart") valEl.textContent = `${p[key]}%`;
         cont.appendChild(div);
+      }
+      if (verId === "gpu_lineart") {
+        const tip = document.createElement("div");
+        tip.className = "card-sub";
+        tip.style.lineHeight = "1.45";
+        tip.textContent = "已对齐爱笔思画「提取线稿」（默认 黑色 20% / 白色 80% / 中间 50%），实心笔画不空心、线条不发粗。";
+        const bakeBtn = document.createElement("button");
+        bakeBtn.type = "button";
+        bakeBtn.className = "btn btn-sm btn-mint";
+        bakeBtn.style.justifyContent = "center";
+        bakeBtn.textContent = "✨ 固化为透明黑素（可继续叠玻璃/镀银等效果）";
+        bakeBtn.onclick = () => bakeSelectedLayerEffect();
+        cont.appendChild(tip);
+        cont.appendChild(bakeBtn);
       }
     }
 
@@ -11861,6 +11918,18 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         return;
       }
       pushUndoSnapshot(l, false);
+      if (l.effectId === "gpu_lineart" && l.source && !l.maskCanvas) {
+        const pCur = gpuParamState.gpu_lineart || { black: 20, white: 80, mid: 50 };
+        const extracted = extractLineArtCanvas2D(l.source, pCur.black, pCur.white, pCur.mid);
+        l.source = extracted;
+        l.srcW = extracted.width; l.srcH = extracted.height;
+        l.qiasi = false;
+        l.bakedCount = (l.bakedCount || 0) + 1;
+        syncLayerUI();
+        scheduleRender(0);
+        showToast(`✨ 已将「${l.name}」提取固化为透明黑素！现在可直接点选任意玻璃/金属/日漫效果套用（Ctrl+Z 可撤销）`);
+        return;
+      }
       const baked = runAtFullResolution(() => {
         if (l.effectId === "layer_blur" || GPU_FILTER_SPECS[l.effectId]) {
           const rawC = renderSingleLayerToCanvas(l, false);
