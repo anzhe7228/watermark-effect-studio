@@ -1244,6 +1244,7 @@
           <button class="btn btn-sm" id="btnZoomIn">＋</button>
           <button class="btn btn-sm" id="btnZoomFit">适应</button>
           <button class="btn btn-sm" id="btnZoom100">100%</button>
+          <button class="btn btn-sm" id="btnStageLockAspect" style="border-color:rgba(125,166,255,0.6);background:rgba(125,166,255,0.16);color:#d6e4ff;" title="像 PS 一样切换「锁定横纵比（等比不变形）」与「不锁定（自由拉宽拉高）」">🔗 锁比例</button>
         </div>
         <div class="toolbar-right">
           <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-right:6px;" id="stageHint">
@@ -1459,21 +1460,23 @@
             </div>
           </div>
 
+          <div class="row-between" style="gap:6px;">
+            <button type="button" class="btn btn-sm" id="btnPanelLockAspect" style="flex:1;justify-content:center;border-color:rgba(125,166,255,0.6);background:rgba(125,166,255,0.16);color:#d6e4ff;" title="像 PS 一样切换锁定横纵比与自由拉伸（桌面上按住 Shift 拖动也可临时切换）">🔗 锁定横纵比：开启（不变形）</button>
+            <button type="button" class="btn btn-sm" id="btnScaleXYReset" style="padding:4px 8px;font-size:11px;" title="恢复 1:1 原始横纵比例">1:1 复原</button>
+          </div>
+
           <div class="grid-2">
             <div class="field">
               <div class="field-head">
-                <span>横向拉伸 X</span>
+                <span>横向比例 X</span>
                 <span class="field-val" id="valLayerScaleX">100%</span>
               </div>
               <input type="range" id="rngLayerScaleX" min="20" max="300" step="1" value="100" />
             </div>
             <div class="field">
               <div class="field-head">
-                <span>纵向拉伸 Y</span>
-                <div class="row" style="gap:4px;">
-                  <span class="field-val" id="valLayerScaleY">100%</span>
-                  <button class="btn btn-sm" id="btnScaleXYReset" style="padding:1px 5px;font-size:10px;" title="恢复 1:1 原始比例">1:1</button>
-                </div>
+                <span>纵向比例 Y</span>
+                <span class="field-val" id="valLayerScaleY">100%</span>
               </div>
               <input type="range" id="rngLayerScaleY" min="20" max="300" step="1" value="100" />
             </div>
@@ -2504,6 +2507,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       auxImg: null,
       layers: [],
       selectedLayerId: null,
+      lockAspect: true, // PS-style Lock Aspect Ratio (true = proportional no distortion; false = free X/Y transform)
       tool: "move", // move | lasso | eraser | cavity | pan
       compareRaw: false,
       view: { zoom: 0.35, panX: 0, panY: 0, spaceDown: false },
@@ -7222,19 +7226,26 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       overlayCtx.setLineDash([8 / state.view.zoom, 5 / state.view.zoom]);
       overlayCtx.strokeRect(-hw, -hh, hw * 2, hh * 2);
 
-      // Corner + Edge-midpoint handles (hide cramped midpoint handles on mobile when box is thin so center stays clean for dragging)
+      // Corner + Edge-midpoint handles (color-coded by lockAspect; hide cramped midpoints on locked thin mobile boxes)
       overlayCtx.setLineDash([]);
       const isMobOverlay = window.innerWidth <= 900;
       const shwO = hw * state.view.zoom, shhO = hh * state.view.zoom;
       const r = (isMobOverlay ? 5.5 : 6) / state.view.zoom;
+      const minMidPx = state.lockAspect ? 34 : 18;
       overlayCtx.fillStyle = "#ffffff";
       overlayCtx.strokeStyle = "#4b7cf3";
-      const allHandles = [
-        [-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]
-      ];
-      if (!isMobOverlay || shhO >= 34) allHandles.push([0, -hh], [0, hh]);
-      if (!isMobOverlay || shwO >= 34) allHandles.push([hw, 0], [-hw, 0]);
-      for (const [cx, cy] of allHandles) {
+      for (const [cx, cy] of [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]]) {
+        overlayCtx.beginPath();
+        overlayCtx.arc(cx, cy, r, 0, Math.PI * 2);
+        overlayCtx.fill();
+        overlayCtx.stroke();
+      }
+      const midHandles = [];
+      if (!isMobOverlay || shhO >= minMidPx) midHandles.push([0, -hh], [0, hh]);
+      if (!isMobOverlay || shwO >= minMidPx) midHandles.push([hw, 0], [-hw, 0]);
+      overlayCtx.strokeStyle = state.lockAspect ? "#4b7cf3" : "#e6b96e";
+      overlayCtx.fillStyle = state.lockAspect ? "#ffffff" : "#fff6df";
+      for (const [cx, cy] of midHandles) {
         overlayCtx.beginPath();
         overlayCtx.arc(cx, cy, r, 0, Math.PI * 2);
         overlayCtx.fill();
@@ -8738,8 +8749,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           const d = Math.hypot(lx - cx, ly - cy);
           return d <= cornerHitR && d < distToCenter * 1.05;
         });
-        const allowEdgeX = !isMobMove || shw >= 34;
-        const allowEdgeY = !isMobMove || shh >= 34;
+        const effLock = e.shiftKey ? !state.lockAspect : state.lockAspect;
+        const minEdgePx = effLock ? 34 : 18;
+        const allowEdgeX = !isMobMove || shw >= minEdgePx;
+        const allowEdgeY = !isMobMove || shh >= minEdgePx;
         const hitEdgeX = !inMoveCore && !hitCorner && allowEdgeX && [[hw, 0], [-hw, 0]].some(([cx, cy]) => Math.hypot(lx - cx, ly - cy) <= edgeHitR);
         const hitEdgeY = !inMoveCore && !hitCorner && allowEdgeY && [[0, -hh], [0, hh]].some(([cx, cy]) => Math.hypot(lx - cx, ly - cy) <= edgeHitR);
 
@@ -8760,18 +8773,37 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         });
         if (hitEdgeX) {
           pushTransformUndo(layer);
-          dragState = { type: "scaleX", layer, startLX: Math.max(10, Math.abs(lx)), startScaleX: layer.scaleX ?? 1 };
+          if (effLock) {
+            dragState = { type: "scale", axis: "x", layer, startDist: Math.max(10, Math.abs(lx)), startScale: layer.scale };
+          } else {
+            dragState = { type: "scaleX", layer, startLX: Math.max(10, Math.abs(lx)), startScaleX: layer.scaleX ?? 1 };
+          }
           return;
         }
         if (hitEdgeY) {
           pushTransformUndo(layer);
-          dragState = { type: "scaleY", layer, startLY: Math.max(10, Math.abs(ly)), startScaleY: layer.scaleY ?? 1 };
+          if (effLock) {
+            dragState = { type: "scale", axis: "y", layer, startDist: Math.max(10, Math.abs(ly)), startScale: layer.scale };
+          } else {
+            dragState = { type: "scaleY", layer, startLY: Math.max(10, Math.abs(ly)), startScaleY: layer.scaleY ?? 1 };
+          }
           return;
         }
         if (hitCorner || hitClamped) {
           pushTransformUndo(layer);
-          const startDist = Math.max(10, Math.hypot(dx, dy));
-          dragState = { type: "scale", layer, startDist, startScale: layer.scale };
+          if (effLock) {
+            const startDist = Math.max(10, Math.hypot(dx, dy));
+            dragState = { type: "scale", axis: "diag", layer, startDist, startScale: layer.scale };
+          } else {
+            dragState = {
+              type: "scaleXY",
+              layer,
+              startLX: Math.max(10, Math.abs(lx)),
+              startLY: Math.max(10, Math.abs(ly)),
+              startScaleX: layer.scaleX ?? 1,
+              startScaleY: layer.scaleY ?? 1
+            };
+          }
           return;
         }
         // If clicked outside the layer bounding box, pan viewport smoothly instead of locking
@@ -8888,21 +8920,22 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           scheduleRender(40);
         }
         dragState.lastPt = pt;
-      } else if (dragState.type === "scaleX" || dragState.type === "scaleY") {
+      } else if (dragState.type === "scaleX" || dragState.type === "scaleY" || dragState.type === "scaleXY") {
         const pt = clientToCanvas(e.clientX, e.clientY);
         const l = dragState.layer;
         const rad = (-(l.rotation || 0) * Math.PI) / 180;
         const dx = pt.x - l.x, dy = pt.y - l.y;
         const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
         const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
-        if (dragState.type === "scaleX") {
+        if (dragState.type === "scaleX" || dragState.type === "scaleXY") {
           let nx = Math.max(0.2, Math.min(3.0, dragState.startScaleX * (Math.max(10, Math.abs(lx)) / dragState.startLX)));
           if (Math.abs(nx - 1) < 0.03) nx = 1;
           l.scaleX = Number(nx.toFixed(3));
           const rx = document.getElementById("rngLayerScaleX"), vx = document.getElementById("valLayerScaleX");
           if (rx) rx.value = Math.round(nx * 100);
           if (vx) vx.textContent = `${Math.round(nx * 100)}%`;
-        } else {
+        }
+        if (dragState.type === "scaleY" || dragState.type === "scaleXY") {
           let ny = Math.max(0.2, Math.min(3.0, dragState.startScaleY * (Math.max(10, Math.abs(ly)) / dragState.startLY)));
           if (Math.abs(ny - 1) < 0.03) ny = 1;
           l.scaleY = Number(ny.toFixed(3));
@@ -8914,10 +8947,20 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         scheduleRender(isMobileDevice ? 180 : 55);
       } else if (dragState.type === "scale") {
         const pt = clientToCanvas(e.clientX, e.clientY);
-        const curDist = Math.max(10, Math.hypot(pt.x - dragState.layer.x, pt.y - dragState.layer.y));
+        const l = dragState.layer;
+        const dx = pt.x - l.x, dy = pt.y - l.y;
+        let curDist;
+        if (dragState.axis === "x" || dragState.axis === "y") {
+          const rad = (-(l.rotation || 0) * Math.PI) / 180;
+          const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
+          const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+          curDist = Math.max(10, dragState.axis === "x" ? Math.abs(lx) : Math.abs(ly));
+        } else {
+          curDist = Math.max(10, Math.hypot(dx, dy));
+        }
         let nextScale = Math.max(0.05, Math.min(4.0, dragState.startScale * (curDist / dragState.startDist)));
         if (Math.abs(nextScale - 1) < 0.03) nextScale = 1;
-        dragState.layer.scale = Number(nextScale.toFixed(3));
+        l.scale = Number(nextScale.toFixed(3));
         document.getElementById("rngLayerScale").value = Math.round(nextScale * 100);
         document.getElementById("valLayerScale").textContent = `${Math.round(nextScale * 100)}%`;
         drawOverlayHandles();
@@ -8955,11 +8998,12 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         syncLayerUI();
         scheduleRender(0);
       }
-      if (dragState && (dragState.type === "move" || dragState.type === "scale" || dragState.type === "scaleX" || dragState.type === "scaleY")) {
+      if (dragState && (dragState.type === "move" || dragState.type === "scale" || dragState.type === "scaleX" || dragState.type === "scaleY" || dragState.type === "scaleXY")) {
         const moved = (dragState.type === "move" && (dragState.layer.x !== dragState.lx || dragState.layer.y !== dragState.ly)) ||
                       (dragState.type === "scale" && dragState.layer.scale !== dragState.startScale) ||
                       (dragState.type === "scaleX" && (dragState.layer.scaleX ?? 1) !== dragState.startScaleX) ||
-                      (dragState.type === "scaleY" && (dragState.layer.scaleY ?? 1) !== dragState.startScaleY);
+                      (dragState.type === "scaleY" && (dragState.layer.scaleY ?? 1) !== dragState.startScaleY) ||
+                      (dragState.type === "scaleXY" && ((dragState.layer.scaleX ?? 1) !== dragState.startScaleX || (dragState.layer.scaleY ?? 1) !== dragState.startScaleY));
         if (!moved) {
           if (state.undoStack.length && state.undoStack[state.undoStack.length - 1].type === "transform") state.undoStack.pop();
         } else {
@@ -11768,27 +11812,79 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       l.scale = 1; l.scaleX = 1; l.scaleY = 1;
       syncLayerUI(); drawOverlayHandles(); scheduleRender(0);
     };
+    function syncAspectLockUI() {
+      const locked = !!state.lockAspect;
+      const bStage = document.getElementById("btnStageLockAspect");
+      const bPanel = document.getElementById("btnPanelLockAspect");
+      if (bStage) {
+        bStage.textContent = locked ? "🔗 锁比例" : "🔓 自由拉";
+        bStage.style.borderColor = locked ? "rgba(125,166,255,0.6)" : "rgba(230,185,110,0.65)";
+        bStage.style.background  = locked ? "rgba(125,166,255,0.16)" : "rgba(230,185,110,0.18)";
+        bStage.style.color       = locked ? "#d6e4ff" : "#ffd98e";
+      }
+      if (bPanel) {
+        bPanel.textContent = locked ? "🔗 锁定横纵比：开启（不变形）" : "🔓 锁定横纵比：已解除（自由变形）";
+        bPanel.style.borderColor = locked ? "rgba(125,166,255,0.6)" : "rgba(230,185,110,0.65)";
+        bPanel.style.background  = locked ? "rgba(125,166,255,0.16)" : "rgba(230,185,110,0.18)";
+        bPanel.style.color       = locked ? "#d6e4ff" : "#ffd98e";
+      }
+      drawOverlayHandles();
+    }
+    function toggleAspectLock() {
+      state.lockAspect = !state.lockAspect;
+      syncAspectLockUI();
+      showToast(state.lockAspect ? "🔗 已锁定横纵比：拖动任意控制点均等比缩放不变形" : "🔓 已解除锁定：可拖四边/四角或拉 X/Y 自由拉伸宽窄");
+    }
+    const btnStageLockAspectEl = document.getElementById("btnStageLockAspect");
+    if (btnStageLockAspectEl) btnStageLockAspectEl.onclick = toggleAspectLock;
+    const btnPanelLockAspectEl = document.getElementById("btnPanelLockAspect");
+    if (btnPanelLockAspectEl) btnPanelLockAspectEl.onclick = toggleAspectLock;
+
     const rngLayerScaleXEl = document.getElementById("rngLayerScaleX");
     if (rngLayerScaleXEl) {
-      rngLayerScaleXEl.onpointerdown = () => { pushTransformUndo(getSelectedLayer()); };
+      rngLayerScaleXEl.onpointerdown = () => {
+        const l = getSelectedLayer();
+        if (l) l._lockRatioYX = (l.scaleY ?? 1) / Math.max(0.05, l.scaleX ?? 1);
+        pushTransformUndo(l);
+      };
       rngLayerScaleXEl.oninput = (e) => {
         const l = getSelectedLayer(); if (!l) return;
         let pct = Number(e.target.value);
         if (Math.abs(pct - 100) <= 3) { pct = 100; e.target.value = 100; }
         l.scaleX = pct / 100;
         document.getElementById("valLayerScaleX").textContent = `${pct}%`;
+        if (state.lockAspect) {
+          const ratio = l._lockRatioYX ?? 1;
+          const ny = Math.max(0.2, Math.min(3.0, Number((l.scaleX * ratio).toFixed(3))));
+          l.scaleY = ny;
+          const ry = document.getElementById("rngLayerScaleY"), vy = document.getElementById("valLayerScaleY");
+          if (ry) ry.value = Math.round(ny * 100);
+          if (vy) vy.textContent = `${Math.round(ny * 100)}%`;
+        }
         drawOverlayHandles(); scheduleRender(55);
       };
     }
     const rngLayerScaleYEl = document.getElementById("rngLayerScaleY");
     if (rngLayerScaleYEl) {
-      rngLayerScaleYEl.onpointerdown = () => { pushTransformUndo(getSelectedLayer()); };
+      rngLayerScaleYEl.onpointerdown = () => {
+        const l = getSelectedLayer();
+        if (l) l._lockRatioXY = (l.scaleX ?? 1) / Math.max(0.05, l.scaleY ?? 1);
+        pushTransformUndo(l);
+      };
       rngLayerScaleYEl.oninput = (e) => {
         const l = getSelectedLayer(); if (!l) return;
         let pct = Number(e.target.value);
         if (Math.abs(pct - 100) <= 3) { pct = 100; e.target.value = 100; }
         l.scaleY = pct / 100;
         document.getElementById("valLayerScaleY").textContent = `${pct}%`;
+        if (state.lockAspect) {
+          const ratio = l._lockRatioXY ?? 1;
+          const nx = Math.max(0.2, Math.min(3.0, Number((l.scaleY * ratio).toFixed(3))));
+          l.scaleX = nx;
+          const rx = document.getElementById("rngLayerScaleX"), vx = document.getElementById("valLayerScaleX");
+          if (rx) rx.value = Math.round(nx * 100);
+          if (vx) vx.textContent = `${Math.round(nx * 100)}%`;
+        }
         drawOverlayHandles(); scheduleRender(55);
       };
     }
