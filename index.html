@@ -1799,6 +1799,58 @@
             </div>
           </div>
 
+          <div id="trialCardExtraBox" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border);">
+            <div class="row-between">
+              <span class="card-sub" style="color:#ffd6e5;font-weight:600;">体验卡 · 净白浮雕外扩模糊底（原片12层精确数值）</span>
+              <label class="switch" style="font-size:10.5px;color:#96eed0;" title="自动识别爱心、对话框、文字闭合空隙并填补通透模糊底（省去手动套索圈洞）">
+                <input type="checkbox" id="chkTrialHollow" checked /> 自动补镂空底
+              </label>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <div class="field-head"><span>浮雕与描边错位</span><span class="field-val" id="valTrialBevelPx">2 px</span></div>
+                <input type="range" id="rngTrialBevelPx" min="1" max="5" step="0.5" value="2" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>外扩模糊底宽度</span><span class="field-val" id="valTrialExpandPx">4 px</span></div>
+                <input type="range" id="rngTrialExpandPx" min="0" max="14" step="0.5" value="4" />
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <div class="field-head"><span>额外白叠加提亮</span><span class="field-val" id="valTrialWhiteBoost">91%</span></div>
+                <input type="range" id="rngTrialWhiteBoost" min="0" max="150" step="1" value="91" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>三合一浮雕强度</span><span class="field-val" id="valTrialBevelAlpha">100%</span></div>
+                <input type="range" id="rngTrialBevelAlpha" min="0" max="100" step="1" value="100" />
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <div class="field-head"><span>2px 黑外描浓度</span><span class="field-val" id="valTrialRimAlpha">100%</span></div>
+                <input type="range" id="rngTrialRimAlpha" min="0" max="100" step="1" value="100" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>X+2,Y+2 叠加阴影</span><span class="field-val" id="valTrialShAlpha">20%</span></div>
+                <input type="range" id="rngTrialShAlpha" min="0" max="80" step="1" value="20" />
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-head"><span>内置局部模糊底半径</span><span class="field-val" id="valTrialBlurR">42 px</span></div>
+              <input type="range" id="rngTrialBlurR" min="8" max="90" step="2" value="42" />
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:rgba(125,166,255,0.08);border:1px solid rgba(125,166,255,0.22);border-radius:7px;">
+              <span style="font-size:10.5px;color:#b8c8e8;line-height:1.38;">已自动执行「外扩4px(抗锯齿3px) + 镂空补底 + 双层模糊底合并 + 20%叠加阴影」</span>
+              <button type="button" class="btn btn-sm" id="btnTrialSwitchOrigBg" style="flex:0 0 auto;padding:3px 7px;font-size:10.5px;color:#96eed0;" title="切到清晰原底图（相当于最后一步关掉全屏模糊底图，仅保留水印局部模糊底）">切原底图</button>
+            </div>
+          </div>
+
           <div id="animeMistExtraBox" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border);">
             <div class="row-between">
               <span class="card-sub" style="color:#ffd6e5;font-weight:600;">日漫外扩柔雾框 · 双模式（内置动态模糊底）</span>
@@ -2528,6 +2580,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       { id: "fs_clear_tint", label: "FS10 琉璃染透", cat: "全屏" },
       { id: "fs_relief_glass", label: "FS11 浮雕柔透", cat: "全屏" },
       { id: "a06_popular", label: "流行效果", name: "自带图效叠加小水印", cat: "日漫" },
+      { id: "a07_trial_card", label: "体验卡", name: "净白浮雕外扩模糊底", cat: "日漫" },
       { id: "a01_frost_silver", label: "A01 霜银清璃", cat: "日漫" },
       { id: "a02_star_frame", label: "A02 星纱细框", cat: "日漫" },
       { id: "a03_mist_glaze", label: "A03 雾糖柔釉", cat: "日漫" },
@@ -2747,7 +2800,15 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         popShDx: 3,
         popShDy: 5,
         popShAlpha: 100,
-        popBlurR: 38
+        popBlurR: 38,
+        trialFillHollow: true,
+        trialBevelPx: 2,
+        trialExpandPx: 4,
+        trialWhiteBoost: 91,
+        trialBevelAlpha: 100,
+        trialRimAlpha: 100,
+        trialShAlpha: 20,
+        trialBlurR: 42
       }
     };
 
@@ -3270,7 +3331,95 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       };
     }
 
+    let _activeFxLayerId = null;
+
+    function clonePlainJson(obj) {
+      return obj ? JSON.parse(JSON.stringify(obj)) : null;
+    }
+
+    function saveActiveStateToLayer(layer) {
+      if (!layer) return;
+      layer.ownFx = clonePlainJson(state.fx);
+      if (layer.ownFx) layer.ownFx.version = layer.effectId || state.fx.version;
+      layer.ownGpu = clonePlainJson(gpuParamState);
+      layer.ownCavityMap = new Map(state.cavityColorMap || []);
+      layer.ownDisabledCav = new Set(state.disabledCavities || []);
+      layer.ownForcedCav = new Set(state.forcedCavities || []);
+    }
+
+    function loadLayerStateToActive(layer) {
+      if (!layer) return;
+      if (layer.ownFx) {
+        state.fx = clonePlainJson(layer.ownFx);
+      }
+      state.fx.version = layer.effectId || state.fx.version;
+      if (layer.ownGpu) {
+        for (const [k, v] of Object.entries(layer.ownGpu)) {
+          if (gpuParamState[k] && v && typeof v === "object") {
+            Object.assign(gpuParamState[k], v);
+          }
+        }
+      }
+      state.cavityColorMap = new Map(layer.ownCavityMap || []);
+      state.disabledCavities = new Set(layer.ownDisabledCav || []);
+      state.forcedCavities = new Set(layer.ownForcedCav || []);
+    }
+
+    function deepCloneLayerFxProps(srcLayer, effectIdOverride = null) {
+      const baseFx = srcLayer && srcLayer.ownFx ? clonePlainJson(srcLayer.ownFx) : clonePlainJson(state.fx);
+      const effId = effectIdOverride || (srcLayer && srcLayer.effectId) || state.fx.version || "m01_silver_gloss";
+      if (baseFx) baseFx.version = effId;
+      return {
+        ownFx: baseFx,
+        ownGpu: srcLayer && srcLayer.ownGpu ? clonePlainJson(srcLayer.ownGpu) : clonePlainJson(gpuParamState),
+        ownCavityMap: new Map((srcLayer && srcLayer.ownCavityMap) || []),
+        ownDisabledCav: new Set((srcLayer && srcLayer.ownDisabledCav) || []),
+        ownForcedCav: new Set((srcLayer && srcLayer.ownForcedCav) || []),
+      };
+    }
+
+    function withLayerFxContext(layer, fn) {
+      if (!layer || !layer.ownFx) return fn();
+      const savedFx = state.fx;
+      const savedGpu = clonePlainJson(gpuParamState);
+      const savedCavMap = state.cavityColorMap;
+      const savedDisCav = state.disabledCavities;
+      const savedForCav = state.forcedCavities;
+      try {
+        const lfx = clonePlainJson(layer.ownFx);
+        lfx.version = layer.effectId || lfx.version;
+        state.fx = lfx;
+        if (layer.ownGpu) {
+          for (const [k, v] of Object.entries(layer.ownGpu)) {
+            if (gpuParamState[k] && v && typeof v === "object") {
+              Object.assign(gpuParamState[k], v);
+            }
+          }
+        }
+        state.cavityColorMap = layer.ownCavityMap || new Map();
+        state.disabledCavities = layer.ownDisabledCav || new Set();
+        state.forcedCavities = layer.ownForcedCav || new Set();
+        return fn();
+      } finally {
+        state.fx = savedFx;
+        if (savedGpu) {
+          for (const [k, v] of Object.entries(savedGpu)) {
+            if (gpuParamState[k]) Object.assign(gpuParamState[k], v);
+          }
+        }
+        state.cavityColorMap = savedCavMap;
+        state.disabledCavities = savedDisCav;
+        state.forcedCavities = savedForCav;
+      }
+    }
+
     function addLayerFromSource(name, source, opts = {}) {
+      if (_activeFxLayerId !== null) {
+        const prevL = state.layers.find(x => x.id === _activeFxLayerId);
+        if (prevL) saveActiveStateToLayer(prevL);
+      }
+      const effId = opts.effectId || state.fx.version || "m01_silver_gloss";
+      const fxBundle = deepCloneLayerFxProps(null, effId);
       const layer = {
         id: nextLayerId++,
         name,
@@ -3284,7 +3433,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         srcH: source ? (source.naturalHeight || source.height) : 400,
         visible: true,
         qiasi: opts.qiasi !== undefined ? opts.qiasi : false,
-        effectId: opts.effectId || state.fx.version || "m01_silver_gloss",
+        effectId: effId,
+        ...fxBundle,
         layoutMode: opts.layoutMode || "single", // single | fullscreen-fit | tile-grid | tile-diag
         x: state.width / 2,
         y: state.height / 2,
@@ -3311,6 +3461,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
       state.layers.push(layer);
       state.selectedLayerId = layer.id;
+      _activeFxLayerId = layer.id;
       syncLayerUI();
       if (!_isBooting && !opts.skipRender) scheduleRender();
       return layer;
@@ -6039,6 +6190,278 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           return outC;
         }
 
+        if (fx.version === "a07_trial_card") {
+          // 体验卡（12层原片精确还原）：
+          // [3] 外扩4px+补洞黑影(X+2,Y+2 叠加20%) -> [4] 双层合并局部模糊底(正常100%) -> [5] 垫底纯白素(正常100%)
+          // -> [6] 错位黑素(X+2,Y+2 叠加100%) -> [7,8] 双层白素(叠加100%) -> [9] 可选白素加白(叠加91%)
+          // -> [10] 四向±2px挖空两次黑外描边(叠加100%) -> [11] 三合一浮雕(顶#959595灰 + 中白-2,-2 + 底黑+2,+2 合并后叠加100%)
+          const bevelRaw = Math.max(0.5, Number(fx.trialBevelPx ?? 2));
+          const expandRaw = Math.max(0, Number(fx.trialExpandPx ?? 4));
+          const step2 = Math.max(0.85, bevelRaw * sc);
+          const sh2 = Math.max(0.85, 2.0 * sc);
+          const rFolderExpand = (bevelRaw + expandRaw) * sc;
+          const aaPx = Math.max(1.0, 3.0 * sc); // 原片：扩展 4px + 抗锯齿 3.0px
+          const useHollow = fx.trialFillHollow !== false;
+
+          // Find tight active bounding box of (H ∪ enclosed cavities)
+          let minX = w, minY = h, maxX = -1, maxY = -1;
+          for (let y = 0; y < h; y++) {
+            const row = y * w;
+            for (let x = 0; x < w; x++) {
+              const i = row + x;
+              const v = (useHollow && compCount > 0) ? Math.max(H[i], cavAlpha[i]) : H[i];
+              if (v > 2) {
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+              }
+            }
+          }
+          if (maxX < minX) {
+            cleanupTemps();
+            return outC;
+          }
+
+          const pad = Math.ceil(rFolderExpand + aaPx + sh2 + 4);
+          const bx0 = Math.max(0, minX - pad), by0 = Math.max(0, minY - pad);
+          const bx1 = Math.min(w - 1, maxX + pad), by1 = Math.min(h - 1, maxY + pad);
+          const bw = bx1 - bx0 + 1, bh = by1 - by0 + 1;
+          const bTotal = bw * bh;
+
+          // Subpixel-seeded 2D Exact EDT on (H ∪ cavities) for smooth "扩展 4px + 抗锯齿 3.0px"
+          const INF = 1e12;
+          const field = new Float32Array(bTotal);
+          for (let y = 0; y < bh; y++) {
+            const srcRow = (by0 + y) * w + bx0;
+            const dstRow = y * bw;
+            for (let x = 0; x < bw; x++) {
+              const si = srcRow + x;
+              const a = (useHollow && compCount > 0) ? Math.max(H[si], cavAlpha[si]) : H[si];
+              if (a >= 252) {
+                field[dstRow + x] = 0;
+              } else if (a > 2) {
+                const sub = (1 - a / 255) * 0.85;
+                field[dstRow + x] = sub * sub;
+              } else {
+                field[dstRow + x] = INF;
+              }
+            }
+          }
+
+          const maxDim = Math.max(bw, bh);
+          const f1d = new Float64Array(maxDim);
+          const d1d = new Float64Array(maxDim);
+          const v1d = new Int32Array(maxDim);
+          const z1d = new Float64Array(maxDim + 1);
+          const runEdt1D = (n) => {
+            let k = 0;
+            v1d[0] = 0;
+            z1d[0] = -Infinity;
+            z1d[1] = Infinity;
+            for (let q = 1; q < n; q++) {
+              let sVal;
+              const fq = f1d[q] + q * q;
+              do {
+                const vk = v1d[k];
+                sVal = (fq - (f1d[vk] + vk * vk)) / (2 * (q - vk));
+                if (sVal <= z1d[k]) k--;
+                else break;
+              } while (k >= 0);
+              k++;
+              v1d[k] = q;
+              z1d[k] = sVal;
+              z1d[k + 1] = Infinity;
+            }
+            k = 0;
+            for (let q = 0; q < n; q++) {
+              while (z1d[k + 1] < q) k++;
+              const dx = q - v1d[k];
+              d1d[q] = dx * dx + f1d[v1d[k]];
+            }
+          };
+
+          for (let y = 0; y < bh; y++) {
+            const rOff = y * bw;
+            for (let x = 0; x < bw; x++) f1d[x] = field[rOff + x];
+            runEdt1D(bw);
+            for (let x = 0; x < bw; x++) field[rOff + x] = d1d[x];
+          }
+          for (let x = 0; x < bw; x++) {
+            for (let y = 0; y < bh; y++) f1d[y] = field[y * bw + x];
+            runEdt1D(bh);
+            for (let y = 0; y < bh; y++) field[y * bw + x] = d1d[y];
+          }
+
+          // Build single-copy mask (for Layer 3 shadow) and merged-2-copies mask (for Layer 4 local blur plate)
+          const singleMaskCrop = document.createElement("canvas");
+          singleMaskCrop.width = bw; singleMaskCrop.height = bh;
+          _temps.push(singleMaskCrop);
+          const smCtx = singleMaskCrop.getContext("2d");
+          const smImg = smCtx.createImageData(bw, bh);
+          const smd = smImg.data;
+
+          const plateMaskCrop = document.createElement("canvas");
+          plateMaskCrop.width = bw; plateMaskCrop.height = bh;
+          _temps.push(plateMaskCrop);
+          const pmCtx = plateMaskCrop.getContext("2d");
+          const pmImg = pmCtx.createImageData(bw, bh);
+          const pmd = pmImg.data;
+
+          const invAa3 = 1 / aaPx;
+          const halfAa = aaPx * 0.5;
+          for (let i = 0; i < bTotal; i++) {
+            const dist = Math.sqrt(field[i]);
+            const a1 = Math.max(0, Math.min(1, (rFolderExpand + halfAa - dist) * invAa3));
+            if (a1 > 0.002) {
+              const p4 = i * 4;
+              // Single copy alpha (Layer 3 shadow base)
+              smd[p4 + 3] = Math.round(a1 * 255);
+              // Two copies merged ("最上面两层合并图层" -> 1 - (1-a1)^2)
+              const a2 = 1 - (1 - a1) * (1 - a1);
+              pmd[p4 + 3] = Math.round(a2 * 255);
+            }
+          }
+          smCtx.putImageData(smImg, 0, 0);
+          pmCtx.putImageData(pmImg, 0, 0);
+
+          const plateMaskFull = mkTmp();
+          plateMaskFull.getContext("2d").drawImage(plateMaskCrop, bx0, by0);
+
+          const blurRef = ensurePopularLocalBlurBg(w, h, rs, fx.trialBlurR ?? 42);
+          const curBgMode = state._renderingBgMode || state.bgMode;
+
+          // [Layer 3] 底层 X+2,Y+2 黑色叠加阴影（默认 20% 叠加）
+          const shAlpha = Math.max(0, Math.min(1, (fx.trialShAlpha ?? 20) / 100));
+          if (shAlpha > 0.005) {
+            const shShiftMask = mkTmp();
+            const ssm = shShiftMask.getContext("2d");
+            ssm.drawImage(singleMaskCrop, bx0 + sh2, by0 + sh2);
+            ssm.globalCompositeOperation = "destination-out";
+            ssm.drawImage(plateMaskFull, 0, 0);
+            ssm.globalCompositeOperation = "source-over";
+
+            const shLayer = mkTmp();
+            const shCtx = shLayer.getContext("2d");
+            shCtx.drawImage(shShiftMask, 0, 0);
+            shCtx.globalCompositeOperation = "source-in";
+            if (curBgMode === "transparent") {
+              shCtx.drawImage(blurRef, 0, 0, w, h);
+              shCtx.globalCompositeOperation = "overlay";
+              shCtx.fillStyle = "#000000";
+              shCtx.fillRect(0, 0, w, h);
+              shCtx.globalCompositeOperation = "source-atop";
+              shCtx.globalAlpha = 0.5;
+              shCtx.fillStyle = "#000000";
+              shCtx.fillRect(0, 0, w, h);
+            } else {
+              const backdropRef = curBgMode === "blurred" ? displayBlurBgCanvas : bgCanvas;
+              shCtx.drawImage(backdropRef, 0, 0, w, h);
+              shCtx.globalCompositeOperation = "overlay";
+              shCtx.fillStyle = "#000000";
+              shCtx.fillRect(0, 0, w, h);
+            }
+            shCtx.globalCompositeOperation = "destination-in";
+            shCtx.globalAlpha = 1;
+            shCtx.drawImage(shShiftMask, 0, 0);
+
+            outCtx.save();
+            outCtx.globalAlpha = shAlpha;
+            outCtx.drawImage(shLayer, 0, 0);
+            outCtx.restore();
+          }
+
+          // [Layer 4] 局部模糊底板（外扩4px + 镂空补底，两层合并，正常 100%）
+          const plaque = mkTmp();
+          const pq = plaque.getContext("2d");
+          pq.drawImage(plateMaskFull, 0, 0);
+          pq.globalCompositeOperation = "source-in";
+          pq.drawImage(blurRef, 0, 0, w, h);
+
+          pq.save();
+          // [Layer 5] 垫底白素（原位纯白 #FFFFFF，正常 100%）
+          const brightMul = (fx.silverBright ?? 40) / 40;
+          pq.globalCompositeOperation = "source-over";
+          pq.globalAlpha = Math.min(1, Math.max(0.25, brightMul));
+          pq.drawImage(cHWhite, 0, 0);
+
+          // [Layer 6] 错位黑素（X+2, Y+2，叠加 100%）
+          pq.globalCompositeOperation = "overlay";
+          pq.globalAlpha = 1.0;
+          pq.drawImage(cHBlack, step2, step2);
+
+          // [Layer 7 & 8] 两层白素叠加（0, 0，叠加 100%）
+          pq.globalCompositeOperation = "overlay";
+          pq.globalAlpha = 1.0;
+          pq.drawImage(cHWhite, 0, 0);
+          pq.drawImage(cHWhite, 0, 0);
+
+          // [Layer 9] 可选第3层白素叠加（原片默认 91%，可拉到 0% 省略或拉高更白）
+          const whiteBoost = Math.max(0, Number(fx.trialWhiteBoost ?? 91)) / 100;
+          if (whiteBoost > 0.01) {
+            pq.globalCompositeOperation = "overlay";
+            pq.globalAlpha = Math.min(1, whiteBoost);
+            pq.drawImage(cHWhite, 0, 0);
+            if (whiteBoost > 1.01) {
+              pq.globalAlpha = Math.min(1, whiteBoost - 1.0);
+              pq.drawImage(cHWhite, 0, 0);
+            }
+          }
+
+          // [Layer 10] 四向 ±2px 合并后用原黑素清除两次的镂空黑外描边（叠加 100%）
+          const rimOp = Math.max(0, Math.min(1, (fx.trialRimAlpha ?? 100) / 100));
+          if (rimOp > 0.005) {
+            const outer2C = mkTmp();
+            const o2 = outer2C.getContext("2d");
+            o2.drawImage(cHBlack, step2, 0);
+            o2.drawImage(cHBlack, -step2, 0);
+            o2.drawImage(cHBlack, 0, step2);
+            o2.drawImage(cHBlack, 0, -step2);
+            if (step2 > 2.2) {
+              const sd = step2 * 0.707;
+              o2.drawImage(cHBlack, -sd, -sd);
+              o2.drawImage(cHBlack, sd, -sd);
+              o2.drawImage(cHBlack, -sd, sd);
+              o2.drawImage(cHBlack, sd, sd);
+            }
+            o2.globalCompositeOperation = "destination-out";
+            o2.drawImage(cHBlack, 0, 0);
+            o2.drawImage(cHBlack, 0, 0);
+
+            pq.globalCompositeOperation = "overlay";
+            pq.globalAlpha = rimOp;
+            pq.drawImage(outer2C, 0, 0);
+          }
+
+          // [Layer 11] 三合一立体浮雕层：[底]黑(X+2,Y+2) + [中]白(X-2,Y-2) + [顶]#959595灰(0,0) 合并 -> 叠加 100%
+          const bevOp = Math.max(0, Math.min(1, (fx.trialBevelAlpha ?? 100) / 100));
+          if (bevOp > 0.005) {
+            const cHGray95 = mkAlpha(H, 149, 149, 149);
+            const embossC = mkTmp();
+            const eg = embossC.getContext("2d");
+            eg.drawImage(cHBlack, step2, step2);
+            eg.drawImage(cHWhite, -step2, -step2);
+            eg.drawImage(cHGray95, 0, 0);
+
+            pq.globalCompositeOperation = "overlay";
+            pq.globalAlpha = bevOp;
+            pq.drawImage(embossC, 0, 0);
+          }
+          pq.restore();
+
+          // 严格收口在局部模糊底轮廓内
+          pq.globalCompositeOperation = "destination-in";
+          pq.globalAlpha = 1.0;
+          pq.drawImage(plateMaskFull, 0, 0);
+
+          outCtx.drawImage(plaque, 0, 0);
+          if (fx.outerGlow) {
+            drawOuterGlow(outCtx, S, { color: fx.glowColor || "#ffffff", punchOutArr: S });
+          }
+          cleanupTemps();
+          return outC;
+        }
+
         if (fx.version === "a01_frost_silver") {
           // A01 霜银清璃：模糊底图填补空隙 + 暗影移位 + 软光黑 + 覆盖白 + 硬光吸色 + 线性加深细边
           const autoPal = sampleBgPaletteFromCanvas(bgCanvas);
@@ -7310,6 +7733,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const mode = bgModeOverride || state.bgMode;
       const prevRenderingBgMode = state._renderingBgMode;
       state._renderingBgMode = mode;
+      if (_activeFxLayerId !== null) {
+        const actL = state.layers.find(x => x.id === _activeFxLayerId);
+        if (actL) saveActiveStateToLayer(actL);
+      }
       try {
       const bgPos = getBgLayerPos();
       let bgDrawn = false;
@@ -7366,14 +7793,16 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       // Each layer or folder keeps its OWN effectId, blendMode, and opacity without interfering with any other layer!
       const renderChildNode = (layer) => {
         if (layer.qiasi) {
-          if (layer.effectId === "layer_blur" || GPU_FILTER_SPECS[layer.effectId]) {
-            const rawC = renderSingleLayerToCanvas(layer, false);
-            return renderLayerBlurOrGpu(rawC, layer.effectId, layer);
-          }
-          const maskC = renderSingleLayerToCanvas(layer, true);
-          const out = renderEffectForMask(maskC, layer.effectId);
-          freeCanvas(maskC);
-          return out;
+          return withLayerFxContext(layer, () => {
+            if (layer.effectId === "layer_blur" || GPU_FILTER_SPECS[layer.effectId]) {
+              const rawC = renderSingleLayerToCanvas(layer, false);
+              return renderLayerBlurOrGpu(rawC, layer.effectId, layer);
+            }
+            const maskC = renderSingleLayerToCanvas(layer, true);
+            const out = renderEffectForMask(maskC, layer.effectId);
+            freeCanvas(maskC);
+            return out;
+          });
         }
         return renderSingleLayerToCanvas(layer, false);
       };
@@ -7383,14 +7812,16 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           const children = state.layers.filter(c => c.parentId === layer.id && c.type !== "folder" && c.visible);
           if (!children.length) return null;
           if (layer.qiasi) {
-            if (layer.effectId === "layer_blur" || GPU_FILTER_SPECS[layer.effectId]) {
-              const rawF = renderFolderToCanvas(layer, false, null);
-              return renderLayerBlurOrGpu(rawF, layer.effectId, layer);
-            }
-            const fMask = renderFolderToCanvas(layer, true, null);
-            const fOut = renderEffectForMask(fMask, layer.effectId);
-            freeCanvas(fMask);
-            return fOut;
+            return withLayerFxContext(layer, () => {
+              if (layer.effectId === "layer_blur" || GPU_FILTER_SPECS[layer.effectId]) {
+                const rawF = renderFolderToCanvas(layer, false, null);
+                return renderLayerBlurOrGpu(rawF, layer.effectId, layer);
+              }
+              const fMask = renderFolderToCanvas(layer, true, null);
+              const fOut = renderEffectForMask(fMask, layer.effectId);
+              freeCanvas(fMask);
+              return fOut;
+            });
           }
           const tmp = document.createElement("canvas");
           tmp.width = w; tmp.height = h;
@@ -7783,11 +8214,22 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     }
 
     function pushFxUndo(label = "效果") {
+      if (_activeFxLayerId !== null) {
+        const actL = state.layers.find(x => x.id === _activeFxLayerId);
+        if (actL) saveActiveStateToLayer(actL);
+      }
       state.undoStack.push({
         type: "fx",
         label,
         fx: JSON.parse(JSON.stringify(state.fx)),
-        layerEffects: state.layers.map(l => ({ id: l.id, effectId: l.effectId, qiasi: l.qiasi })),
+        gpu: clonePlainJson(gpuParamState),
+        layerEffects: state.layers.map(l => ({
+          id: l.id,
+          effectId: l.effectId,
+          qiasi: l.qiasi,
+          ownFx: clonePlainJson(l.ownFx),
+          ownGpu: clonePlainJson(l.ownGpu),
+        })),
         cavityColorMap: Array.from(state.cavityColorMap.entries()),
         disabledCavities: Array.from(state.disabledCavities),
         forcedCavities: Array.from(state.forcedCavities),
@@ -7832,9 +8274,19 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
       if (item.type === "fx") {
         state.fx = JSON.parse(JSON.stringify(item.fx));
+        if (item.gpu) {
+          for (const [k, v] of Object.entries(item.gpu)) {
+            if (gpuParamState[k] && v && typeof v === "object") Object.assign(gpuParamState[k], v);
+          }
+        }
         for (const le of (item.layerEffects || [])) {
           const l = state.layers.find(x => x.id === le.id);
-          if (l) { l.effectId = le.effectId; l.qiasi = le.qiasi; }
+          if (l) {
+            l.effectId = le.effectId;
+            l.qiasi = le.qiasi;
+            if (le.ownFx) l.ownFx = clonePlainJson(le.ownFx);
+            if (le.ownGpu) l.ownGpu = clonePlainJson(le.ownGpu);
+          }
         }
         state.cavityColorMap = new Map(item.cavityColorMap || []);
         state.disabledCavities = new Set(item.disabledCavities || []);
@@ -8206,19 +8658,31 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           }
         }
 
+        // Flush outgoing layer's ownFx BEFORE cloning so original layer freezes its current effect & colors!
+        saveActiveStateToLayer(layer);
+        const parentFolder = layer.parentId ? state.layers.find(x => x.id === layer.parentId && x.type === "folder") : null;
+        if (parentFolder) saveActiveStateToLayer(parentFolder);
+        const donorLayer = (parentFolder && parentFolder.qiasi) ? parentFolder : layer;
+        const inheritedEffId = donorLayer.effectId || state.fx.version || "m01_silver_gloss";
+        const inheritedQiasi = Boolean(layer.qiasi || (parentFolder && parentFolder.qiasi));
+        // If parent folder had folder-wide effect enabled, place extracted layer outside folder so its effect is 100% independent!
+        const targetParentId = (parentFolder && parentFolder.qiasi) ? null : (layer.parentId || null);
+
         const newLayer = {
           id: nextLayerId++,
           name: `${layer.name} · ${cutFromSource ? "局部剪出" : "局部复制"}`,
           type: "image",
-          parentId: layer.parentId || null,
+          parentId: targetParentId,
           collapsed: false,
+          alphaLock: false,
           maskCanvas: null,
           source: cropC,
           srcW: cw,
           srcH: ch,
           visible: true,
-          qiasi: layer.qiasi,
-          effectId: layer.effectId || state.fx.version || "m01_silver_gloss",
+          qiasi: inheritedQiasi,
+          effectId: inheritedEffId,
+          ...deepCloneLayerFxProps(donorLayer, inheritedEffId),
           layoutMode: "single",
           x: Math.round(minX + cw / 2),
           y: Math.round(minY + ch / 2),
@@ -8234,7 +8698,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           tileGapX: 60,
           tileGapY: 60
         };
-        const origIdx = state.layers.findIndex(x => x.id === layer.id);
+        const anchorId = (parentFolder && parentFolder.qiasi) ? parentFolder.id : layer.id;
+        const origIdx = state.layers.findIndex(x => x.id === anchorId);
         const insertIdx = origIdx >= 0 ? origIdx + 1 : state.layers.length;
         if (insertIdx <= getBgLayerPos() && origIdx < getBgLayerPos()) {
           state.bgLayerPos = getBgLayerPos() + 1;
@@ -9716,6 +10181,23 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     }
 
     function syncLayerUI() {
+      // Seamlessly persist outgoing layer's independent FX & load newly selected layer's own FX!
+      const _nextSelLayer = getSelectedLayer();
+      const _nextFxId = _nextSelLayer ? _nextSelLayer.id : null;
+      if (_nextFxId !== _activeFxLayerId) {
+        if (_activeFxLayerId !== null) {
+          const _prevL = state.layers.find(x => x.id === _activeFxLayerId);
+          if (_prevL) saveActiveStateToLayer(_prevL);
+        }
+        _activeFxLayerId = _nextFxId;
+        if (_nextSelLayer) {
+          loadLayerStateToActive(_nextSelLayer);
+          if (!_isBooting && typeof syncAllFxControlsFromState === "function") {
+            syncAllFxControlsFromState();
+          }
+        }
+      }
+
       const list = document.getElementById("layerList");
       list.querySelectorAll("canvas").forEach(freeCanvas);
       list.innerHTML = "";
@@ -9805,23 +10287,6 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
         item.onclick = () => {
           state.selectedLayerId = layer.id;
-          // Sync effect panel to show THIS layer/folder's own effect!
-          if (layer.effectId && layer.effectId !== state.fx.version) {
-            state.fx.version = layer.effectId;
-            const atnRec = FILTER_PRESET_MAP[layer.effectId];
-            const fsKey = layer.effectId;
-            const isFs = Boolean(FS_PRESET_DEFAULTS[fsKey]);
-            document.getElementById("silverExtraBox").style.display = layer.effectId === "m01_silver_gloss" ? "flex" : "none";
-            document.getElementById("gradientExtraBox").style.display = layer.effectId === "gradient" ? "flex" : "none";
-            document.getElementById("glassReliefExtraBox").style.display = layer.effectId === "g01_glass_relief" ? "flex" : "none";
-            document.getElementById("thickExtraBox").style.display = layer.effectId === "m02_heavy_silver" ? "flex" : "none";
-            document.getElementById("waterWireExtraBox").style.display = layer.effectId === "g02_water_wire" ? "flex" : "none";
-            document.getElementById("blurLayerExtraBox").style.display = layer.effectId === "layer_blur" ? "flex" : "none";
-            document.getElementById("fsExtraBox").style.display = isFs ? "flex" : "none";
-            buildGpuParamsUI(layer.effectId);
-            updateEffectPanelVisibility(layer.effectId);
-            renderEffectLibraryUI();
-          }
           syncLayerUI();
           drawOverlayHandles();
         };
@@ -11133,12 +11598,15 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       setFlex("blurLayerExtraBox", verId === "layer_blur");
       setFlex("fsExtraBox", isFsEditable);
       const isPopularAnime = verId === "a06_popular";
+      const isTrialCard = verId === "a07_trial_card";
       const isAnimeMist = verId === "a04_soft_mist_frame" || verId === "a05_soft_mist_tint";
       setFlex("popularAnimeExtraBox", isPopularAnime);
+      setFlex("trialCardExtraBox", isTrialCard);
       setFlex("animeMistExtraBox", isAnimeMist);
-      const supportsCustomTint = typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || (verId.startsWith("a0") && !isAnimeMist && !isPopularAnime));
+      const supportsCustomTint = typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || (verId.startsWith("a0") && !isAnimeMist && !isPopularAnime && !isTrialCard));
       setFlex("fsCustomTintBox", supportsCustomTint);
       if (isPopularAnime && typeof syncPopularAnimeUI === "function") syncPopularAnimeUI();
+      if (isTrialCard && typeof syncTrialCardUI === "function") syncTrialCardUI();
       if (isAnimeMist && typeof syncAnimeMistUI === "function") syncAnimeMistUI();
       const curEfObj = ALL_EFFECTS.find(e => e.id === verId);
       const presetSumEl = document.getElementById("presetCurrentSummary");
@@ -11189,11 +11657,14 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const isPopularSel = verId === "a06_popular";
       const popBoxEl = document.getElementById("popularAnimeExtraBox");
       if (popBoxEl) popBoxEl.style.display = isPopularSel ? "flex" : "none";
+      const isTrialSel = verId === "a07_trial_card";
+      const trialBoxEl = document.getElementById("trialCardExtraBox");
+      if (trialBoxEl) trialBoxEl.style.display = isTrialSel ? "flex" : "none";
       const isAnimeMistSel = verId === "a04_soft_mist_frame" || verId === "a05_soft_mist_tint";
       const animeMistBoxEl = document.getElementById("animeMistExtraBox");
       if (animeMistBoxEl) animeMistBoxEl.style.display = isAnimeMistSel ? "flex" : "none";
       const fsCustomTintBox = document.getElementById("fsCustomTintBox");
-      if (fsCustomTintBox) fsCustomTintBox.style.display = (typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || (verId.startsWith("a0") && !isAnimeMistSel && !isPopularSel))) ? "flex" : "none";
+      if (fsCustomTintBox) fsCustomTintBox.style.display = (typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || (verId.startsWith("a0") && !isAnimeMistSel && !isPopularSel && !isTrialSel))) ? "flex" : "none";
       buildGpuParamsUI(verId);
       updateEffectPanelVisibility(verId);
       renderEffectLibraryUI();
@@ -11835,6 +12306,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (typeof syncFsTintUI === "function") syncFsTintUI();
       if (typeof syncAnimeMistUI === "function") syncAnimeMistUI();
       if (typeof syncPopularAnimeUI === "function") syncPopularAnimeUI();
+      if (typeof syncTrialCardUI === "function") syncTrialCardUI();
       buildGpuParamsUI(verId);
       updateEffectPanelVisibility(verId);
       renderEffectLibraryUI();
@@ -12441,7 +12913,15 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
       const cur = getSelectedLayer();
       if (!cur) return;
-      const copy = { ...cur, id: nextLayerId++, name: cur.name + " 拷贝", x: cur.x + 24, y: cur.y + 24 };
+      saveActiveStateToLayer(cur);
+      const copy = {
+        ...cur,
+        id: nextLayerId++,
+        name: cur.name + " 拷贝",
+        x: cur.x + 24,
+        y: cur.y + 24,
+        ...deepCloneLayerFxProps(cur, cur.effectId),
+      };
       state.layers.push(copy);
       state.selectedLayerId = copy.id;
       syncLayerUI(); scheduleRender(0);
@@ -12452,6 +12932,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         cloneBgToBlurLayer();
         return;
       }
+      saveActiveStateToLayer(cur);
       const idx = state.layers.findIndex(l => l.id === cur.id);
       const blurCopy = {
         ...cur,
@@ -12459,7 +12940,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         name: `${cur.name} · 模糊层`,
         qiasi: true,
         effectId: "layer_blur",
-        maskCanvas: null
+        maskCanvas: null,
+        ...deepCloneLayerFxProps(cur, "layer_blur"),
       };
       const insertAt = Math.max(0, idx);
       if (insertAt < getBgLayerPos()) state.bgLayerPos = getBgLayerPos() + 1;
@@ -13253,6 +13735,64 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     bindPopSlider("rngPopShDy", "popShDy", false);
     bindPopSlider("rngPopShAlpha", "popShAlpha", false);
     bindPopSlider("rngPopBlurR", "popBlurR", false);
+
+    // ==================== 体验卡 (a07_trial_card) 专属参数面板绑定 ====================
+    function syncTrialCardUI() {
+      const fx = state.fx;
+      const chkH = document.getElementById("chkTrialHollow");
+      if (chkH) chkH.checked = fx.trialFillHollow !== false;
+      const setR = (rId, vId, val, suf) => {
+        const r = document.getElementById(rId), v = document.getElementById(vId);
+        if (r) r.value = val;
+        if (v) v.textContent = `${val}${suf}`;
+      };
+      setR("rngTrialBevelPx", "valTrialBevelPx", fx.trialBevelPx ?? 2, " px");
+      setR("rngTrialExpandPx", "valTrialExpandPx", fx.trialExpandPx ?? 4, " px");
+      setR("rngTrialWhiteBoost", "valTrialWhiteBoost", fx.trialWhiteBoost ?? 91, "%");
+      setR("rngTrialBevelAlpha", "valTrialBevelAlpha", fx.trialBevelAlpha ?? 100, "%");
+      setR("rngTrialRimAlpha", "valTrialRimAlpha", fx.trialRimAlpha ?? 100, "%");
+      setR("rngTrialShAlpha", "valTrialShAlpha", fx.trialShAlpha ?? 20, "%");
+      setR("rngTrialBlurR", "valTrialBlurR", fx.trialBlurR ?? 42, " px");
+      const btnOrig = document.getElementById("btnTrialSwitchOrigBg");
+      if (btnOrig) btnOrig.textContent = state.bgMode === "original" ? "✓ 已是原底图" : "切原底图";
+    }
+
+    const chkTrialHollowEl = document.getElementById("chkTrialHollow");
+    if (chkTrialHollowEl) {
+      chkTrialHollowEl.onchange = (e) => {
+        pushFxUndo("开关体验卡镂空补底");
+        state.fx.trialFillHollow = e.target.checked;
+        syncTrialCardUI();
+        scheduleRender(0);
+      };
+    }
+    const bindTrialSlider = (id, key, isFloat = false) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.onpointerdown = () => pushFxUndo("调节体验卡效果参数");
+      const handler = (e) => {
+        state.fx[key] = isFloat ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
+        syncTrialCardUI();
+        scheduleRender(25);
+      };
+      el.oninput = handler;
+      el.onchange = handler;
+    };
+    bindTrialSlider("rngTrialBevelPx", "trialBevelPx", true);
+    bindTrialSlider("rngTrialExpandPx", "trialExpandPx", true);
+    bindTrialSlider("rngTrialWhiteBoost", "trialWhiteBoost", false);
+    bindTrialSlider("rngTrialBevelAlpha", "trialBevelAlpha", false);
+    bindTrialSlider("rngTrialRimAlpha", "trialRimAlpha", false);
+    bindTrialSlider("rngTrialShAlpha", "trialShAlpha", false);
+    bindTrialSlider("rngTrialBlurR", "trialBlurR", false);
+    const btnTrialSwitchOrigBgEl = document.getElementById("btnTrialSwitchOrigBg");
+    if (btnTrialSwitchOrigBgEl) {
+      btnTrialSwitchOrigBgEl.onclick = () => {
+        setGlobalBgMode("original", false);
+        syncTrialCardUI();
+        showToast("已切换为清晰原底图（仅保留水印外扩4px+补洞局部模糊底）");
+      };
+    }
 
     document.getElementById("chkCavityEnable").onchange = (e) => { pushFxUndo("开关填色"); state.fx.cavityEnable = e.target.checked; scheduleRender(0); };
     document.getElementById("chkBevel").onchange = (e) => { pushFxUndo("开关浮雕"); state.fx.bevelEnable = e.target.checked; scheduleRender(0); };
