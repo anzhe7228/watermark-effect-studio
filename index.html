@@ -1344,6 +1344,7 @@
             <button class="btn btn-sm" id="btnQuickCloneBlur" style="color:#a8dcff;justify-content:center;padding:5px 4px;font-size:11px;" title="选中任意图层或画布底图，一键克隆一层独立高斯模糊图层（可用 ↑ ↓ 自由调位置、橡皮局部擦除）">✦ 克隆模糊层</button>
             <button class="btn btn-sm" id="btnQuickBakeEffect" style="color:#96eed0;justify-content:center;padding:5px 4px;font-size:11px;" title="把当前图层的特效直接写入像素，之后可以再给这层叠加第二个不同效果（支持 Ctrl+Z 撤销）">✨ 烘焙效果</button>
           </div>
+          <button class="btn btn-sm" id="btnQuickFitLayerSize" style="width:100%;margin-top:5px;justify-content:center;padding:5px 8px;font-size:11px;color:#ffe6b3;border-color:rgba(255,217,142,0.35);background:rgba(255,217,142,0.07);" title="选中任意导入的非正比图层或画布底图后点击，画布立即一键切换为该图的真实宽高尺寸">📐 按当前图层 / 底图尺寸切换画布</button>
           <div id="quickLayerBlurBox" style="display:none;flex-direction:column;gap:4px;padding:7px 9px;margin-top:2px;background:rgba(125,166,255,0.08);border:1px solid rgba(125,166,255,0.28);border-radius:8px;">
             <div class="field-head"><span style="color:#a8dcff;font-weight:600;">当前模糊底 / 模糊层半径</span><span class="field-val" id="valQuickLayerBlurR">25 px</span></div>
             <input type="range" id="rngQuickLayerBlurR" min="0" max="100" step="1" value="25" />
@@ -1590,9 +1591,10 @@
             <button class="cat-pill" data-cat="折光GPU">折光GPU</button>
             <button class="cat-pill" data-cat="全屏">全屏</button>
             <button class="cat-pill" data-cat="日漫">日漫</button>
-            <button class="cat-pill" data-cat="金属液态">金属液态</button>
-            <button class="cat-pill" data-cat="玻璃透明">玻璃透明</button>
-            <button class="cat-pill" data-cat="光影纹理">光影纹理</button>
+            <button class="cat-pill" data-cat="古风">古风</button>
+            <button class="cat-pill" data-cat="稿风">稿风</button>
+            <button class="cat-pill" data-cat="古风/稿风">古风/稿风</button>
+            <button class="cat-pill" data-cat="百搭">百搭</button>
           </div>
           <div class="style-grid" id="styleVersionGroup"></div>
           <div class="field">
@@ -1742,21 +1744,21 @@
 
             <div style="display:flex;flex-direction:column;gap:5px;padding:6px 8px;background:rgba(255,217,142,0.06);border:1px solid rgba(255,217,142,0.22);border-radius:7px;">
               <div class="row-between">
-                <span style="font-size:10.5px;color:#ffe6b3;font-weight:600;">🎨 推荐色卡方案（点选即套用，下方6色台可精修）</span>
+                <span style="font-size:10.5px;color:#ffe6b3;font-weight:600;">🎨 专属三套配色（与下方 6 色填色方案同步）</span>
                 <button type="button" class="btn btn-sm" id="btnPsShuffleSeed" style="padding:1px 6px;font-size:10px;" title="打乱各字与装饰块的6色排布顺序">🎲 换色序</button>
               </div>
               <div id="psQuickPalRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
-                <button type="button" class="btn btn-sm ps-pal-btn" data-palid="pal_hongjian_liuli" style="flex-direction:column;align-items:flex-start;gap:3px;padding:5px 6px;">
-                  <span style="font-size:10.5px;font-weight:600;color:#ffd6e5;">红笺琉璃</span>
-                  <span style="display:flex;gap:2px;"><i style="width:9px;height:9px;border-radius:50%;background:#E8836B;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F3B0BC;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F5E49C;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#8ECBA4;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#9EE2EF;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#C1A3DF;display:inline-block;"></i></span>
+                <button type="button" class="six-palette-chip ps-pal-btn" data-palid="pal_hongjian_liuli" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">红笺琉璃</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#E8836B"></span><span class="six-dot" style="background:#F3B0BC"></span><span class="six-dot" style="background:#F5E49C"></span><span class="six-dot" style="background:#8ECBA4"></span><span class="six-dot" style="background:#9EE2EF"></span><span class="six-dot" style="background:#C1A3DF"></span></div>
                 </button>
-                <button type="button" class="btn btn-sm ps-pal-btn" data-palid="pal_pinkblue_silver" style="flex-direction:column;align-items:flex-start;gap:3px;padding:5px 6px;">
-                  <span style="font-size:10.5px;font-weight:600;color:#bfe8ff;">粉蓝银霜</span>
-                  <span style="display:flex;gap:2px;"><i style="width:9px;height:9px;border-radius:50%;background:#A9E8FA;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#8ABFF9;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F9C1E0;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F6A1C7;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F4E1F4;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#B8BDC4;display:inline-block;"></i></span>
+                <button type="button" class="six-palette-chip ps-pal-btn" data-palid="pal_pinkblue_silver" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">粉蓝银霜</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#A9E8FA"></span><span class="six-dot" style="background:#8ABFF9"></span><span class="six-dot" style="background:#F9C1E0"></span><span class="six-dot" style="background:#F6A1C7"></span><span class="six-dot" style="background:#F4E1F4"></span><span class="six-dot" style="background:#B8BDC4"></span></div>
                 </button>
-                <button type="button" class="btn btn-sm ps-pal-btn" data-palid="pal_apricot_tea" style="flex-direction:column;align-items:flex-start;gap:3px;padding:5px 6px;">
-                  <span style="font-size:10.5px;font-weight:600;color:#ffe2c4;">暖杏茶紫</span>
-                  <span style="display:flex;gap:2px;"><i style="width:9px;height:9px;border-radius:50%;background:#FCD8B8;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#FEDAA8;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#F2ACC6;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#BFBCD9;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#BFD8EC;display:inline-block;"></i><i style="width:9px;height:9px;border-radius:50%;background:#C9A398;display:inline-block;"></i></span>
+                <button type="button" class="six-palette-chip ps-pal-btn" data-palid="pal_apricot_tea" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">暖杏茶紫</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#FCD8B8"></span><span class="six-dot" style="background:#FEDAA8"></span><span class="six-dot" style="background:#F2ACC6"></span><span class="six-dot" style="background:#BFBCD9"></span><span class="six-dot" style="background:#BFD8EC"></span><span class="six-dot" style="background:#C9A398"></span></div>
                 </button>
               </div>
             </div>
@@ -1800,6 +1802,93 @@
 
             <div style="font-size:10.5px;color:#b8c8e8;line-height:1.42;padding:5px 8px;background:rgba(125,166,255,0.08);border:1px solid rgba(125,166,255,0.22);border-radius:7px;">
               💡 完整还原「水滴1.34 + 6px/25px双压纹非锐化 + 自研缎面 + 四向3px柔化掐丝 + 7px/49°染色平行立体框 + 柔光投影」；下方「水印填色区」可随时点填单字颜色或切换 40+ 套色卡。
+            </div>
+          </div>
+
+          <div id="iceJadeExtraBox" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border);">
+            <div class="row-between">
+              <span class="card-sub" style="color:#c8f0dc;font-weight:600;">冰感玉石 · 双水滴冰裂柔焦参数</span>
+              <label class="switch" style="font-size:10.5px;color:#b8e6cf;" title="开启后将字内与框内封闭孔洞一并化为温润玉肉；关闭则仅保留原始笔画镂空">
+                <input type="checkbox" id="chkJadeFillCavity" /> 填实封闭孔洞
+              </label>
+            </div>
+            <div class="seg-group" id="jadeModeSeg" style="display:flex;width:100%;">
+              <button type="button" class="seg-btn active" data-jademode="wire" style="flex:1;padding:5px 4px;font-size:10.5px;" title="双层1.41折射水滴 + 鎏白细掐丝 + 水印内冰裂纹与双层水滴纹 + 四周冰裂柔焦暗角">✨ 鎏白细掐丝(原版)</button>
+              <button type="button" class="seg-btn" data-jademode="pure" style="flex:1;padding:5px 4px;font-size:10.5px;" title="关闭边缘掐丝，保留纯粹圆润冰透玉肉与水滴冰裂光泽，玉石温润感更强">🧊 温润无掐丝(纯玉感)</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:5px;padding:6px 8px;background:rgba(168,224,195,0.07);border:1px solid rgba(168,224,195,0.24);border-radius:7px;">
+              <div class="row-between">
+                <span style="font-size:10.5px;color:#d2f4e2;font-weight:600;">🎨 玉石渐变拼色（与下方 6 色填色方案同步）</span>
+                <button type="button" class="btn btn-sm" id="btnJadeShuffleSeed" style="padding:1px 6px;font-size:10px;" title="切换玉石飘花与沁色晕染排布">🎲 换飘花</button>
+              </div>
+              <div id="jadeQuickPalRow" style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;">
+                <button type="button" class="six-palette-chip jade-pal-btn" data-palid="pal_jade_celadon" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">晴水羊脂玉</span><span class="six-palette-tag">原版青白</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#EEF3ED"></span><span class="six-dot" style="background:#CFD8CE"></span><span class="six-dot" style="background:#A9BCAD"></span><span class="six-dot" style="background:#899E8E"></span><span class="six-dot" style="background:#DCE5DB"></span><span class="six-dot" style="background:#B7C8BA"></span></div>
+                </button>
+                <button type="button" class="six-palette-chip jade-pal-btn" data-palid="pal_jade_bamboo" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">竹影冰翡</span><span class="six-palette-tag">清透翠竹</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#F0FAF4"></span><span class="six-dot" style="background:#C6E8D5"></span><span class="six-dot" style="background:#86C2A3"></span><span class="six-dot" style="background:#589A7B"></span><span class="six-dot" style="background:#DCF0E5"></span><span class="six-dot" style="background:#A6D6BC"></span></div>
+                </button>
+                <button type="button" class="six-palette-chip jade-pal-btn" data-palid="pal_jade_violet" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">春带彩紫玉</span><span class="six-palette-tag">紫绿冰种</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#F6F3FB"></span><span class="six-dot" style="background:#DFD3F0"></span><span class="six-dot" style="background:#C3B0E0"></span><span class="six-dot" style="background:#C5E3D8"></span><span class="six-dot" style="background:#97C5B6"></span><span class="six-dot" style="background:#ECE7F6"></span></div>
+                </button>
+                <button type="button" class="six-palette-chip jade-pal-btn" data-palid="pal_jade_moon" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">白月光凝脂</span><span class="six-palette-tag">冰透羊脂</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#FBFDFC"></span><span class="six-dot" style="background:#EBF2F0"></span><span class="six-dot" style="background:#D4E1DE"></span><span class="six-dot" style="background:#B5C6C2"></span><span class="six-dot" style="background:#F2F7F5"></span><span class="six-dot" style="background:#C6D5D2"></span></div>
+                </button>
+              </div>
+            </div>
+
+            <div class="grid-3" style="gap:6px;">
+              <div class="field">
+                <div class="field-head"><span>底层水滴叠底</span><span class="field-val" id="valJadeMulAlpha">43%</span></div>
+                <input type="range" id="rngJadeMulAlpha" min="0" max="100" step="1" value="43" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>上层水滴覆盖</span><span class="field-val" id="valJadeOvAlpha">100%</span></div>
+                <input type="range" id="rngJadeOvAlpha" min="0" max="150" step="1" value="100" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>玉肉温润沁色</span><span class="field-val" id="valJadeBodyTint">36%</span></div>
+                <input type="range" id="rngJadeBodyTint" min="0" max="100" step="1" value="36" />
+              </div>
+            </div>
+
+            <div class="grid-3" style="gap:6px;">
+              <div class="field">
+                <div class="field-head"><span>细掐丝强度</span><span class="field-val" id="valJadeWireAlpha">58%</span></div>
+                <input type="range" id="rngJadeWireAlpha" min="0" max="140" step="1" value="58" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>冰裂纹强度</span><span class="field-val" id="valJadeCrackAlpha">95%</span></div>
+                <input type="range" id="rngJadeCrackAlpha" min="0" max="140" step="1" value="95" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>双层水滴纹</span><span class="field-val" id="valJadeDropAlpha">0%</span></div>
+                <input type="range" id="rngJadeDropAlpha" min="0" max="150" step="1" value="0" />
+              </div>
+            </div>
+
+            <div class="grid-3" style="gap:6px;">
+              <div class="field">
+                <div class="field-head"><span>四周冰裂边</span><span class="field-val" id="valJadeBorderAlpha">82%</span></div>
+                <input type="range" id="rngJadeBorderAlpha" min="0" max="100" step="1" value="82" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>纹路缩放率</span><span class="field-val" id="valJadeTexScale">100%</span></div>
+                <input type="range" id="rngJadeTexScale" min="50" max="180" step="1" value="100" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>柔光偏移影</span><span class="field-val" id="valJadeSoftSh">67%</span></div>
+                <input type="range" id="rngJadeSoftSh" min="0" max="100" step="1" value="67" />
+              </div>
+            </div>
+
+            <div style="font-size:10.5px;color:#bce2cf;line-height:1.42;padding:5px 8px;background:rgba(130,210,175,0.08);border:1px solid rgba(130,210,175,0.22);border-radius:7px;">
+              💡 完整还原「渐变拼色飘花 + 双层1.41水滴(6px亮度-18%叠底43% + 10px内高光覆盖100%) + 可选掐丝 + 冰裂纹与双层水滴纹覆盖 + 四周柔焦冰裂暗角 + 67%柔光投影」。
             </div>
           </div>
 
@@ -2352,11 +2441,14 @@
               <input type="number" id="inpCanvasH" value="2000" min="100" max="6000" />
             </div>
           </div>
+          <div class="grid-3" style="gap:5px;">
+            <button class="btn btn-sm" data-size="2000x2000">1:1 正比</button>
+            <button class="btn btn-sm" data-size="1200x1600">3:4 竖版</button>
+            <button class="btn btn-sm" data-size="1080x1920">9:16 全屏</button>
+          </div>
           <div class="grid-2">
-            <button class="btn btn-sm" data-size="2000x2000">1:1 正比 (2000×2000)</button>
-            <button class="btn btn-sm" data-size="1200x1600">3:4 竖版 (1200×1600)</button>
-            <button class="btn btn-sm" data-size="1080x1920">9:16 全屏 (1080×1920)</button>
-            <button class="btn btn-sm" id="btnFitBgSize">跟随底图尺寸</button>
+            <button class="btn btn-sm" id="btnFitBgSize">🖼️ 跟随底图尺寸</button>
+            <button class="btn btn-sm" id="btnFitLayerSize" style="color:#ffe6b3;border-color:rgba(255,217,142,0.35);">📐 跟随当前图层尺寸</button>
           </div>
           <button class="btn btn-primary" id="btnApplySize">应用画布尺寸</button>
         </div>
@@ -2589,7 +2681,89 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
     }
 
+    // 白底转透明核心算法：纯净颜色(白) [去白留原彩无白边] 与 纯净颜色(灰度) [按明度去白转透明黑素/灰阶]
+    function clearColorWhiteCanvas2D(srcCanvas, whitePt = 252, strengthPct = 100, mixPct = 100) {
+      const w = srcCanvas.width, h = srcCanvas.height;
+      const out = document.createElement("canvas");
+      out.width = w; out.height = h;
+      const ctx = out.getContext("2d");
+      ctx.drawImage(srcCanvas, 0, 0);
+      const img = ctx.getImageData(0, 0, w, h);
+      const d = img.data;
+      const wRef = Math.max(10, Math.min(255, Number(whitePt) || 252));
+      const gain = Math.max(0.1, (Number(strengthPct) || 100) / 100);
+      const mix = Math.max(0, Math.min(1, (Number(mixPct ?? 100)) / 100));
+
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i + 1], b = d[i + 2], aIn = d[i + 3];
+        if (aIn === 0) continue;
+        const dr = Math.max(0, (wRef - r) / wRef);
+        const dg = Math.max(0, (wRef - g) / wRef);
+        const db = Math.max(0, (wRef - b) / wRef);
+        const aRaw = Math.max(dr, dg, db);
+        let nr = 0, ng = 0, nb = 0, na = 0;
+        if (aRaw > 0.003) {
+          // Unmultiply white background so anti-aliased colored/gray edges have zero white fringe
+          nr = Math.max(0, Math.min(255, Math.round(255 - (255 - r) / aRaw)));
+          ng = Math.max(0, Math.min(255, Math.round(255 - (255 - g) / aRaw)));
+          nb = Math.max(0, Math.min(255, Math.round(255 - (255 - b) / aRaw)));
+          na = Math.max(0, Math.min(255, Math.round(aIn * Math.min(1, aRaw * gain))));
+        }
+        if (mix >= 0.999) {
+          d[i] = nr; d[i + 1] = ng; d[i + 2] = nb; d[i + 3] = na;
+        } else {
+          d[i]     = Math.round(r + (nr - r) * mix);
+          d[i + 1] = Math.round(g + (ng - g) * mix);
+          d[i + 2] = Math.round(b + (nb - b) * mix);
+          d[i + 3] = Math.round(aIn + (na - aIn) * mix);
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+      return out;
+    }
+
+    function clearColorGrayCanvas2D(srcCanvas, whitePt = 250, blackPt = 15, keepTonePct = 0, mixPct = 100) {
+      const w = srcCanvas.width, h = srcCanvas.height;
+      const out = document.createElement("canvas");
+      out.width = w; out.height = h;
+      const ctx = out.getContext("2d");
+      ctx.drawImage(srcCanvas, 0, 0);
+      const img = ctx.getImageData(0, 0, w, h);
+      const d = img.data;
+      const wRef = Math.max(20, Math.min(255, Number(whitePt) || 250));
+      const bRef = Math.max(0, Math.min(wRef - 5, Number(blackPt) || 15));
+      const span = Math.max(1, wRef - bRef);
+      const keepTone = Math.max(0, Math.min(1, (Number(keepTonePct) || 0) / 100));
+      const mix = Math.max(0, Math.min(1, (Number(mixPct ?? 100)) / 100));
+
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i + 1], b = d[i + 2], aIn = d[i + 3];
+        if (aIn === 0) continue;
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        const t = Math.max(0, Math.min(1, (wRef - lum) / span));
+        const grayV = Math.round(lum * keepTone);
+        const na = Math.round(aIn * t);
+        if (mix >= 0.999) {
+          d[i] = d[i + 1] = d[i + 2] = grayV;
+          d[i + 3] = na;
+        } else {
+          d[i]     = Math.round(r + (grayV - r) * mix);
+          d[i + 1] = Math.round(g + (grayV - g) * mix);
+          d[i + 2] = Math.round(b + (grayV - b) * mix);
+          d[i + 3] = Math.round(aIn + (na - aIn) * mix);
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+      return out;
+    }
+
     function runGpuFilterCanvas(filterName, srcCanvas, refCanvas, params, useRef = false, keepAlpha = true) {
+      if (filterName === "clear_white") {
+        return clearColorWhiteCanvas2D(srcCanvas, params.whitePt ?? 252, params.strength ?? 100, params.mix ?? 100);
+      }
+      if (filterName === "clear_gray") {
+        return clearColorGrayCanvas2D(srcCanvas, params.whitePt ?? 250, params.blackPt ?? 15, params.tone ?? 0, params.mix ?? 100);
+      }
       const w = srcCanvas.width, h = srcCanvas.height;
       const eng = getGpuEngine(w, h);
       if (!eng) return null;
@@ -2636,6 +2810,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       gpu_hsl: { fn: "hsl", useRef: false, defaults: { hue: 0, saturation: 15, lightness: 5, mix: 100 }, sliders: [["hue","色相",-180,180,1],["saturation","饱和度",-100,100,1],["lightness","明度",-100,100,1]] },
       gpu_balance: { fn: "balance", useRef: false, defaults: { red: 0, green: 0, blue: 15, mix: 100 }, sliders: [["red","青 ← 红",-100,100,1],["green","洋红 ← 绿",-100,100,1],["blue","黄 ← 蓝",-100,100,1]] },
       gpu_lineart: { fn: "lineart", useRef: false, defaults: { method: "luminance", black: 20, white: 80, mid: 50, mix: 100 }, sliders: [["black","黑色",0,100,1],["white","白色",0,100,1],["mid","中间",5,95,1]] },
+      gpu_clear_white: { fn: "clear_white", useRef: false, defaults: { whitePt: 252, strength: 100, mix: 100 }, sliders: [["whitePt","白色透明起点",160,255,1],["strength","图案浓度增强",40,200,1],["mix","混合度",0,100,1]] },
+      gpu_clear_gray: { fn: "clear_gray", useRef: false, defaults: { whitePt: 250, blackPt: 15, tone: 0, mix: 100 }, sliders: [["whitePt","白色透明起点",150,255,1],["blackPt","暗部实心加深",0,150,1],["tone","保留原灰阶(0纯黑)",0,100,1],["mix","混合度",0,100,1]] },
       gpu_motion: { fn: "motion", useRef: false, defaults: { radius: 25, angle: 0, mix: 100 }, sliders: [["radius","运动距离",0,150,1],["angle","运动方向",0,360,1],["mix","强度",0,100,1]] },
       gpu_zoomblur: { fn: "zoomblur", useRef: false, defaults: { radius: 45, cx: 0.5, cy: 0.5, centerRadius: 40, mix: 100 }, sliders: [["radius","模糊强度",0,180,1],["centerRadius","中心清晰区",0,300,2],["mix","混合度",0,100,1]] },
     };
@@ -2649,6 +2825,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     const CORE_EFFECTS = [
       { id: "g00_clear_gem", label: "G00 无色立体宝石", cat: "玻璃透明" },
       { id: "ps01_satin_bevel", label: "仿PS立体", name: "缎面压纹平行立体釉", cat: "填色" },
+      { id: "jade01_ice", label: "冰感玉石", name: "双层水滴冰裂温润玉", cat: "古风" },
       { id: "m01_silver_gloss", label: "M01 亮面镀银", cat: "填色" },
       { id: "colorfill", label: "填色掐丝", cat: "填色" },
       { id: "gradient", label: "渐变掐丝", cat: "填色" },
@@ -2656,7 +2833,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       { id: "m02_heavy_silver", label: "M02 宽边厚镀银", cat: "填色" },
       { id: "g02_water_wire", label: "G02 透亮水滴金丝", cat: "填色" },
       { id: "m03_mirror_silver", label: "M03 镜面镀银", cat: "填色" },
-      { id: "gpu_water_star", label: "W01 星芒水滴", cat: "折光GPU" },
+      { id: "gpu_water_star", label: "W01 星芒水滴", cat: "日漫" },
       { id: "layer_blur", label: "高斯模糊", cat: "折光GPU" },
       { id: "gpu_water", label: "水滴(GPU)", cat: "折光GPU" },
       { id: "gpu_chrome", label: "铬化(GPU)", cat: "折光GPU" },
@@ -2666,6 +2843,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       { id: "gpu_hsl", label: "HSL调色", cat: "折光GPU" },
       { id: "gpu_balance", label: "色彩平衡", cat: "折光GPU" },
       { id: "gpu_lineart", label: "提取线稿", cat: "折光GPU" },
+      { id: "gpu_clear_white", label: "纯净颜色(白)", cat: "折光GPU" },
+      { id: "gpu_clear_gray", label: "纯净颜色(灰度)", cat: "折光GPU" },
       { id: "gpu_motion", label: "运动模糊", cat: "折光GPU" },
       { id: "gpu_zoomblur", label: "对焦模糊", cat: "折光GPU" },
       { id: "fs_bold", label: "大字全屏", cat: "全屏" },
@@ -2712,6 +2891,9 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       { id: "pal_hongjian_liuli", name: "红笺琉璃", tag: "古风彩笺", colors: ["#E8836B", "#F3B0BC", "#F5E49C", "#8ECBA4", "#9EE2EF", "#C1A3DF"] },
       { id: "pal_pinkblue_silver", name: "粉蓝银霜", tag: "清甜稿风", colors: ["#A9E8FA", "#8ABFF9", "#F9C1E0", "#F6A1C7", "#F4E1F4", "#B8BDC4"] },
       { id: "pal_apricot_tea", name: "暖杏茶紫", tag: "温柔复古", colors: ["#FCD8B8", "#FEDAA8", "#F2ACC6", "#BFBCD9", "#BFD8EC", "#C9A398"] },
+      { id: "pal_candy_crimson", name: "糖彩绯梦", tag: "撞色糖彩", colors: ["#FA9DB3", "#FDAF6D", "#F4EA85", "#96EDE2", "#90AFE7", "#A21920"] },
+      { id: "pal_forest_breeze", name: "森野风吟", tag: "清新森绿", colors: ["#EFFCC6", "#D2EA8A", "#9AC847", "#679B26", "#39692A", "#8BB59E"] },
+      { id: "pal_qingcui_danxia", name: "晴翠丹霞", tag: "冰蓝朱翠", colors: ["#8ACCE6", "#6AC86E", "#F5DC73", "#EA6B7E", "#DF5327", "#45B7B8"] },
       { id: "pal_tea", name: "童话茶话会", tag: "甜美马卡龙", colors: ["#F7C6D4", "#B9E4D2", "#FBF0B9", "#BFE0F8", "#F7E3D4", "#E4C8F2"] },
       { id: "pal_peony", name: "牡丹玉瓷", tag: "古风青绿", colors: ["#C6ECEB", "#7AC4C6", "#53B4DC", "#5F87B0", "#F4DEC9", "#F0BDCD"] },
       { id: "pal_matcha", name: "桃粉抹茶", tag: "甜系物语", colors: ["#FAD6DF", "#FBA7B6", "#FD919C", "#DFEAAD", "#C9DE7C", "#95B83E"] },
@@ -2751,7 +2933,80 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       { id: "pal_vermeer_pearl", name: "珍珠少女", tag: "群青油画", colors: ["#EAD5BE", "#D4A359", "#3A7CA5", "#1A3B5C", "#7A9EB1", "#121820"] },
       { id: "pal_qianli", name: "千里江山图", tag: "石青鎏金", colors: ["#F5F4EE", "#F39B1D", "#1A6859", "#2E8B57", "#D9381E", "#223A38"] },
       { id: "pal_dunhuang", name: "敦煌莫高窟", tag: "高饱和重彩", colors: ["#E8D5B7", "#FFD700", "#00A86B", "#C84B31", "#1E3F66", "#FF6F59"] },
+      { id: "pal_jade_celadon", name: "晴水羊脂玉", tag: "冰感青白", colors: ["#EEF3ED", "#CFD8CE", "#A9BCAD", "#899E8E", "#DCE5DB", "#B7C8BA"] },
+      { id: "pal_jade_bamboo", name: "竹影冰翡", tag: "清透翠竹", colors: ["#F0FAF4", "#C6E8D5", "#86C2A3", "#589A7B", "#DCF0E5", "#A6D6BC"] },
+      { id: "pal_jade_violet", name: "春带彩紫玉", tag: "紫绿冰种", colors: ["#F6F3FB", "#DFD3F0", "#C3B0E0", "#C5E3D8", "#97C5B6", "#ECE7F6"] },
+      { id: "pal_jade_moon", name: "白月光凝脂", tag: "冰透羊脂", colors: ["#FBFDFC", "#EBF2F0", "#D4E1DE", "#B5C6C2", "#F2F7F5", "#C6D5D2"] },
     ];
+
+    // Seamless repeating Ice-Crack & Water-Droplet auxiliary textures (with white-cleared transparent droplet support)
+    const JADE_ICECRACK_AUX_TEX = "data:image/webp;base64,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";
+    const JADE_DROPLET_AUX_TEX  = "data:image/webp;base64,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";
+    let _cachedJadeCrackTile = null;
+    let _cachedJadeDropTile = null;
+    let _jadeAuxLoading = false;
+
+    function ensureJadeAuxLoaded() {
+      if (_jadeAuxLoading || (_cachedJadeCrackTile && _cachedJadeDropTile)) return;
+      _jadeAuxLoading = true;
+
+      const icImg = new Image();
+      icImg.onload = () => {
+        const w = icImg.naturalWidth || 255, h = icImg.naturalHeight || 387;
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        const g = c.getContext("2d");
+        g.drawImage(icImg, 0, 0);
+        // Center neutral gray at 128 with crisp facet contrast so Overlay carves clear cracks ON watermark strokes without darkening!
+        const im = g.getImageData(0, 0, w, h);
+        const d = im.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const v = Math.max(0, Math.min(255, Math.round(128 + (d[i] - 117) * 1.48)));
+          d[i] = d[i + 1] = d[i + 2] = v;
+          d[i + 3] = 255;
+        }
+        g.putImageData(im, 0, 0);
+        _cachedJadeCrackTile = c;
+        if (typeof state !== "undefined" && state.fx && state.fx.version === "jade01_ice" && typeof scheduleRender === "function") {
+          scheduleRender(15);
+        }
+      };
+      icImg.src = JADE_ICECRACK_AUX_TEX;
+
+      const drImg = new Image();
+      drImg.onload = () => {
+        const w = drImg.naturalWidth || 312, h = drImg.naturalHeight || 778;
+        const rawC = document.createElement("canvas");
+        rawC.width = w; rawC.height = h;
+        rawC.getContext("2d").drawImage(drImg, 0, 0);
+        // Apply 纯净颜色(白色) to strip #FFFFFF background cleanly -> pure transparent delicate water droplets!
+        _cachedJadeDropTile = clearColorWhiteCanvas2D(rawC, 252, 125, 100);
+        if (typeof state !== "undefined" && state.fx && state.fx.version === "jade01_ice" && typeof scheduleRender === "function") {
+          scheduleRender(15);
+        }
+      };
+      drImg.src = JADE_DROPLET_AUX_TEX;
+    }
+    setTimeout(ensureJadeAuxLoaded, 0);
+
+    function getJadeIceCrackTile() {
+      ensureJadeAuxLoaded();
+      if (_cachedJadeCrackTile) return _cachedJadeCrackTile;
+      const c = document.createElement("canvas");
+      c.width = 64; c.height = 64;
+      const g = c.getContext("2d");
+      g.fillStyle = "#808080";
+      g.fillRect(0, 0, 64, 64);
+      return c;
+    }
+
+    function getJadeDropletTile() {
+      ensureJadeAuxLoaded();
+      if (_cachedJadeDropTile) return _cachedJadeDropTile;
+      const c = document.createElement("canvas");
+      c.width = 64; c.height = 64;
+      return c;
+    }
 
     // Procedural shimmering gold-foil / metallic leaf grid tile
     function createGoldFoilTile(baseHex) {
@@ -2925,7 +3180,18 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         psWireStrength: 100,
         psGlassLidAlpha: 0,
         psAuxTexAlpha: 48,
-        psSoftShAlpha: 48
+        psSoftShAlpha: 48,
+        jadeMode: "wire",
+        jadeFillCavity: false,
+        jadeMulAlpha: 43,
+        jadeOvAlpha: 100,
+        jadeBodyTint: 36,
+        jadeWireAlpha: 58,
+        jadeCrackAlpha: 95,
+        jadeDropAlpha: 0,
+        jadeBorderAlpha: 82,
+        jadeTexScale: 100,
+        jadeSoftShAlpha: 67
       }
     };
 
@@ -4211,7 +4477,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       };
 
       const isMultiFillActive = () =>
-        Boolean(fx.multiColorEnable || fx.version === "colorfill" || fx.version === "ps01_satin_bevel" || state.cavityColorMap.size > 0 || state.hasFreehandPaint);
+        Boolean(fx.multiColorEnable || fx.version === "colorfill" || fx.version === "ps01_satin_bevel" || fx.version === "jade01_ice" || state.cavityColorMap.size > 0 || state.hasFreehandPaint);
 
       const drawFreehandOutsideCavities = (targetCtx) => {
         if (!state.hasFreehandPaint || !state.fillPaintCanvas) return;
@@ -4350,7 +4616,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const permPosOf = new Int32Array(palLen);
         perm.forEach((cIdx, pos) => { permPosOf[cIdx] = pos; });
 
-        const useAutoPal = fx.multiColorEnable || fx.version === "colorfill" || fx.version === "ps01_satin_bevel";
+        const useAutoPal = fx.multiColorEnable || fx.version === "colorfill" || fx.version === "ps01_satin_bevel" || fx.version === "jade01_ice";
         const blushSpots = [[0.28, 0.30], [0.72, 0.32], [0.32, 0.70], [0.70, 0.68]];
         // Precompute harmonious neighbor indices per palette slot (hue distance < 95 deg) so intra-stroke blends never turn muddy gray-brown!
         const palHsl = pal.map(hexToHsl);
@@ -5034,6 +5300,463 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           outCtx.drawImage(lidC, bx0 + lidShift, by0 + lidShift);
           outCtx.restore();
         }
+
+        cleanupTemps();
+        return outC;
+      }
+
+      // ==================== 冰感玉石 (jade01_ice · 渐变拼色 + 双层1.41水滴叠底/覆盖 + 冰裂双水滴纹 + 四周冰裂柔焦边) ====================
+      if (fx.version === "jade01_ice") {
+        const useCav = Boolean(fx.jadeFillCavity && fx.cavityEnable && cavityCount > 0);
+        const jadeArr = new Uint8Array(total);
+        let minX = w, minY = h, maxX = -1, maxY = -1;
+        for (let i = 0; i < total; i++) {
+          const hVal = state.disabledCavities.has(compMap[i]) ? 0 : H[i];
+          const v = useCav ? Math.max(hVal, cavAlpha[i]) : hVal;
+          jadeArr[i] = v;
+          if (v > 4) {
+            const x = i % w, y = (i / w) | 0;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+        if (maxX < minX) {
+          cleanupTemps();
+          return outC;
+        }
+
+        const cJadeMask = mkAlpha(jadeArr, 0, 0, 0);
+        const mcFull = buildMultiColorRegionCanvas(jadeArr);
+        const curBgMode = state._renderingBgMode || state.bgMode;
+        const bgRef = (curBgMode === "original") ? bgCanvas : blurBgCanvas;
+        const texScale = Math.max(0.45, Math.min(2.2, (fx.jadeTexScale ?? 100) / 100));
+        const crackTile = getJadeIceCrackTile();
+        const dropTile = getJadeDropletTile();
+
+        const fillScaledPattern = (ctx2d, tileImg, scaleFactor, rx = 0, ry = 0, rw = w, rh = h) => {
+          const pat = ctx2d.createPattern(tileImg, "repeat");
+          if (!pat) return;
+          try {
+            if (typeof DOMMatrix !== "undefined" && pat.setTransform) {
+              pat.setTransform(new DOMMatrix().scale(scaleFactor, scaleFactor));
+            }
+          } catch (_) {}
+          ctx2d.fillStyle = pat;
+          ctx2d.fillRect(rx, ry, rw, rh);
+        };
+
+        // 0. 画布四周「冰裂柔焦边框」(底图上新建四周黑边 -> 多重50px高斯模糊+放大116% -> 剪切克隆模糊底图 + 覆盖放大冰裂纹辅助图)
+        const borderOp = Math.max(0, Math.min(1, (fx.jadeBorderAlpha ?? 82) / 100));
+        if (borderOp > 0.01 && curBgMode !== "transparent") {
+          const maskW = 192, maskH = Math.max(96, Math.round(192 * (h / Math.max(1, w))));
+          const vigSmall = mkTempCanvas(maskW, maskH);
+          const vsCtx = vigSmall.getContext("2d");
+          const vigImg = vsCtx.createImageData(maskW, maskH);
+          const vd = vigImg.data;
+          for (let yy = 0; yy < maskH; yy++) {
+            const ny = (yy / (maskH - 1)) * 2 - 1;
+            const dyEdge = Math.min(yy, maskH - 1 - yy) / (maskH * 0.21);
+            for (let xx = 0; xx < maskW; xx++) {
+              const nx = (xx / (maskW - 1)) * 2 - 1;
+              const dxEdge = Math.min(xx, maskW - 1 - xx) / (maskW * 0.21);
+              // Organic painted border mask: clear central window, soft frosted ramp along all 4 sides & corners
+              const rOval = Math.pow(Math.abs(nx), 2.35) + Math.pow(Math.abs(ny), 2.35);
+              const tOval = Math.max(0, Math.min(1, (rOval - 0.56) / 0.68));
+              const minE = Math.min(dxEdge, dyEdge);
+              const tRect = Math.max(0, Math.min(1, 1 - minE));
+              const t = Math.max(tOval * 0.85, tRect * 0.92);
+              const smoothT = t * t * (3 - 2 * t);
+              const p = (yy * maskW + xx) * 4;
+              vd[p] = vd[p + 1] = vd[p + 2] = 0;
+              vd[p + 3] = Math.round(smoothT * 242);
+            }
+          }
+          vsCtx.putImageData(vigImg, 0, 0);
+
+          const borderMaskC = mkTempCanvas();
+          const bmG = borderMaskC.getContext("2d");
+          bmG.filter = `blur(${Math.max(8, Math.round(18 * rs))}px)`;
+          bmG.drawImage(vigSmall, 0, 0, w, h);
+          bmG.filter = "none";
+
+          const borderPatch = mkTempCanvas();
+          const bpG = borderPatch.getContext("2d");
+          // Clipped cloned blurred background ("克隆模糊层移动到黑色边边上面剪切") — airy frosted border, never dark gray!
+          bpG.filter = `blur(${Math.max(5, Math.round(11 * rs))}px)`;
+          bpG.drawImage(blurBgCanvas, -Math.round(10 * rs), -Math.round(10 * rs), w + Math.round(20 * rs), h + Math.round(20 * rs));
+          bpG.filter = "none";
+          bpG.fillStyle = "rgba(236, 244, 238, 0.08)";
+          bpG.fillRect(0, 0, w, h);
+          // Scaled-up Ice-Crack Auxiliary Map in Overlay ("导入冰裂纹辅助图可以放大一点 -> 剪切 -> 覆盖")
+          bpG.save();
+          bpG.globalCompositeOperation = "overlay";
+          bpG.globalAlpha = 0.82;
+          fillScaledPattern(bpG, crackTile, Math.max(0.65, 1.22 * texScale * rs));
+          bpG.restore();
+
+          bpG.globalCompositeOperation = "destination-in";
+          bpG.drawImage(borderMaskC, 0, 0);
+
+          outCtx.save();
+          outCtx.globalAlpha = borderOp;
+          outCtx.drawImage(borderPatch, 0, 0);
+          outCtx.restore();
+        }
+
+        // 1. 底层黑素偏移柔光阴影 (克隆黑素 X+10, Y+10 -> 高斯模糊 -> 柔光 67%)
+        const softShOp = Math.max(0, Math.min(1, (fx.jadeSoftShAlpha ?? 67) / 100));
+        if (softShOp > 0.01) {
+          const shOff = Math.max(2, Math.round(10 * rs));
+          const shC = mkTempCanvas();
+          const shG = shC.getContext("2d");
+          shG.filter = `blur(${(5.4 * rs).toFixed(1)}px)`;
+          shG.drawImage(cJadeMask, shOff, shOff);
+          shG.filter = "none";
+          if (curBgMode !== "transparent") {
+            const patchC = mkTempCanvas();
+            const pg = patchC.getContext("2d");
+            pg.drawImage(shC, 0, 0);
+            pg.globalCompositeOperation = "source-in";
+            pg.drawImage(bgRef, 0, 0, w, h);
+            pg.globalCompositeOperation = "soft-light";
+            pg.fillStyle = "#000000";
+            pg.fillRect(0, 0, w, h);
+            pg.globalCompositeOperation = "destination-in";
+            pg.drawImage(shC, 0, 0);
+            outCtx.save();
+            outCtx.globalAlpha = softShOp;
+            outCtx.drawImage(patchC, 0, 0);
+            outCtx.restore();
+          } else {
+            outCtx.save();
+            outCtx.globalAlpha = softShOp * 0.26;
+            outCtx.drawImage(shC, 0, 0);
+            outCtx.restore();
+          }
+        }
+        drawDropShadow(outCtx, jadeArr, { baseDist: 3.5, baseBlur: 6.0, defAlpha55: 0.16, maxAlpha: 0.80 });
+        drawOuterGlow(outCtx, jadeArr);
+
+        // 2. 构建「渐变拼色」玉石飘花色卡场 (既有温润羊脂白区，又有浓郁青翠/紫罗兰飘花沁色区，绝不过曝发白)
+        const rawPal = (fx.sixColors && fx.sixColors.length >= 6)
+          ? fx.sixColors
+          : ["#EEF3ED", "#CFD8CE", "#A9BCAD", "#899E8E", "#DCE5DB", "#B7C8BA"];
+        // Boost rich jade chroma on mid/deep stops so 飘花 mottling stands out vividly inside translucent strokes!
+        const richPal = rawPal.map((hex) => {
+          const hsl = hexToHsl(hex);
+          if (hsl.l > 91) return hslToHex(hsl.h, Math.min(42, Math.round(hsl.s * 1.15)), 89);
+          const newS = Math.min(68, Math.round(hsl.s * 1.55 + (hsl.s > 4 ? 10 : 0)));
+          const newL = Math.max(40, Math.min(78, Math.round(hsl.l * 0.84)));
+          return hslToHex(hsl.h, newS, newL);
+        });
+        const sortedByLum = [...richPal].sort((a, b) => hexToHsl(a).l - hexToHsl(b).l);
+        const deepJade1 = sortedByLum[0], deepJade2 = sortedByLum[1] || sortedByLum[0];
+        const midJade = sortedByLum[Math.floor(sortedByLum.length * 0.5)];
+        const lightJade = sortedByLum[sortedByLum.length - 1];
+        const [mr0, mg0, mb0] = hexToRgbTuple(midJade);
+
+        const jadeSwatchRef = mkTempCanvas();
+        const jsG = jadeSwatchRef.getContext("2d");
+        jsG.fillStyle = `rgb(${mr0},${mg0},${mb0})`;
+        jsG.fillRect(0, 0, w, h);
+
+        // Organic blurred jade mottling clouds ("渐变拼色" 飘花云纹: rich deep veins + warm mutton-fat clouds)
+        const cloudC = mkTempCanvas(200, 200);
+        const clG = cloudC.getContext("2d");
+        clG.fillStyle = midJade;
+        clG.fillRect(0, 0, 200, 200);
+        let cSeed = ((fx.fillSeed || 1) * 747796405 + 2891336453) >>> 0;
+        const cRnd = () => { cSeed = (cSeed * 1664525 + 1013904223) >>> 0; return cSeed / 4294967296; };
+        clG.filter = "blur(13px)";
+        for (let k = 0; k < 26; k++) {
+          const cx = cRnd() * 200, cy = cRnd() * 200;
+          const rw = 20 + cRnd() * 52, rh = 8 + cRnd() * 22;
+          const col = (k % 3 === 0) ? deepJade1 : ((k % 3 === 1) ? deepJade2 : ((k % 6 === 2) ? lightJade : richPal[k % richPal.length]));
+          clG.save();
+          clG.translate(cx, cy);
+          clG.rotate((cRnd() - 0.5) * 0.65);
+          clG.fillStyle = col;
+          clG.globalAlpha = 0.86;
+          clG.beginPath();
+          clG.ellipse(0, 0, rw, rh, 0, 0, Math.PI * 2);
+          clG.fill();
+          clG.restore();
+        }
+        clG.filter = "none";
+        jsG.drawImage(cloudC, 0, 0, w, h);
+
+        if (state.cavityColorMap.size > 0) {
+          jsG.save();
+          jsG.filter = `blur(${Math.max(2, Math.round(4 * rs))}px)`;
+          jsG.globalAlpha = 0.85;
+          jsG.drawImage(mcFull, 0, 0);
+          jsG.filter = "none";
+          jsG.restore();
+        } else {
+          jsG.save();
+          jsG.filter = `blur(${Math.max(5, Math.round(11 * rs))}px)`;
+          jsG.globalAlpha = 0.38;
+          jsG.drawImage(mcFull, 0, 0);
+          jsG.filter = "none";
+          jsG.restore();
+        }
+
+        // 3. 双层「水滴(圆润)」1.41 折射立体玉肉雕塑 (精确还原：6px外边亮水滴 亮度-18% 43%正片叠底 + 10px内高光水滴 100%覆盖)
+        const pad = Math.ceil(18 * rs);
+        const bx0 = Math.max(0, minX - pad), by0 = Math.max(0, minY - pad);
+        const bx1 = Math.min(w - 1, maxX + pad), by1 = Math.min(h - 1, maxY + pad);
+        const bw = bx1 - bx0 + 1, bh = by1 - by0 + 1;
+        const whiteCrop = mkTempCanvas(bw, bh);
+        whiteCrop.getContext("2d").drawImage(mkAlpha(jadeArr, 255, 255, 255), -bx0, -by0);
+
+        const makeJadeBlurArr = (blurRad) => {
+          const bc = mkTempCanvas(bw, bh);
+          const bg = bc.getContext("2d", { willReadFrequently: true });
+          if (blurRad > 0.2) bg.filter = `blur(${blurRad.toFixed(1)}px)`;
+          bg.drawImage(whiteCrop, 0, 0);
+          bg.filter = "none";
+          const raw = bg.getImageData(0, 0, bw, bh).data;
+          const arr = new Float32Array(bw * bh);
+          for (let i = 0; i < arr.length; i++) arr[i] = raw[i * 4 + 3] / 255;
+          return arr;
+        };
+
+        // bRim6 = 第一层水滴(高度6px, 柔和4%); bDome10 = 第二层水滴(高度10px, 柔和5%); bCore = 玉心厚度场
+        const bRim6   = makeJadeBlurArr(Math.max(1.6, 3.0 * rs));
+        const bDome10 = makeJadeBlurArr(Math.max(3.2, 7.2 * rs));
+        const bCore   = makeJadeBlurArr(Math.max(6.0, 14.5 * rs));
+
+        // Optional GPU water subtle caustics blended with exact 3D cabochon dome optics
+        const waterGpu = runGpuFilterCanvas("water", cJadeMask, jadeSwatchRef, {
+          distance: 18, flat: 16, height: 10, round: 9, smooth: 4.5,
+          refract: 141, shine: 88, shineSize: 2.0,
+          bottom: 95, shadow: 6, light: 32, mask: "alpha", threshold: 45, mix: 100
+        }, true, true);
+
+        const swCropC = mkTempCanvas(bw, bh);
+        const swG = swCropC.getContext("2d", { willReadFrequently: true });
+        swG.drawImage(jadeSwatchRef, -bx0, -by0);
+        if (waterGpu) {
+          swG.globalAlpha = 0.28;
+          swG.drawImage(waterGpu, -bx0, -by0);
+          swG.globalAlpha = 1.0;
+          freeCanvas(waterGpu);
+        }
+        const swData = swG.getImageData(0, 0, bw, bh).data;
+
+        const bgCropC = mkTempCanvas(bw, bh);
+        const bgCropG = bgCropC.getContext("2d", { willReadFrequently: true });
+        if (curBgMode !== "transparent") {
+          bgCropG.filter = `blur(${(2.2 * rs).toFixed(1)}px)`;
+          bgCropG.drawImage(bgRef, -bx0, -by0);
+          bgCropG.filter = "none";
+        } else {
+          bgCropG.drawImage(swCropC, 0, 0);
+        }
+        const bgData = bgCropG.getImageData(0, 0, bw, bh).data;
+
+        const mulOp = Math.max(0, Math.min(1, (fx.jadeMulAlpha ?? 43) / 100));
+        const ovMul = Math.max(0, Math.min(1.5, (fx.jadeOvAlpha ?? 100) / 100));
+        const bodyTintOp = Math.max(0, Math.min(1, (fx.jadeBodyTint ?? 36) / 100));
+
+        const bodyC = mkTempCanvas();
+        const bCtx = bodyC.getContext("2d");
+        const domeCropC = mkTempCanvas(bw, bh);
+        const domeCtx = domeCropC.getContext("2d");
+        const domeImg = domeCtx.createImageData(bw, bh);
+        const dd = domeImg.data;
+
+        const step6 = Math.max(1, Math.round(1.8 * rs));
+        const step10 = Math.max(1, Math.round(3.0 * rs));
+        const ovFn = (b, s) => (b < 0.5 ? (2 * b * s) : (1 - 2 * (1 - b) * (1 - s)));
+
+        for (let y = 0; y < bh; y++) {
+          const wRow = (by0 + y) * w + bx0;
+          const bRow = y * bw;
+          const ym6 = Math.max(0, y - step6) * bw, yp6 = Math.min(bh - 1, y + step6) * bw;
+          const ym10 = Math.max(0, y - step10) * bw, yp10 = Math.min(bh - 1, y + step10) * bw;
+
+          for (let x = 0; x < bw; x++) {
+            const a = jadeArr[wRow + x];
+            if (a < 2) continue;
+            const bi = bRow + x;
+            const p4 = bi * 4;
+
+            // Surface normals of Layer A (6px rim water drop) & Layer B (10px inner dome water drop)
+            const xm6 = Math.max(0, x - step6), xp6 = Math.min(bw - 1, x + step6);
+            const gx6 = (bRim6[bRow + xm6] - bRim6[bRow + xp6]) * 2.1;
+            const gy6 = (bRim6[ym6 + x] - bRim6[yp6 + x]) * 2.1;
+            const slope6 = Math.min(1, Math.hypot(gx6, gy6));
+
+            const xm10 = Math.max(0, x - step10), xp10 = Math.min(bw - 1, x + step10);
+            const gx10 = (bDome10[bRow + xm10] - bDome10[bRow + xp10]) * 2.35;
+            const gy10 = (bDome10[ym10 + x] - bDome10[yp10 + x]) * 2.35;
+            const slope10 = Math.min(1, Math.hypot(gx10, gy10));
+            const nz10 = Math.sqrt(Math.max(0.04, 1 - slope10 * slope10));
+
+            // 1.41 refractive ray offset across jadeSwatchRef ("距离100%折射拼色飘花")
+            const refX = Math.max(0, Math.min(bw - 1, Math.round(x - gx10 * 14 * rs - gx6 * 8 * rs)));
+            const refY = Math.max(0, Math.min(bh - 1, Math.round(y - gy10 * 14 * rs - gy6 * 8 * rs)));
+            const sp4 = (refY * bw + refX) * 4;
+            const sr = swData[sp4] / 255, sg = swData[sp4 + 1] / 255, sb = swData[sp4 + 2] / 255;
+
+            // Translucent icy jade base: blend refracted background + jade body tint (thick stroke center = creamier mutton-fat, edge = glassy translucent)
+            const coreDepth = Math.min(1, bCore[bi] * 1.15);
+            const showBg = (curBgMode !== "transparent") ? Math.max(0.14, 0.44 - bodyTintOp * 0.28 - coreDepth * 0.10) : 0;
+            let r = (bgData[p4] / 255) * showBg + sr * (1 - showBg);
+            let g = (bgData[p4 + 1] / 255) * showBg + sg * (1 - showBg);
+            let b = (bgData[p4 + 2] / 255) * showBg + sb * (1 - showBg);
+
+            // Layer A (第一层水滴 6px, 小太阳右下 318°, 亮度 -18% -> 43% 正片叠底 Multiply):
+            // Darkens outer meniscus rim into deep glassy jade while keeping bottom-right rim refracted bright!
+            const rimSun = gx6 * 0.68 + gy6 * 0.68; // bottom-right 318° rim catchlight
+            const w1Shade = Math.max(0.32, Math.min(0.96, (0.82 - slope6 * 0.36 + Math.max(0, rimSun) * 0.38)));
+            const w1R = sr * w1Shade, w1G = sg * w1Shade, w1B = sb * w1Shade;
+            r = r * (1 - mulOp) + (r * w1R) * mulOp;
+            g = g * (1 - mulOp) + (g * w1G) * mulOp;
+            b = b * (1 - mulOp) + (b * w1B) * mulOp;
+
+            // Layer B (第二层水滴 10px, 小太阳右上偏内, 高光尺寸1% -> 100% 覆盖 Overlay):
+            // Sculpts rounded cabochon volume + razor-sharp glossy inner jade ridge highlight inset 4~7px inside stroke!
+            const domeLight = gx10 * 0.38 - gy10 * 0.72 + nz10 * 0.52;
+            const innerBand = Math.exp(-Math.pow((bDome10[bi] - 0.66) / 0.16, 2)); // inset 4~7px inside contour!
+            const dirAlign = Math.max(0, (gx10 * (-0.52) + gy10 * (-0.75)) / (slope10 + 0.08));
+            const innerSpec = Math.pow(dirAlign, 3.2) * innerBand * slope10 * 1.45;
+            const rimGlint = Math.pow(Math.max(0, rimSun), 3.0) * 0.42;
+
+            // Keep Overlay carrier centered around 0.48..0.66 so colors stay vivid & rich, lifting only on true dome highlights!
+            const ovTone = Math.max(0.24, Math.min(0.92, 0.44 + domeLight * 0.24 + coreDepth * 0.08));
+            const w2R = Math.min(0.98, sr * 0.42 + ovTone * 0.58 + innerSpec * 0.48);
+            const w2G = Math.min(0.98, sg * 0.42 + ovTone * 0.58 + innerSpec * 0.48);
+            const w2B = Math.min(0.98, sb * 0.42 + ovTone * 0.58 + innerSpec * 0.48);
+
+            const effOv = Math.min(1.15, ovMul * 0.88);
+            r = r + (ovFn(r, w2R) - r) * effOv;
+            g = g + (ovFn(g, w2G) - g) * effOv;
+            b = b + (ovFn(b, w2B) - b) * effOv;
+
+            // Crisp wet 1% inner ridge highlight + bottom-right refracted edge glint ("让水印框里面一点是有高光的")
+            const wetSpec = Math.min(0.86, (innerSpec * 0.72 + rimGlint * 0.48) * Math.max(0.45, ovMul));
+            r = r + (0.99 - r) * wetSpec;
+            g = g + (1.00 - g) * wetSpec;
+            b = b + (0.99 - b) * wetSpec;
+
+            dd[p4]     = Math.max(0, Math.min(255, Math.round(r * 255)));
+            dd[p4 + 1] = Math.max(0, Math.min(255, Math.round(g * 255)));
+            dd[p4 + 2] = Math.max(0, Math.min(255, Math.round(b * 255)));
+            dd[p4 + 3] = a;
+          }
+        }
+        domeCtx.putImageData(domeImg, 0, 0);
+        bCtx.drawImage(domeCropC, bx0, by0);
+
+        // 4. 可选「鎏白细掐丝」(支持一键切换温润无掐丝纯玉模式)
+        const wireMul = Math.max(0, (fx.jadeWireAlpha ?? 58) / 100);
+        if (wireMul > 0.01) {
+          const inPx = Math.max(1, Math.round(1.5 * rs));
+          const innerW = mkTempCanvas(bw, bh);
+          const iwG = innerW.getContext("2d");
+          iwG.drawImage(whiteCrop, 0, 0);
+          const erC = mkTempCanvas(bw, bh);
+          const erG = erC.getContext("2d");
+          erG.drawImage(whiteCrop, 0, 0);
+          erG.globalCompositeOperation = "destination-in";
+          for (const [dx, dy] of [[-inPx,0],[inPx,0],[0,-inPx],[0,inPx],[-inPx,-inPx],[inPx,-inPx],[-inPx,inPx],[inPx,inPx]]) {
+            erG.drawImage(whiteCrop, dx, dy);
+          }
+          iwG.globalCompositeOperation = "destination-out";
+          iwG.drawImage(erC, 0, 0);
+
+          const innerDark = mkTempCanvas(bw, bh);
+          const idG = innerDark.getContext("2d");
+          idG.drawImage(innerW, 0, 0);
+          idG.globalCompositeOperation = "source-in";
+          idG.fillStyle = "#2d3e35";
+          idG.fillRect(0, 0, bw, bh);
+
+          const offW = Math.max(1, Math.round(1.5 * rs));
+          const blurW = (1.5 * rs).toFixed(1);
+          const wfOv = mkTempCanvas(bw, bh);
+          const wfoG = wfOv.getContext("2d");
+          wfoG.filter = `blur(${blurW}px)`;
+          wfoG.drawImage(innerDark, offW, offW);
+          wfoG.drawImage(innerW, -offW, -offW);
+          wfoG.filter = "none";
+          wfoG.globalCompositeOperation = "destination-in";
+          wfoG.drawImage(whiteCrop, 0, 0);
+
+          const wfHi = mkTempCanvas(bw, bh);
+          const wfhG = wfHi.getContext("2d");
+          wfhG.filter = `blur(${(1.1 * rs).toFixed(1)}px)`;
+          wfhG.drawImage(innerW, -offW, -offW);
+          wfhG.filter = "none";
+          wfhG.globalCompositeOperation = "destination-in";
+          wfhG.drawImage(whiteCrop, 0, 0);
+
+          bCtx.save();
+          bCtx.globalCompositeOperation = "overlay";
+          bCtx.globalAlpha = Math.min(1, 0.78 * wireMul);
+          bCtx.drawImage(wfOv, bx0, by0);
+          bCtx.globalCompositeOperation = "lighter";
+          bCtx.globalAlpha = Math.min(1, 0.44 * wireMul * Math.max(0.5, specMul));
+          bCtx.drawImage(wfHi, bx0, by0);
+          bCtx.restore();
+        }
+
+        // 5. 水印内反选清除后的两张辅助图：水滴辅助图(默认0%，开启时用纯净颜色白透明去底叠加) + 原版冰裂纹辅助图(清晰刻在水印笔画上!)
+        const dropMul = Math.max(0, (fx.jadeDropAlpha ?? 0) / 100);
+        if (dropMul > 0.01) {
+          bCtx.save();
+          bCtx.globalCompositeOperation = "soft-light";
+          bCtx.globalAlpha = Math.min(1, 0.85 * dropMul);
+          fillScaledPattern(bCtx, dropTile, Math.max(0.45, 0.85 * texScale * rs), bx0, by0, bw, bh);
+          if (dropMul > 0.5) {
+            bCtx.globalCompositeOperation = "multiply";
+            bCtx.globalAlpha = Math.min(0.55, (dropMul - 0.3) * 0.42);
+            fillScaledPattern(bCtx, dropTile, Math.max(0.45, 0.85 * texScale * rs), bx0, by0, bw, bh);
+          }
+          bCtx.restore();
+        }
+
+        const crackMul = Math.max(0, (fx.jadeCrackAlpha ?? 95) / 100);
+        if (crackMul > 0.01) {
+          const usedTile = (state.customAuxUploaded && state.auxImg) ? state.auxImg : crackTile;
+          const cScale = Math.max(0.40, 0.82 * texScale * rs);
+          bCtx.save();
+          bCtx.globalCompositeOperation = "overlay";
+          bCtx.globalAlpha = Math.min(1, crackMul);
+          fillScaledPattern(bCtx, usedTile, cScale, bx0, by0, bw, bh);
+          // Second crisp soft-light pass so fine ice-cracks remain clearly visible even on bright mutton-fat strokes
+          bCtx.globalCompositeOperation = "soft-light";
+          bCtx.globalAlpha = Math.min(0.75, 0.45 * crackMul);
+          fillScaledPattern(bCtx, usedTile, cScale, bx0, by0, bw, bh);
+          bCtx.restore();
+        }
+
+        // 通用铺白匀亮微调联动 (默认 40% 为原片冰透亮度)
+        if ((fx.silverBright ?? 40) !== 40) {
+          const bDiff = ((fx.silverBright ?? 40) - 40) / 100;
+          if (Math.abs(bDiff) > 0.01) {
+            bCtx.save();
+            bCtx.globalCompositeOperation = "soft-light";
+            bCtx.globalAlpha = Math.min(0.55, Math.abs(bDiff) * 0.75);
+            bCtx.fillStyle = bDiff > 0 ? "#ffffff" : "#000000";
+            bCtx.fillRect(bx0, by0, bw, bh);
+            bCtx.restore();
+          }
+        }
+
+        // 严格裁剪在黑素轮廓内部 ("选择黑素不透明度 -> 反转选区 -> 清除两张辅助图")
+        bCtx.globalCompositeOperation = "destination-in";
+        bCtx.globalAlpha = 1;
+        bCtx.drawImage(cJadeMask, 0, 0);
+
+        outCtx.save();
+        outCtx.globalAlpha = (curBgMode === "transparent") ? 0.94 : 1.0;
+        outCtx.drawImage(bodyC, 0, 0);
+        outCtx.restore();
 
         cleanupTemps();
         return outC;
@@ -8339,7 +9062,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         }
       }
       const isBgBlurHelper = Boolean(layerMeta && typeof layerMeta.name === "string" && (layerMeta.name === "底图 · 模糊层" || layerMeta.name.endsWith("· 模糊底")));
-      const isPureExtract = effectId === "gpu_lineart";
+      const isPureExtract = effectId === "gpu_lineart" || effectId === "gpu_clear_white" || effectId === "gpu_clear_gray";
       const fx = state.fx;
       const wantShadow = !isBgBlurHelper && !isPureExtract && fx.dropShadow && fx.shadowAlpha > 0;
       const wantGlow = !isBgBlurHelper && !isPureExtract && fx.outerGlow && fx.glowRadius > 0;
@@ -12247,16 +12970,24 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         if (verId === "gpu_lineart") valEl.textContent = `${p[key]}%`;
         cont.appendChild(div);
       }
-      if (verId === "gpu_lineart") {
+      if (verId === "gpu_lineart" || verId === "gpu_clear_white" || verId === "gpu_clear_gray") {
         const tip = document.createElement("div");
         tip.className = "card-sub";
         tip.style.lineHeight = "1.45";
-        tip.textContent = "白底转透明黑素（默认 黑色 20% / 白色 80% / 中间 50%），实心笔画不空心、线条不发粗。";
+        if (verId === "gpu_lineart") {
+          tip.textContent = "白底转透明黑素（默认 黑色 20% / 白色 80% / 中间 50%），实心笔画不空心、线条不发粗。";
+        } else if (verId === "gpu_clear_white") {
+          tip.textContent = "纯净颜色(白)：将非透明图的白底一键剥离为全透明，完整保留彩色贴图/水滴辅助图的纯正原色且边缘无白边。";
+        } else {
+          tip.textContent = "纯净颜色(灰度)：按明度将白底转为透明通道（保留原灰阶=0% 输出纯净黑素，拉高则保留原图深浅灰阶纹理）。";
+        }
         const bakeBtn = document.createElement("button");
         bakeBtn.type = "button";
         bakeBtn.className = "btn btn-sm btn-mint";
         bakeBtn.style.justifyContent = "center";
-        bakeBtn.textContent = "✨ 固化为透明黑素（可继续叠玻璃/镀银等效果）";
+        bakeBtn.textContent = verId === "gpu_clear_white"
+          ? "✨ 固化为去白透明图层（可剪贴叠加或继续套效果）"
+          : "✨ 固化为透明黑素/灰阶层（可继续叠玉石/镀银等效果）";
         bakeBtn.onclick = () => bakeSelectedLayerEffect();
         cont.appendChild(tip);
         cont.appendChild(bakeBtn);
@@ -12269,7 +13000,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const isLayerBlur = verId === "layer_blur";
       const isFsCat = verId === "fs_bold" || (typeof verId === "string" && (verId.startsWith("fs_") || verId.startsWith("a0"))) || (presetRec && presetRec.cat === "全屏");
       const isAcrylic = Boolean(presetRec && presetRec.traits && presetRec.traits.isAcrylic);
-      const isColorFill = verId === "colorfill" || verId === "ps01_satin_bevel";
+      const isIceJade = verId === "jade01_ice";
+      const isColorFill = verId === "colorfill" || verId === "ps01_satin_bevel" || isIceJade;
       const isPsSatinBevel = verId === "ps01_satin_bevel";
       const isGradient = verId === "gradient";
       const isClearGem = verId === "g00_clear_gem";
@@ -12287,7 +13019,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       show("blurRField", !hideAllFillAndCore && !isColorFill && !isGradient);
       show("auxTexGroup", !hideAllFillAndCore && !isColorFill && !isGradient && !isClearGem);
       show("cardBevelGlowShadow", true);
-      show("bevelControlsGroup", !isGpu && !isLayerBlur && (!isFsCat || Boolean(presetRec && presetRec.traits && presetRec.traits.fsEmboss)));
+      show("bevelControlsGroup", !isGpu && !isLayerBlur && !isIceJade && (!isFsCat || Boolean(presetRec && presetRec.traits && presetRec.traits.fsEmboss)));
 
       // Sync all effect-specific extra panels so switching layers or effects NEVER leaves a stale color box!
       const isFsEditable = Boolean(FS_PRESET_DEFAULTS[verId]);
@@ -12303,12 +13035,14 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const isTrialCard = verId === "a07_trial_card";
       const isAnimeMist = verId === "a04_soft_mist_frame" || verId === "a05_soft_mist_tint";
       setFlex("psSatinBevelExtraBox", isPsSatinBevel);
+      setFlex("iceJadeExtraBox", isIceJade);
       setFlex("popularAnimeExtraBox", isPopularAnime);
       setFlex("trialCardExtraBox", isTrialCard);
       setFlex("animeMistExtraBox", isAnimeMist);
       const supportsCustomTint = typeof verId === "string" && ((verId.startsWith("fs_") && verId !== "fs_bold") || (verId.startsWith("a0") && !isAnimeMist && !isPopularAnime && !isTrialCard));
       setFlex("fsCustomTintBox", supportsCustomTint);
       if (isPsSatinBevel && typeof syncPsSatinBevelUI === "function") syncPsSatinBevelUI();
+      if (isIceJade && typeof syncIceJadeUI === "function") syncIceJadeUI();
       if (isPopularAnime && typeof syncPopularAnimeUI === "function") syncPopularAnimeUI();
       if (isTrialCard && typeof syncTrialCardUI === "function") syncTrialCardUI();
       if (isAnimeMist && typeof syncAnimeMistUI === "function") syncAnimeMistUI();
@@ -12323,7 +13057,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     }
 
     function syncMultiVsSingleColorUI() {
-      const isMulti = Boolean(state.fx.multiColorEnable || state.fx.version === "colorfill" || state.fx.version === "ps01_satin_bevel");
+      const isMulti = Boolean(state.fx.multiColorEnable || state.fx.version === "colorfill" || state.fx.version === "ps01_satin_bevel" || state.fx.version === "jade01_ice");
       const sixBody = document.getElementById("sixColorInnerBody");
       const singleRow = document.getElementById("singleColorCard1Row");
       if (sixBody) sixBody.style.display = isMulti ? "flex" : "none";
@@ -12333,7 +13067,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     function selectEffectVersion(verId, labelText) {
       pushFxUndo("切换效果");
       state.fx.version = verId;
-      if (verId === "colorfill" || verId === "ps01_satin_bevel") {
+      if (verId === "colorfill" || verId === "ps01_satin_bevel" || verId === "jade01_ice") {
         state.fx.multiColorEnable = true;
         const chkMc = document.getElementById("chkMultiColorEnable");
         if (chkMc) chkMc.checked = true;
@@ -12342,6 +13076,15 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           if (defPal) {
             state.fx.sixPaletteId = defPal.id;
             state.fx.sixColors = [...defPal.colors];
+            renderSixPalettesUI();
+            renderActiveSixSwatchesUI();
+          }
+        }
+        if (verId === "jade01_ice" && (!state.fx.sixPaletteId || !state.fx.sixPaletteId.startsWith("pal_jade_"))) {
+          const jadePal = SIX_COLOR_PALETTES.find(p => p.id === "pal_jade_celadon");
+          if (jadePal) {
+            state.fx.sixPaletteId = jadePal.id;
+            state.fx.sixColors = [...jadePal.colors];
             renderSixPalettesUI();
             renderActiveSixSwatchesUI();
           }
@@ -12369,6 +13112,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       document.getElementById("fsExtraBox").style.display = isFsEditable ? "flex" : "none";
       const psBoxEl = document.getElementById("psSatinBevelExtraBox");
       if (psBoxEl) psBoxEl.style.display = verId === "ps01_satin_bevel" ? "flex" : "none";
+      const jadeBoxEl = document.getElementById("iceJadeExtraBox");
+      if (jadeBoxEl) jadeBoxEl.style.display = verId === "jade01_ice" ? "flex" : "none";
       const isPopularSel = verId === "a06_popular";
       const popBoxEl = document.getElementById("popularAnimeExtraBox");
       if (popBoxEl) popBoxEl.style.display = isPopularSel ? "flex" : "none";
@@ -12389,28 +13134,65 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (labelText) showToast(`已为「${cur ? cur.name : "当前层"}」应用效果：${labelText}`);
     }
 
+    // 按画风与适用场景精确分类映射：
+    const EFFECT_STYLE_CAT_MAP = {
+      // 古风/稿风（7款）
+      ps01_satin_bevel: "古风/稿风", m01_silver_gloss: "古风/稿风", m03_mirror_silver: "古风/稿风",
+      m02_heavy_silver: "古风/稿风", colorfill: "古风/稿风", g13_prism_gem_fine: "古风/稿风", g00_clear_gem: "古风/稿风",
+      // 古风（13款）
+      jade01_ice: "古风", gradient: "古风", g01_glass_relief: "古风", g02_water_wire: "古风",
+      t01_woven_emboss: "古风", g04_jade_inner_glow: "古风", g05_fine_clear_relief: "古风",
+      m12_duotone_wire_relief: "古风", m13_solid_wire_relief: "古风", m14_silk_wire_metal: "古风",
+      g14_ivory_jade_glow: "古风", g03_ice_fine_refract: "古风", l05_soft_relief_halo: "古风",
+      // 稿风（2款）
+      m10_bold_cold_metal: "稿风", m11_fine_cold_metal: "稿风",
+      // 日漫（31款）
+      gpu_water_star: "日漫", a06_popular: "日漫", a07_trial_card: "日漫",
+      a01_frost_silver: "日漫", a02_star_frame: "日漫", a03_mist_glaze: "日漫", a04_soft_mist_frame: "日漫", a05_soft_mist_tint: "日漫",
+      fx_acrylic: "日漫", g06_matte_frosted_glass: "日漫", g07_dark_frosted_glass: "日漫", fx_matte_silver: "日漫",
+      m05_iridescent_chrome: "日漫", t02_tinted_outline_3d: "日漫", l03_soft_mist_diffuse: "日漫", l04_cool_rim_glow: "日漫",
+      g08_crisp_ice_glass: "日漫", t05_bold_contrast_rim: "日漫", g09_bold_prism_glass: "日漫", t06_invert_contour: "日漫",
+      fx_crystal: "日漫", m06_liquid_mercury: "日漫", m07_grad_bold_silver: "日漫", g12_thick_wall_glass: "日漫",
+      t04_white_contour: "日漫", fx_frosted: "日漫", m09_bold_brushed_silver: "日漫", g15_glossy_ceramic: "日漫",
+      g16_tempered_gloss: "日漫", fx_silver_plate: "日漫", t03_mono_outline_3d: "日漫",
+      // 百搭（8款）
+      m04_gloss_wire_silver: "百搭", fx_thick_silver: "百搭", g10_milky_translucent: "百搭", g11_clear_crystal: "百搭",
+      fx_emboss_silver: "百搭", fx_emboss_silver_glow: "百搭", m08_jade_silver: "百搭", m15_matte_wire_jade: "百搭"
+    };
+    const getEffectStyleCat = (ef) => {
+      if (ef.cat === "全屏") return "全屏";
+      if (ef.cat === "折光GPU") return "折光GPU";
+      return EFFECT_STYLE_CAT_MAP[ef.id] || (ef.cat === "日漫" ? "日漫" : "百搭");
+    };
+
     function renderEffectLibraryUI() {
       const grid = document.getElementById("styleVersionGroup");
       grid.innerHTML = "";
       const q = activeEffectQuery.trim().toLowerCase();
+      const isStyleTab = ["古风", "稿风", "古风/稿风", "日漫", "百搭"].includes(activeEffectCat);
       const filtered = ALL_EFFECTS.filter((ef) => {
+        const sCat = getEffectStyleCat(ef);
         if (activeEffectCat === "all") {
-          if (ef.cat === "全屏" || (ef.cat === "折光GPU" && ef.id !== "gpu_water_star")) return false;
+          if (ef.cat === "全屏" || ef.cat === "折光GPU") return false;
         } else if (activeEffectCat === "填色") {
-          const pRec = FILTER_PRESET_MAP[ef.id]; const isFillablePreset = Boolean(pRec && ef.cat !== "全屏" && !(pRec.traits && pRec.traits.isAcrylic));
+          const pRec = FILTER_PRESET_MAP[ef.id];
+          const isFillablePreset = Boolean(pRec && ef.cat !== "全屏" && !(pRec.traits && pRec.traits.isAcrylic));
           if (ef.cat !== "填色" && !isFillablePreset) return false;
+        } else if (isStyleTab) {
+          if (sCat !== activeEffectCat) return false;
         } else if (ef.cat !== activeEffectCat) {
           return false;
         }
-        if (q && !ef.label.toLowerCase().includes(q) && !(ef.name || "").toLowerCase().includes(q)) return false;
+        if (q && !ef.label.toLowerCase().includes(q) && !(ef.name || "").toLowerCase().includes(q) && !sCat.toLowerCase().includes(q)) return false;
         return true;
       });
       document.getElementById("effectCountLabel").textContent = `显示 ${filtered.length} / 共 ${ALL_EFFECTS.length} 款`;
       filtered.forEach((ef) => {
+        const sCat = getEffectStyleCat(ef);
         const btn = document.createElement("button");
         btn.className = "style-btn" + (state.fx.version === ef.id ? " active" : "");
         btn.textContent = ef.label;
-        btn.title = `${ef.cat} · ${ef.name || ef.label}`;
+        btn.title = `【${sCat}】${ef.name || ef.label}（${ef.cat}）`;
         btn.onclick = () => selectEffectVersion(ef.id, ef.label);
         grid.appendChild(btn);
       });
@@ -13995,16 +14777,25 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         return;
       }
       pushUndoSnapshot(l, false);
-      if (l.effectId === "gpu_lineart" && l.source && !l.maskCanvas) {
-        const pCur = gpuParamState.gpu_lineart || { black: 20, white: 80, mid: 50 };
-        const extracted = extractLineArtCanvas2D(l.source, pCur.black, pCur.white, pCur.mid);
+      if ((l.effectId === "gpu_lineart" || l.effectId === "gpu_clear_white" || l.effectId === "gpu_clear_gray") && l.source && !l.maskCanvas) {
+        let extracted;
+        if (l.effectId === "gpu_lineart") {
+          const pCur = gpuParamState.gpu_lineart || { black: 20, white: 80, mid: 50 };
+          extracted = extractLineArtCanvas2D(l.source, pCur.black, pCur.white, pCur.mid);
+        } else if (l.effectId === "gpu_clear_white") {
+          const pCur = gpuParamState.gpu_clear_white || { whitePt: 252, strength: 100, mix: 100 };
+          extracted = clearColorWhiteCanvas2D(l.source, pCur.whitePt, pCur.strength, pCur.mix);
+        } else {
+          const pCur = gpuParamState.gpu_clear_gray || { whitePt: 250, blackPt: 15, tone: 0, mix: 100 };
+          extracted = clearColorGrayCanvas2D(l.source, pCur.whitePt, pCur.blackPt, pCur.tone, pCur.mix);
+        }
         l.source = extracted;
         l.srcW = extracted.width; l.srcH = extracted.height;
         l.qiasi = false;
         l.bakedCount = (l.bakedCount || 0) + 1;
         syncLayerUI();
         scheduleRender(0);
-        showToast(`✨ 已将「${l.name}」提取固化为透明黑素！现在可直接点选任意玻璃/金属/日漫效果套用（Ctrl+Z 可撤销）`);
+        showToast(`✨ 已将「${l.name}」按原图分辨率去白固化为透明图层！现在可直接剪贴叠加或套用任意水印效果（Ctrl+Z 可撤销）`);
         return;
       }
       const baked = runAtFullResolution(() => {
@@ -14482,6 +15273,117 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     bindPsSlider("rngPsAuxTex", "psAuxTexAlpha", false);
     bindPsSlider("rngPsSoftSh", "psSoftShAlpha", false);
 
+    // ==================== 冰感玉石 (jade01_ice) 专属参数与玉石渐变色卡绑定 ====================
+    function syncIceJadeUI() {
+      const fx = state.fx;
+      const curMode = (fx.jadeWireAlpha ?? 58) <= 0 ? "pure" : (fx.jadeMode || "wire");
+      document.querySelectorAll("#jadeModeSeg .seg-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.jademode === curMode);
+      });
+      document.querySelectorAll("#jadeQuickPalRow .jade-pal-btn").forEach((b) => {
+        const active = b.dataset.palid === fx.sixPaletteId;
+        b.style.borderColor = active ? "rgba(168,232,198,0.88)" : "";
+        b.style.background = active ? "rgba(168,232,198,0.18)" : "";
+      });
+      const chkCav = document.getElementById("chkJadeFillCavity");
+      if (chkCav) chkCav.checked = Boolean(fx.jadeFillCavity);
+
+      const setR = (rId, vId, val, suf) => {
+        const r = document.getElementById(rId), v = document.getElementById(vId);
+        if (r) r.value = val;
+        if (v) v.textContent = `${val}${suf}`;
+      };
+      setR("rngJadeMulAlpha", "valJadeMulAlpha", fx.jadeMulAlpha ?? 43, "%");
+      setR("rngJadeOvAlpha", "valJadeOvAlpha", fx.jadeOvAlpha ?? 100, "%");
+      setR("rngJadeBodyTint", "valJadeBodyTint", fx.jadeBodyTint ?? 36, "%");
+      setR("rngJadeWireAlpha", "valJadeWireAlpha", fx.jadeWireAlpha ?? 58, "%");
+      setR("rngJadeCrackAlpha", "valJadeCrackAlpha", fx.jadeCrackAlpha ?? 95, "%");
+      setR("rngJadeDropAlpha", "valJadeDropAlpha", fx.jadeDropAlpha ?? 0, "%");
+      setR("rngJadeBorderAlpha", "valJadeBorderAlpha", fx.jadeBorderAlpha ?? 82, "%");
+      setR("rngJadeTexScale", "valJadeTexScale", fx.jadeTexScale ?? 100, "%");
+      setR("rngJadeSoftSh", "valJadeSoftSh", fx.jadeSoftShAlpha ?? 67, "%");
+    }
+
+    document.querySelectorAll("#jadeModeSeg .seg-btn").forEach((btn) => {
+      btn.onclick = () => {
+        const m = btn.dataset.jademode || "wire";
+        pushFxUndo("切换冰感玉石掐丝模式");
+        state.fx.jadeMode = m;
+        state.fx.jadeWireAlpha = (m === "pure") ? 0 : 58;
+        syncIceJadeUI();
+        scheduleRender(0);
+      };
+    });
+
+    document.querySelectorAll("#jadeQuickPalRow .jade-pal-btn").forEach((btn) => {
+      btn.onclick = () => {
+        const pid = btn.dataset.palid;
+        const palObj = SIX_COLOR_PALETTES.find(p => p.id === pid);
+        if (!palObj) return;
+        pushFxUndo("切换冰感玉石配色");
+        state.fx.sixPaletteId = palObj.id;
+        state.fx.sixColors = [...palObj.colors];
+        state.fx.multiColorEnable = true;
+        const chkMc = document.getElementById("chkMultiColorEnable");
+        if (chkMc) chkMc.checked = true;
+        syncMultiVsSingleColorUI();
+        renderSixPalettesUI();
+        renderActiveSixSwatchesUI();
+        syncIceJadeUI();
+        scheduleRender(0);
+        showToast(`已套用玉石色卡：${palObj.name}（${palObj.tag}）`);
+      };
+    });
+
+    const btnJadeShuf = document.getElementById("btnJadeShuffleSeed");
+    if (btnJadeShuf) {
+      btnJadeShuf.onclick = () => {
+        pushFxUndo("切换玉石飘花排布");
+        state.fx.fillSeed = ((state.fx.fillSeed || 1) % 97) + 1;
+        state.fx.multiColorEnable = true;
+        scheduleRender(0);
+        showToast(`已切换玉石飘花晕染序列 #${state.fx.fillSeed}`);
+      };
+    }
+
+    const chkJadeCavEl = document.getElementById("chkJadeFillCavity");
+    if (chkJadeCavEl) {
+      chkJadeCavEl.onchange = (e) => {
+        pushFxUndo("开关玉石孔洞填实");
+        state.fx.jadeFillCavity = Boolean(e.target.checked);
+        if (state.fx.jadeFillCavity) {
+          state.fx.cavityEnable = true;
+          const c = document.getElementById("chkCavityEnable");
+          if (c) c.checked = true;
+        }
+        syncIceJadeUI();
+        scheduleRender(0);
+      };
+    }
+
+    const bindJadeSlider = (id, key) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.onpointerdown = () => pushFxUndo("调节冰感玉石参数");
+      const handler = (e) => {
+        state.fx[key] = parseInt(e.target.value, 10);
+        if (key === "jadeWireAlpha") state.fx.jadeMode = state.fx.jadeWireAlpha > 0 ? "wire" : "pure";
+        syncIceJadeUI();
+        scheduleRender(25);
+      };
+      el.oninput = handler;
+      el.onchange = handler;
+    };
+    bindJadeSlider("rngJadeMulAlpha", "jadeMulAlpha");
+    bindJadeSlider("rngJadeOvAlpha", "jadeOvAlpha");
+    bindJadeSlider("rngJadeBodyTint", "jadeBodyTint");
+    bindJadeSlider("rngJadeWireAlpha", "jadeWireAlpha");
+    bindJadeSlider("rngJadeCrackAlpha", "jadeCrackAlpha");
+    bindJadeSlider("rngJadeDropAlpha", "jadeDropAlpha");
+    bindJadeSlider("rngJadeBorderAlpha", "jadeBorderAlpha");
+    bindJadeSlider("rngJadeTexScale", "jadeTexScale");
+    bindJadeSlider("rngJadeSoftSh", "jadeSoftShAlpha");
+
     // ==================== 流行效果 (a06_popular) 黑芯原版 + 白芯A/B 参数绑定 ====================
     const POP_PRESET_CONFIGS = {
       main:   { popPreset: "main",   popWhiteGuard: false, popCoreHex: "#000000", popInnerHex: "#ffffff", popInnerW: 6,   popOuterHex: "#6c6c6c", popOuterW: 12,  popOuterAlpha: 100, popSealHex: "#6c6c6c", popSealW: 12,  popSealAlpha: 0,   popShHex: "#000000", popShDx: 3, popShDy: 5, popShAlpha: 100 },
@@ -14761,6 +15663,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           syncMultiVsSingleColorUI();
           renderSixPalettesUI();
           renderActiveSixSwatchesUI();
+          if (typeof syncPsSatinBevelUI === "function") syncPsSatinBevelUI();
+          if (typeof syncIceJadeUI === "function") syncIceJadeUI();
           scheduleRender(0);
           showToast(`已套用 6 色填色方案：${p.name}（${p.tag}）`);
         };
@@ -14971,7 +15875,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         applyCanvasSize(false, true);
       };
     });
-    document.getElementById("btnFitBgSize").onclick = () => {
+    function fitCanvasToBgDimensions() {
       if (!state.bgImg) { showToast("请先导入底图"); return; }
       let w = state.bgImg._origW || state.bgImg.naturalWidth || state.bgImg.width;
       let h = state.bgImg._origH || state.bgImg.naturalHeight || state.bgImg.height;
@@ -14986,7 +15890,58 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       inpCanvasWEl.value = w;
       inpCanvasHEl.value = h;
       applyCanvasSize(false, true);
-    };
+    }
+
+    function fitCanvasToSelectedLayerDimensions(allowBgFallback = false) {
+      if (state.selectedLayerId === "__bg__") {
+        fitCanvasToBgDimensions();
+        return;
+      }
+      const l = getSelectedLayer();
+      if (!l || l.type === "folder") {
+        if (allowBgFallback && state.bgImg) {
+          fitCanvasToBgDimensions();
+          return;
+        }
+        showToast("请先在图层列表选中一个图片图层（或选中画布底图）");
+        return;
+      }
+      let w = l._origW || l.srcW || (l.source && l.source.width) || (l.img && (l.img.naturalWidth || l.img.width));
+      let h = l._origH || l.srcH || (l.source && l.source.height) || (l.img && (l.img.naturalHeight || l.img.height));
+      if (!w || !h) {
+        showToast("当前图层暂无可读取的原图尺寸");
+        return;
+      }
+      const maxDim = Math.max(w, h);
+      if (maxDim > 6000) {
+        const k = 6000 / maxDim;
+        w = Math.round(w * k);
+        h = Math.round(h * k);
+      }
+      w = Math.max(100, Math.min(6000, w));
+      h = Math.max(100, Math.min(6000, h));
+      inpCanvasWEl.value = w;
+      inpCanvasHEl.value = h;
+      applyCanvasSize(true, true);
+      // Snap selected layer cleanly centered at 1:1 on the newly matched canvas
+      l.baseScale = computeBaseScale(l.srcW, l.srcH);
+      l.x = w / 2;
+      l.y = h / 2;
+      l.scale = 1;
+      l.scaleX = 1;
+      l.scaleY = 1;
+      syncLayerUI();
+      drawOverlayHandles();
+      scheduleRender(0);
+      setTimeout(fitViewport, 50);
+      showToast(`📐 已按图层「${l.name}」切换画布尺寸为：${w} × ${h} px`);
+    }
+
+    document.getElementById("btnFitBgSize").onclick = fitCanvasToBgDimensions;
+    const btnFitLayerSizeEl = document.getElementById("btnFitLayerSize");
+    if (btnFitLayerSizeEl) btnFitLayerSizeEl.onclick = () => fitCanvasToSelectedLayerDimensions(false);
+    const btnQuickFitLayerSizeEl = document.getElementById("btnQuickFitLayerSize");
+    if (btnQuickFitLayerSizeEl) btnQuickFitLayerSizeEl.onclick = () => fitCanvasToSelectedLayerDimensions(true);
     document.getElementById("btnApplySize").onclick = () => applyCanvasSize(false, true);
 
     // Keyboard shortcuts
@@ -15366,25 +16321,26 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
   </div>
 
   <div class="guide-mask" id="updateNoticeMask" style="z-index:245;">
-    <div class="guide-card" style="width:min(380px, 92vw);gap:12px;padding:16px;">
+    <div class="guide-card" style="width:min(420px, 92vw);gap:12px;padding:16px;">
       <div class="guide-head">
         <span class="guide-title">✨ 更新提示</span>
         <button class="guide-close" id="btnUpdateNoticeClose" aria-label="关闭">✕</button>
       </div>
-      <div class="guide-body" style="gap:8px;font-size:13px;line-height:1.65;">
-        <div>• 修复「一点水印就缩放、没法移动」</div>
-        <div>• 修复「手机端套索工具选项挤在一起看不清」</div>
-        <div>• 优化「提取线稿」（默认黑色 20% / 白色 80%，实心不空心、线条不发粗，可一键固化为透明黑素）</div>
-        <div>• 新增「🔗 锁定横纵比 / 🔓 自由变形」切换开关，变换图案不再拉变形</div>
+      <div class="guide-body" style="gap:8px;font-size:12.8px;line-height:1.65;">
+        <div>• 新增古风效果<b>「冰感玉石」</b>（双层水滴折射 + 细密冰裂纹 + 四周柔焦冰裂边，支持鎏白细掐丝 / 温润无掐丝切换）</div>
+        <div>• 新增<b>「仿PS立体」</b>（古风丝缎 / 稿风琉璃双模式），<b>「流行效果」</b>新增白芯 A/B 双款与亮白防发灰</div>
+        <div>• 折光GPU 新增<b>「纯净颜色(白)」</b>与<b>「纯净颜色(灰度)」</b>，白底贴图/黑素一键去白转全透明并支持超清固化</div>
+        <div>• 水印填色区新增<b>「糖彩绯梦」「森野风吟」「晴翠丹霞」</b>与 4 套玉石飘花色卡，细化<b>古风 / 稿风 / 古风·稿风 / 百搭</b>分类</div>
+        <div>• 图层列表下方新增<b>「📐 按当前图层 / 底图尺寸切换画布」</b>，非正比长图/竖图一键适配画布宽高</div>
       </div>
-      <button class="btn btn-primary" id="btnUpdateNoticeOk" style="align-self:flex-end;padding:6px 18px;">关闭</button>
+      <button class="btn btn-primary" id="btnUpdateNoticeOk" style="align-self:flex-end;padding:6px 18px;">我知道了</button>
     </div>
   </div>
 
   <script>
     (function () {
       var uMask = document.getElementById("updateNoticeMask");
-      var U_KEY = "effectStudio_updateSeen_20261126_v2";
+      var U_KEY = "effectStudio_updateSeen_20261127_v1";
       var uSeen = false;
       try { uSeen = !!localStorage.getItem(U_KEY); } catch (e) {}
       function closeUpdateNotice() {
