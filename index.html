@@ -1301,7 +1301,10 @@
       </div>
       <div class="safety-banner" style="padding:6px 12px;background:rgba(82,199,160,0.10);border-bottom:1px solid rgba(82,199,160,0.28);color:#b8f3dc;font-size:11px;line-height:1.45;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:6px;">
         <span>🛡️ <b>纯前端本地离线</b>：无后端/无上传，支持飞行模式自证。</span>
-        <button class="btn btn-sm" id="btnSafetyAbout" style="padding:2px 7px;font-size:10.5px;flex-shrink:0;border-color:rgba(82,199,160,0.45);color:#96eed0;">关于与声明</button>
+        <div class="row" style="gap:4px;flex-shrink:0;">
+          <button class="btn btn-sm" id="btnOpenChangelog" style="padding:2px 7px;font-size:10.5px;border-color:rgba(255,217,142,0.45);color:#ffe6b3;" title="查看各日期版本更新内容">📋 更新记录</button>
+          <button class="btn btn-sm" id="btnSafetyAbout" style="padding:2px 7px;font-size:10.5px;border-color:rgba(82,199,160,0.45);color:#96eed0;">关于与声明</button>
+        </div>
       </div>
 
       <!-- TAB 1: Layers & Fullscreen Watermark -->
@@ -16926,26 +16929,40 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
   </div>
 
   <div class="guide-mask" id="updateNoticeMask" style="z-index:245;">
-    <div class="guide-card" style="width:min(420px, 92vw);gap:12px;padding:16px;">
+    <div class="guide-card" style="width:min(460px, 92vw);max-height:82vh;gap:12px;padding:16px;display:flex;flex-direction:column;">
       <div class="guide-head">
-        <span class="guide-title">✨ 更新提示</span>
+        <span class="guide-title">✨ 版本更新提示</span>
         <button class="guide-close" id="btnUpdateNoticeClose" aria-label="关闭">✕</button>
       </div>
-      <div class="guide-body" style="gap:8px;font-size:12.8px;line-height:1.65;">
-        <div>• 新增<b>「纯本地防闪退自动存盘 + 一键恢复草稿」</b>与平板/手机显存瘦身，意外刷新重进不再丢图层</div>
-        <div>• 新增古风效果<b>「冰感玉石」</b>（双层水滴折射 + 细密冰裂纹 + 四周柔焦冰裂边，支持鎏白细掐丝 / 温润无掐丝切换）</div>
-        <div>• 新增<b>「仿PS立体」</b>（古风丝缎 / 稿风琉璃双模式），<b>「流行效果」</b>新增白芯 A/B 双款与亮白防发灰</div>
-        <div>• 折光GPU 新增<b>「纯净颜色(白)」</b>与<b>「纯净颜色(灰度)」</b>，白底贴图/黑素一键去白转全透明并支持超清固化</div>
-        <div>• 水印填色区新增<b>「糖彩绯梦」「森野风吟」「晴翠丹霞」</b>与 4 套玉石飘花色卡，图层列表新增<b>「📐 按当前图层尺寸切换画布」</b></div>
+      <div class="guide-body" style="gap:10px;font-size:12.6px;line-height:1.62;overflow-y:auto;padding-right:4px;">
+        <div style="padding:9px 11px;border-radius:8px;background:rgba(82,199,160,0.10);border:1px solid rgba(82,199,160,0.34);">
+          <div style="font-weight:700;color:#96eed0;margin-bottom:4px;font-size:13px;">📅 11月28日 更新（最新）</div>
+          <div>• 新增<b>「纯本地防闪退自动存盘 + 一键恢复草稿」</b>：每步编辑自动静默存入本地数据库，意外闪退、强刷或误关网页重进时，顶部自动提示并可一键找回全部图层、底图与效果参数</div>
+          <div>• <b>平板 / 手机与多图层显存大幅瘦身</b>：历史撤销画布自动压缩休眠（释放约 95% 显存）、精准识别 iPad 横屏模式、切后台自动释放重度模糊缓存，并支持 WebGL 掉线自愈</div>
+        </div>
+        <div style="padding:9px 11px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);">
+          <div style="font-weight:700;color:#ffd98e;margin-bottom:4px;font-size:13px;">📅 11月27日 更新</div>
+          <div>• 古风分类新增<b>「冰感玉石」</b>（双层水滴折射 + 细密冰裂纹 + 四周柔焦冰裂边，支持鎏白细掐丝 / 温润无掐丝切换，内置 4 套玉石色卡）</div>
+          <div>• 新增<b>「仿PS立体」</b>（古风丝缎 / 稿风琉璃双模式）；<b>「流行效果」</b>新增白芯 A/B 双款与亮白防发灰开关</div>
+          <div>• 折光GPU 新增<b>「纯净颜色(白)」</b>与<b>「纯净颜色(灰度)」</b>，白底贴图/黑素一键去白转全透明并支持原图超清固化</div>
+          <div>• 水印填色区新增<b>「糖彩绯梦」「森野风吟」「晴翠丹霞」「红笺琉璃」「粉蓝银霜」「暖杏茶紫」</b>等 6 色方案，细化<b>古风 / 稿风 / 古风·稿风 / 百搭</b>分类</div>
+          <div>• 图层列表下方新增<b>「📐 按当前图层 / 底图尺寸切换画布」</b>，非正比长图/竖图一键适配画布宽高</div>
+        </div>
+        <div style="padding:9px 11px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);">
+          <div style="font-weight:700;color:#a8dcff;margin-bottom:4px;font-size:13px;">📅 11月26日 更新</div>
+          <div>• 修复「一点水印就缩放、没法移动」与手机端套索工具选项拥挤问题</div>
+          <div>• 优化「提取线稿」（默认黑色 20% / 白色 80%，实心不空心、线条不发粗，支持一键固化为透明黑素）</div>
+          <div>• 新增「🔗 锁定横纵比 / 🔓 自由变形」切换开关，变换图案不再拉变形</div>
+        </div>
       </div>
-      <button class="btn btn-primary" id="btnUpdateNoticeOk" style="align-self:flex-end;padding:6px 18px;">我知道了</button>
+      <button class="btn btn-primary" id="btnUpdateNoticeOk" style="align-self:flex-end;padding:6px 18px;flex-shrink:0;">我知道了</button>
     </div>
   </div>
 
   <script>
     (function () {
       var uMask = document.getElementById("updateNoticeMask");
-      var U_KEY = "effectStudio_updateSeen_20261128_v1";
+      var U_KEY = "effectStudio_updateSeen_20261128_v2";
       var uSeen = false;
       try { uSeen = !!localStorage.getItem(U_KEY); } catch (e) {}
       function closeUpdateNotice() {
@@ -16955,8 +16972,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (uMask) {
         var uc1 = document.getElementById("btnUpdateNoticeClose");
         var uc2 = document.getElementById("btnUpdateNoticeOk");
+        var btnOpenCl = document.getElementById("btnOpenChangelog");
         if (uc1) uc1.addEventListener("click", closeUpdateNotice);
         if (uc2) uc2.addEventListener("click", closeUpdateNotice);
+        if (btnOpenCl) btnOpenCl.addEventListener("click", function () { uMask.classList.add("show"); });
         uMask.addEventListener("click", function (e) { if (e.target === uMask) closeUpdateNotice(); });
         if (!uSeen) setTimeout(function () { uMask.classList.add("show"); }, 220);
       }
