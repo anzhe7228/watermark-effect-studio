@@ -1369,7 +1369,10 @@
             <button class="btn btn-sm" id="btnQuickCloneBlur" style="color:#a8dcff;justify-content:center;padding:5px 4px;font-size:11px;" title="选中任意图层或画布底图，一键克隆一层独立高斯模糊图层（可用 ↑ ↓ 自由调位置、橡皮局部擦除）">✦ 克隆模糊层</button>
             <button class="btn btn-sm" id="btnQuickBakeEffect" style="color:#96eed0;justify-content:center;padding:5px 4px;font-size:11px;" title="把当前图层的特效直接写入像素，之后可以再给这层叠加第二个不同效果（支持 Ctrl+Z 撤销）">✨ 烘焙效果</button>
           </div>
-          <button class="btn btn-sm" id="btnQuickFitLayerSize" style="width:100%;margin-top:5px;justify-content:center;padding:5px 8px;font-size:11px;color:#ffe6b3;border-color:rgba(255,217,142,0.35);background:rgba(255,217,142,0.07);" title="选中任意导入的非正比图层或画布底图后点击，画布立即一键切换为该图的真实宽高尺寸">📐 按当前图层 / 底图尺寸切换画布</button>
+          <div class="grid-2" style="margin-top:5px;gap:5px;">
+            <button class="btn btn-sm" id="btnQuickSetAsBg" style="justify-content:center;padding:5px 6px;font-size:11px;color:#96eed0;border-color:rgba(82,199,160,0.42);background:rgba(82,199,160,0.09);" title="将当前导入选中的图片图层一键设为画布底图（自动适配画布尺寸）">🖼️ 设为底图</button>
+            <button class="btn btn-sm" id="btnQuickFitLayerSize" style="justify-content:center;padding:5px 6px;font-size:11px;color:#ffe6b3;border-color:rgba(255,217,142,0.35);background:rgba(255,217,142,0.07);" title="选中任意导入的非正比图层或画布底图后点击，画布立即一键切换为该图的真实宽高尺寸">📐 切换为此图尺寸</button>
+          </div>
           <div id="quickLayerBlurBox" style="display:none;flex-direction:column;gap:4px;padding:7px 9px;margin-top:2px;background:rgba(125,166,255,0.08);border:1px solid rgba(125,166,255,0.28);border-radius:8px;">
             <div class="field-head"><span style="color:#a8dcff;font-weight:600;">当前模糊底 / 模糊层半径</span><span class="field-val" id="valQuickLayerBlurR">25 px</span></div>
             <input type="range" id="rngQuickLayerBlurR" min="0" max="100" step="1" value="25" />
@@ -1914,6 +1917,78 @@
 
             <div style="font-size:10.5px;color:#bce2cf;line-height:1.42;padding:5px 8px;background:rgba(130,210,175,0.08);border:1px solid rgba(130,210,175,0.22);border-radius:7px;">
               💡 完整还原「渐变拼色飘花 + 双层1.41水滴(6px亮度-18%叠底43% + 10px内高光覆盖100%) + 可选掐丝 + 冰裂纹与双层水滴纹覆盖 + 四周柔焦冰裂暗角 + 67%柔光投影」。
+            </div>
+          </div>
+
+          <div id="enamelExtraBox" style="display:none;flex-direction:column;gap:8px;padding-top:6px;border-top:1px solid var(--border);">
+            <div class="row-between">
+              <span class="card-sub" style="color:#ffdca8;font-weight:600;">掐丝珐琅 · 双脊内雕亮釉参数</span>
+              <label class="switch" style="font-size:10.5px;color:#f5d5a8;" title="开启后将封闭字洞/框洞一并填为亮釉珐琅底；关闭则保持原图镂空">
+                <input type="checkbox" id="chkEnamelFillCavity" /> 填实封闭孔洞
+              </label>
+            </div>
+            <div class="seg-group" id="enamelModeSeg" style="display:flex;width:100%;">
+              <button type="button" class="seg-btn active" data-enamelmode="wire" style="flex:1;padding:5px 4px;font-size:10.5px;" title="外圈锐利亮银瓷细掐丝 + 内缩双脊深槽雕刻 + 饱满烤漆亮釉金属反光">✨ 亮瓷细掐丝(原版)</button>
+              <button type="button" class="seg-btn" data-enamelmode="pure" style="flex:1;padding:5px 4px;font-size:10.5px;" title="隐去最外圈亮丝，仅保留内缩雕刻凹槽与亮面瓷釉立体反光">💎 纯雕无外丝(内凹釉)</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:5px;padding:6px 8px;background:rgba(245,198,132,0.07);border:1px solid rgba(245,198,132,0.25);border-radius:7px;">
+              <div class="row-between">
+                <span style="font-size:10.5px;color:#ffe4b8;font-weight:600;">🎨 精选珐琅釉彩（与下方 6 色填色方案同步）</span>
+                <button type="button" class="btn btn-sm" id="btnEnamelShuffleSeed" style="padding:1px 6px;font-size:10px;" title="随机轮换各部件分色组合">🎲 换分色</button>
+              </div>
+              <div id="enamelQuickPalRow" style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;">
+                <button type="button" class="six-palette-chip enamel-pal-btn" data-palid="pal_sakura_sandalwood" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">绯樱檀翠</span><span class="six-palette-tag">古风粉绿</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#F9C8D4"></span><span class="six-dot" style="background:#E5EE8E"></span><span class="six-dot" style="background:#E8C396"></span><span class="six-dot" style="background:#E2483D"></span><span class="six-dot" style="background:#F0BCD6"></span><span class="six-dot" style="background:#FFF5F8"></span></div>
+                </button>
+                <button type="button" class="six-palette-chip enamel-pal-btn" data-palid="pal_emerald_gilt" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">翠茗流金</span><span class="six-palette-tag">清雅翠金</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#68DC80"></span><span class="six-dot" style="background:#2F9658"></span><span class="six-dot" style="background:#C2F29E"></span><span class="six-dot" style="background:#DFBA96"></span><span class="six-dot" style="background:#E56458"></span><span class="six-dot" style="background:#F8FCF9"></span></div>
+                </button>
+                <button type="button" class="six-palette-chip enamel-pal-btn" data-palid="pal_celadon_amber" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">豆青桃琥</span><span class="six-palette-tag">青釉粉金</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#89B89A"></span><span class="six-dot" style="background:#FCB6BA"></span><span class="six-dot" style="background:#F4C464"></span><span class="six-dot" style="background:#D4E6AE"></span><span class="six-dot" style="background:#F7F3DC"></span><span class="six-dot" style="background:#16426E"></span></div>
+                </button>
+                <button type="button" class="six-palette-chip enamel-pal-btn" data-palid="pal_cobalt_porcelain" style="padding:5px 6px;">
+                  <div class="six-palette-head"><span style="font-size:10.5px;">霁色青瓷</span><span class="six-palette-tag">青花冷银</span></div>
+                  <div class="six-dots"><span class="six-dot" style="background:#3E7BF0"></span><span class="six-dot" style="background:#86BEFA"></span><span class="six-dot" style="background:#2D4F8E"></span><span class="six-dot" style="background:#A6B6D4"></span><span class="six-dot" style="background:#DCE3EE"></span><span class="six-dot" style="background:#F8FAFE"></span></div>
+                </button>
+              </div>
+            </div>
+
+            <div class="grid-3" style="gap:6px;">
+              <div class="field">
+                <div class="field-head"><span>外圈亮丝</span><span class="field-val" id="valEnamelWire">100%</span></div>
+                <input type="range" id="rngEnamelWire" min="0" max="150" step="1" value="100" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>内雕深槽</span><span class="field-val" id="valEnamelGroove">105%</span></div>
+                <input type="range" id="rngEnamelGroove" min="0" max="150" step="1" value="105" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>亮釉高光</span><span class="field-val" id="valEnamelGloss">105%</span></div>
+                <input type="range" id="rngEnamelGloss" min="0" max="150" step="1" value="105" />
+              </div>
+            </div>
+
+            <div class="grid-3" style="gap:6px;">
+              <div class="field">
+                <div class="field-head"><span>绸缎折射</span><span class="field-val" id="valEnamelSatin">95%</span></div>
+                <input type="range" id="rngEnamelSatin" min="0" max="150" step="1" value="95" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>釉色浓度</span><span class="field-val" id="valEnamelChroma">115%</span></div>
+                <input type="range" id="rngEnamelChroma" min="60" max="150" step="1" value="115" />
+              </div>
+              <div class="field">
+                <div class="field-head"><span>立体底影</span><span class="field-val" id="valEnamelShadow">62%</span></div>
+                <input type="range" id="rngEnamelShadow" min="0" max="100" step="1" value="62" />
+              </div>
+            </div>
+
+            <div style="font-size:10.5px;color:#ebd5b3;line-height:1.42;padding:5px 8px;background:rgba(240,190,120,0.08);border:1px solid rgba(240,190,120,0.22);border-radius:7px;">
+              💡 还原「外圈锐利亮瓷掐丝 + 内缩双脊深色雕刻沟槽 + 饱满烤漆珐琅釉面与冷银金属斜向刀锋高光」，黑底与深色底图表现尤为惊艳。
             </div>
           </div>
 
@@ -2677,7 +2752,7 @@ vec3 rgbToHsl3(vec3 c){float hi=max(c.r,max(c.g,c.b)),lo=min(c.r,min(c.g,c.b)),d
 vec3 hslToRgb3(vec3 h){vec3 k=clamp(abs(mod(h.x*6.+vec3(0,4,2),6.)-3.)-1.,0.,1.);return h.z+(k-.5)*(1.-abs(2.*h.z-1.))*h.y;}`;
     const ExtraGpuShaders = {
       color: `precision highp float;in vec2 uv;uniform sampler2D source;uniform int mode;uniform vec3 values;uniform vec3 tint;${ExtraHslGLSL}
-void main(){vec4 c=texture2D(source,uv);vec3 rgb=c.rgb;float gray=dot(rgb,vec3(.298912,.586611,.114478));if(mode==0){rgb=(rgb*(1.+values.x)-.5)*abs(tan(.78539816339+values.y*.78539816339))+.5;}else if(mode==1){vec3 h=rgbToHsl3(rgb);h.x=fract(h.x+values.x);h.yz=clamp(h.yz+values.yz,0.,1.);rgb=hslToRgb3(h);}else if(mode==2)rgb*=1.+values;else if(mode==3)rgb=vec3(gray);else if(mode==4)rgb=vec3(step(values.x,gray));else if(mode==5)rgb=1.-rgb;else rgb=tint;gl_FragColor=vec4(clamp(rgb,0.,1.),c.a);}`,
+void main(){vec4 c=texture2D(source,uv);vec3 rgb=c.rgb;float gray=dot(rgb,vec3(.298912,.586611,.114478));if(mode==0){rgb=(rgb*(1.+values.x)-.5)*abs(tan(.78539816339+values.y*.78539816339))+.5;}else if(mode==1){vec3 h=rgbToHsl3(rgb);h.x=fract(h.x+values.x);h.y=clamp(values.y<0.?h.y*(1.+values.y):mix(h.y,1.,values.y),0.,1.);h.z=clamp(values.z<0.?h.z*(1.+values.z):mix(h.z,1.,values.z),0.,1.);rgb=hslToRgb3(h);}else if(mode==2)rgb*=1.+values;else if(mode==3)rgb=vec3(gray);else if(mode==4)rgb=vec3(step(values.x,gray));else if(mode==5)rgb=1.-rgb;else rgb=tint;gl_FragColor=vec4(clamp(rgb,0.,1.),c.a);}`,
       line: `precision highp float;in vec2 uv;uniform sampler2D source;uniform vec2 unit;uniform float black;uniform float white;uniform float mid;uniform float strength;uniform int edges;uniform int whiteBackground;
 float grayAt(vec2 p){vec4 c=texture2D(source,p);return dot(c.rgb,vec3(.298912,.586611,.114478))*c.a+1.-c.a;}
 void main(){float g=grayAt(uv);if(edges==1){float a=grayAt(uv+unit*vec2(-1,1)),b=grayAt(uv+unit*vec2(0,1)),c=grayAt(uv+unit),d=grayAt(uv+unit*vec2(-1,0)),e=grayAt(uv+unit*vec2(1,0)),f=grayAt(uv-unit),h=grayAt(uv+unit*vec2(0,-1)),i=grayAt(uv+unit*vec2(1,-1));vec2 grad=vec2(-a-2.*d-f+c+2.*e+i,a+2.*b+c-f-2.*h-i);g=1.-clamp(length(grad)*strength,0.,1.);}
@@ -2790,6 +2865,74 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       return out;
     }
 
+    function adjustColorCanvas2D(filterName, srcCanvas, params) {
+      const w = srcCanvas.width, h = srcCanvas.height;
+      const out = document.createElement("canvas");
+      out.width = w; out.height = h;
+      const ctx = out.getContext("2d");
+      ctx.drawImage(srcCanvas, 0, 0);
+      const img = ctx.getImageData(0, 0, w, h);
+      const d = img.data;
+      const mix = Math.max(0, Math.min(1, (params.mix ?? 100) / 100));
+      if (filterName === "hsl") {
+        const dh = ((params.hue || 0) / 360) % 1;
+        const ds = Math.max(-1, Math.min(1, (params.saturation || 0) / 100));
+        const dl = Math.max(-1, Math.min(1, (params.lightness || 0) / 100));
+        for (let i = 0; i < d.length; i += 4) {
+          if (d[i + 3] === 0) continue;
+          const r0 = d[i] / 255, g0 = d[i + 1] / 255, b0 = d[i + 2] / 255;
+          const mx = Math.max(r0, g0, b0), mn = Math.min(r0, g0, b0), df = mx - mn;
+          let hh = 0, ss = 0, ll = (mx + mn) * 0.5;
+          if (df > 1e-6) {
+            ss = df / Math.max(1e-6, 1 - Math.abs(2 * ll - 1));
+            if (mx === r0) hh = ((g0 - b0) / df) % 6;
+            else if (mx === g0) hh = (b0 - r0) / df + 2;
+            else hh = (r0 - g0) / df + 4;
+            hh = ((hh / 6) % 1 + 1) % 1;
+          }
+          hh = ((hh + dh) % 1 + 1) % 1;
+          ss = Math.max(0, Math.min(1, ds < 0 ? ss * (1 + ds) : ss + (1 - ss) * ds));
+          ll = Math.max(0, Math.min(1, dl < 0 ? ll * (1 + dl) : ll + (1 - ll) * dl));
+          const c = (1 - Math.abs(2 * ll - 1)) * ss;
+          const x = c * (1 - Math.abs(((hh * 6) % 2) - 1));
+          const m = ll - c * 0.5;
+          let r1 = 0, g1 = 0, b1 = 0;
+          const h6 = hh * 6;
+          if (h6 < 1) { r1 = c; g1 = x; }
+          else if (h6 < 2) { r1 = x; g1 = c; }
+          else if (h6 < 3) { g1 = c; b1 = x; }
+          else if (h6 < 4) { g1 = x; b1 = c; }
+          else if (h6 < 5) { r1 = x; b1 = c; }
+          else { r1 = c; b1 = x; }
+          const nr = (r1 + m) * 255, ng = (g1 + m) * 255, nb = (b1 + m) * 255;
+          d[i] = Math.max(0, Math.min(255, Math.round(d[i] + (nr - d[i]) * mix)));
+          d[i + 1] = Math.max(0, Math.min(255, Math.round(d[i + 1] + (ng - d[i + 1]) * mix)));
+          d[i + 2] = Math.max(0, Math.min(255, Math.round(d[i + 2] + (nb - d[i + 2]) * mix)));
+        }
+      } else if (filterName === "adjust") {
+        const br = (params.brightness || 0) / 100;
+        const ct = Math.abs(Math.tan(0.78539816339 + ((params.contrast || 0) / 100) * 0.78539816339));
+        for (let i = 0; i < d.length; i += 4) {
+          if (d[i + 3] === 0) continue;
+          for (let k = 0; k < 3; k++) {
+            const v0 = d[i + k] / 255;
+            const v1 = Math.max(0, Math.min(1, ((v0 * (1 + br) - 0.5) * ct + 0.5))) * 255;
+            d[i + k] = Math.round(d[i + k] + (v1 - d[i + k]) * mix);
+          }
+        }
+      } else if (filterName === "balance") {
+        const kr = 1 + (params.red || 0) / 100, kg = 1 + (params.green || 0) / 100, kb = 1 + (params.blue || 0) / 100;
+        for (let i = 0; i < d.length; i += 4) {
+          if (d[i + 3] === 0) continue;
+          d[i] = Math.max(0, Math.min(255, Math.round(d[i] + (d[i] * kr - d[i]) * mix)));
+          d[i + 1] = Math.max(0, Math.min(255, Math.round(d[i + 1] + (d[i + 1] * kg - d[i + 1]) * mix)));
+          d[i + 2] = Math.max(0, Math.min(255, Math.round(d[i + 2] + (d[i + 2] * kb - d[i + 2]) * mix)));
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+      return out;
+    }
+
     function runGpuFilterCanvas(filterName, srcCanvas, refCanvas, params, useRef = false, keepAlpha = true) {
       if (filterName === "clear_white") {
         return clearColorWhiteCanvas2D(srcCanvas, params.whitePt ?? 252, params.strength ?? 100, params.mix ?? 100);
@@ -2799,7 +2942,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       }
       const w = srcCanvas.width, h = srcCanvas.height;
       const eng = getGpuEngine(w, h);
-      if (!eng) return null;
+      if (!eng) {
+        if (["hsl", "adjust", "balance"].includes(filterName)) return adjustColorCanvas2D(filterName, srcCanvas, params);
+        return null;
+      }
       try {
         eng.load(srcCanvas, refCanvas || srcCanvas);
         const s = Math.min(w, h) / 1000;
@@ -2829,6 +2975,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         return out;
       } catch (e) {
         console.warn("GPU filter fallback:", e);
+        if (["hsl", "adjust", "balance"].includes(filterName)) return adjustColorCanvas2D(filterName, srcCanvas, params);
         return null;
       }
     }
@@ -2840,7 +2987,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       gpu_frost: { fn: "frost", useRef: true, defaults: { radius: 65, centerRadius: 90, cx: 0.5, cy: 0.5, seed: 7, mix: 100 }, sliders: [["radius","磨砂半径",0,200,1],["centerRadius","中心保护",0,300,2],["seed","噪点种子",1,50,1],["mix","强度",0,100,1]] },
       gpu_satin: { fn: "satin", useRef: false, defaults: { distance: 5, radius: 2, angle: 135, color: "#ffffff", opacity: 85, curve: 1, invert: "normal", blend: "overlay", mix: 100 }, sliders: [["distance","缎面距离",1,20,1],["radius","柔化半径",0,10,0.5],["angle","角度",0,360,1],["opacity","不透明度",0,100,1]] },
       gpu_adjust: { fn: "adjust", useRef: false, defaults: { brightness: 10, contrast: 15, mix: 100 }, sliders: [["brightness","亮度",-100,100,1],["contrast","对比度",-100,99,1],["mix","强度",0,100,1]] },
-      gpu_hsl: { fn: "hsl", useRef: false, defaults: { hue: 0, saturation: 15, lightness: 5, mix: 100 }, sliders: [["hue","色相",-180,180,1],["saturation","饱和度",-100,100,1],["lightness","明度",-100,100,1]] },
+      gpu_hsl: { fn: "hsl", useRef: false, defaults: { hue: 0, saturation: 0, lightness: 0, mix: 100 }, sliders: [["hue","色相",-180,180,1],["saturation","饱和度",-100,100,1],["lightness","亮度 / 明度",-100,100,1]] },
       gpu_balance: { fn: "balance", useRef: false, defaults: { red: 0, green: 0, blue: 15, mix: 100 }, sliders: [["red","青 ← 红",-100,100,1],["green","洋红 ← 绿",-100,100,1],["blue","黄 ← 蓝",-100,100,1]] },
       gpu_lineart: { fn: "lineart", useRef: false, defaults: { method: "luminance", black: 20, white: 80, mid: 50, mix: 100 }, sliders: [["black","黑色",0,100,1],["white","白色",0,100,1],["mid","中间",5,95,1]] },
       gpu_clear_white: { fn: "clear_white", useRef: false, defaults: { whitePt: 252, strength: 100, mix: 100 }, sliders: [["whitePt","白色透明起点",160,255,1],["strength","图案浓度增强",40,200,1],["mix","混合度",0,100,1]] },
@@ -2859,6 +3006,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       { id: "g00_clear_gem", label: "G00 无色立体宝石", cat: "玻璃透明" },
       { id: "ps01_satin_bevel", label: "仿PS立体", name: "缎面压纹平行立体釉", cat: "填色" },
       { id: "jade01_ice", label: "冰感玉石", name: "双层水滴冰裂温润玉", cat: "古风" },
+      { id: "enamel01_cloisonne", label: "掐丝珐琅", name: "双脊内雕亮釉珐琅", cat: "填色" },
       { id: "m01_silver_gloss", label: "M01 亮面镀银", cat: "填色" },
       { id: "colorfill", label: "填色掐丝", cat: "填色" },
       { id: "gradient", label: "渐变掐丝", cat: "填色" },
@@ -2927,6 +3075,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       { id: "pal_candy_crimson", name: "糖彩绯梦", tag: "撞色糖彩", colors: ["#FA9DB3", "#FDAF6D", "#F4EA85", "#96EDE2", "#90AFE7", "#A21920"] },
       { id: "pal_forest_breeze", name: "森野风吟", tag: "清新森绿", colors: ["#EFFCC6", "#D2EA8A", "#9AC847", "#679B26", "#39692A", "#8BB59E"] },
       { id: "pal_qingcui_danxia", name: "晴翠丹霞", tag: "冰蓝朱翠", colors: ["#8ACCE6", "#6AC86E", "#F5DC73", "#EA6B7E", "#DF5327", "#45B7B8"] },
+      { id: "pal_sakura_sandalwood", name: "绯樱檀翠", tag: "古风粉绿", colors: ["#F9C8D4", "#E5EE8E", "#E8C396", "#E2483D", "#F0BCD6", "#FFF5F8"] },
+      { id: "pal_emerald_gilt", name: "翠茗流金", tag: "清雅翠金", colors: ["#68DC80", "#2F9658", "#C2F29E", "#DFBA96", "#E56458", "#F8FCF9"] },
+      { id: "pal_celadon_amber", name: "豆青桃琥", tag: "青釉粉金", colors: ["#89B89A", "#FCB6BA", "#F4C464", "#D4E6AE", "#F7F3DC", "#16426E"] },
+      { id: "pal_cobalt_porcelain", name: "霁色青瓷", tag: "青花冷银", colors: ["#3E7BF0", "#86BEFA", "#2D4F8E", "#A6B6D4", "#DCE3EE", "#F8FAFE"] },
       { id: "pal_tea", name: "童话茶话会", tag: "甜美马卡龙", colors: ["#F7C6D4", "#B9E4D2", "#FBF0B9", "#BFE0F8", "#F7E3D4", "#E4C8F2"] },
       { id: "pal_peony", name: "牡丹玉瓷", tag: "古风青绿", colors: ["#C6ECEB", "#7AC4C6", "#53B4DC", "#5F87B0", "#F4DEC9", "#F0BDCD"] },
       { id: "pal_matcha", name: "桃粉抹茶", tag: "甜系物语", colors: ["#FAD6DF", "#FBA7B6", "#FD919C", "#DFEAAD", "#C9DE7C", "#95B83E"] },
@@ -3076,6 +3228,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       bgBlurR: 22, // independent blurred-background radius
       bgTintColor: "#ffd6e5",
       bgTintAlpha: 0,
+      bgGpuEffectId: null,
+      bgGpuParams: null,
       bgDeleted: false,
       bgImg: null,
       auxImg: null,
@@ -3224,7 +3378,15 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         jadeDropAlpha: 0,
         jadeBorderAlpha: 82,
         jadeTexScale: 100,
-        jadeSoftShAlpha: 67
+        jadeSoftShAlpha: 67,
+        enamelMode: "wire",
+        enamelFillCavity: false,
+        enamelWireStrength: 100,
+        enamelGrooveDepth: 105,
+        enamelGlossSpec: 105,
+        enamelSatinSheen: 95,
+        enamelChroma: 115,
+        enamelShadowAlpha: 62
       }
     };
 
@@ -3464,7 +3626,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
 
     function ensureBackgroundCache() {
       const { rw: w, rh: h, rs } = getRenderDim();
-      const key = `${w}x${h}|${state.bgDeleted ? "del" : (state.bgImg ? state.bgImg._uid : "demo")}|${state.fx.blurR}`;
+      const bgGpuSig = state.bgGpuEffectId ? `${state.bgGpuEffectId}:${JSON.stringify(state.bgGpuParams || {})}` : "nogpu";
+      const key = `${w}x${h}|${state.bgDeleted ? "del" : (state.bgImg ? state.bgImg._uid : "demo")}|${state.fx.blurR}|${bgGpuSig}`;
       if (bgCacheKey === key) return;
       bgCacheKey = key;
       animeMistBlurKey = "";
@@ -3490,6 +3653,17 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         bgCtx.clearRect(0, 0, w, h);
       } else {
         drawDefaultBackground(bgCtx, w, h);
+      }
+
+      if (!state.bgDeleted && state.bgGpuEffectId && GPU_FILTER_SPECS[state.bgGpuEffectId]) {
+        const bgSpec = GPU_FILTER_SPECS[state.bgGpuEffectId];
+        const bgP = state.bgGpuParams || gpuParamState[state.bgGpuEffectId] || bgSpec.defaults;
+        const bgFiltered = runGpuFilterCanvas(bgSpec.fn, bgCanvas, bgCanvas, bgP, false, false);
+        if (bgFiltered) {
+          bgCtx.clearRect(0, 0, w, h);
+          bgCtx.drawImage(bgFiltered, 0, 0, w, h);
+          freeCanvas(bgFiltered);
+        }
       }
 
       blurCanvasExact1to1(bgCanvas, blurBgCanvas, blurBgCtx, state.fx.blurR * rs);
@@ -4516,7 +4690,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       };
 
       const isMultiFillActive = () =>
-        Boolean(fx.multiColorEnable || fx.version === "colorfill" || fx.version === "ps01_satin_bevel" || fx.version === "jade01_ice" || state.cavityColorMap.size > 0 || state.hasFreehandPaint);
+        Boolean(fx.multiColorEnable || fx.version === "colorfill" || fx.version === "ps01_satin_bevel" || fx.version === "jade01_ice" || fx.version === "enamel01_cloisonne" || state.cavityColorMap.size > 0 || state.hasFreehandPaint);
 
       const drawFreehandOutsideCavities = (targetCtx) => {
         if (!state.hasFreehandPaint || !state.fillPaintCanvas) return;
@@ -4655,7 +4829,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         const permPosOf = new Int32Array(palLen);
         perm.forEach((cIdx, pos) => { permPosOf[cIdx] = pos; });
 
-        const useAutoPal = fx.multiColorEnable || fx.version === "colorfill" || fx.version === "ps01_satin_bevel" || fx.version === "jade01_ice";
+        const useAutoPal = fx.multiColorEnable || fx.version === "colorfill" || fx.version === "ps01_satin_bevel" || fx.version === "jade01_ice" || fx.version === "enamel01_cloisonne";
         const blushSpots = [[0.28, 0.30], [0.72, 0.32], [0.32, 0.70], [0.70, 0.68]];
         // Precompute harmonious neighbor indices per palette slot (hue distance < 95 deg) so intra-stroke blends never turn muddy gray-brown!
         const palHsl = pal.map(hexToHsl);
@@ -5344,6 +5518,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         return outC;
       }
 
+
+
       // ==================== 冰感玉石 (jade01_ice · 渐变拼色 + 双层1.41水滴叠底/覆盖 + 冰裂双水滴纹 + 四周冰裂柔焦边) ====================
       if (fx.version === "jade01_ice") {
         const useCav = Boolean(fx.jadeFillCavity && fx.cavityEnable && cavityCount > 0);
@@ -5801,6 +5977,224 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         return outC;
       }
 
+      // ==================== 掐丝珐琅 (enamel01_cloisonne · 外圈亮瓷细掐丝 + 内缩双脊深槽 + 烤漆亮釉冷银刀锋反光) ====================
+      if (fx.version === "enamel01_cloisonne") {
+        const useCav = Boolean(fx.enamelFillCavity && fx.cavityEnable && cavityCount > 0);
+        const enArr = new Uint8Array(total);
+        let minX = w, minY = h, maxX = -1, maxY = -1;
+        for (let i = 0; i < total; i++) {
+          const hVal = state.disabledCavities.has(compMap[i]) ? 0 : H[i];
+          const v = useCav ? Math.max(hVal, cavAlpha[i]) : hVal;
+          enArr[i] = v;
+          if (v > 4) {
+            const x = i % w, y = (i / w) | 0;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+        if (maxX < minX) {
+          cleanupTemps();
+          return outC;
+        }
+
+        const cEnMask = mkAlpha(enArr, 0, 0, 0);
+        const mcFull = buildMultiColorRegionCanvas(enArr);
+        const curBgMode = state._renderingBgMode || state.bgMode;
+
+        // 0. 立体底影与外发光
+        const shMul = Math.max(0, Math.min(1, (fx.enamelShadowAlpha ?? 62) / 100));
+        if (shMul > 0.01) {
+          const shC = mkTempCanvas();
+          const shG = shC.getContext("2d");
+          const dOff = Math.max(1, Math.round(2.6 * rs));
+          shG.filter = `blur(${(3.2 * rs).toFixed(1)}px)`;
+          shG.drawImage(cEnMask, dOff, dOff);
+          shG.filter = "none";
+          outCtx.save();
+          outCtx.globalAlpha = shMul * (curBgMode === "transparent" ? 0.55 : 0.86);
+          outCtx.drawImage(shC, 0, 0);
+          outCtx.restore();
+        }
+        drawOuterGlow(outCtx, enArr);
+
+        const pad = Math.ceil(22 * rs);
+        const bx0 = Math.max(0, minX - pad), by0 = Math.max(0, minY - pad);
+        const bx1 = Math.min(w - 1, maxX + pad), by1 = Math.min(h - 1, maxY + pad);
+        const bw = bx1 - bx0 + 1, bh = by1 - by0 + 1;
+
+        const whiteCrop = mkTempCanvas(bw, bh);
+        whiteCrop.getContext("2d").drawImage(mkAlpha(enArr, 255, 255, 255), -bx0, -by0);
+
+        const mkBlurField = (rad) => {
+          const bc = mkTempCanvas(bw, bh);
+          const bg = bc.getContext("2d", { willReadFrequently: true });
+          if (rad > 0.15) bg.filter = `blur(${rad.toFixed(2)}px)`;
+          bg.drawImage(whiteCrop, 0, 0);
+          bg.filter = "none";
+          const raw = bg.getImageData(0, 0, bw, bh).data;
+          const out = new Float32Array(bw * bh);
+          for (let i = 0; i < out.length; i++) out[i] = raw[i * 4 + 3] / 255;
+          return out;
+        };
+
+        // Three concentric distance scales: razor outer rim (1.0px), crisp inner trench (2.2px), plump enamel dome (5.4px)
+        const bRim = mkBlurField(Math.max(0.7, 1.02 * rs));
+        const bGroove = mkBlurField(Math.max(1.35, 2.25 * rs));
+        const bDome = mkBlurField(Math.max(2.8, 5.4 * rs));
+
+        const swCrop = mkTempCanvas(bw, bh);
+        const swG = swCrop.getContext("2d", { willReadFrequently: true });
+        swG.drawImage(mcFull, -bx0, -by0);
+        if (state.hasFreehandPaint && state.fillPaintCanvas) {
+          swG.drawImage(state.fillPaintCanvas, -bx0, -by0, w, h);
+        }
+        const swData = swG.getImageData(0, 0, bw, bh).data;
+
+        const wireK = Math.max(0, (fx.enamelWireStrength ?? 100) / 100);
+        const grooveK = Math.max(0, (fx.enamelGrooveDepth ?? 105) / 100);
+        const glossK = Math.max(0, (fx.enamelGlossSpec ?? 105) / 100);
+        const satinK = Math.max(0, (fx.enamelSatinSheen ?? 95) / 100);
+        const chromaK = Math.max(0.5, (fx.enamelChroma ?? 115) / 100);
+
+        const stepM = Math.max(1, Math.round(1.4 * rs));
+        const stepD = Math.max(1, Math.round(2.5 * rs));
+        const satDx = Math.max(1, Math.round(3.6 * rs));
+        const satDy = Math.max(1, Math.round(2.6 * rs));
+
+        // Top-left primary studio key light (-132 deg) + secondary bottom-right rim catchlight
+        const lx = -0.68, ly = -0.73;
+        const sStep = (e0, e1, v) => {
+          const t = Math.max(0, Math.min(1, (v - e0) / (e1 - e0)));
+          return t * t * (3 - 2 * t);
+        };
+
+        const outCrop = mkTempCanvas(bw, bh);
+        const ocCtx = outCrop.getContext("2d");
+        const ocImg = ocCtx.createImageData(bw, bh);
+        const od = ocImg.data;
+
+        for (let y = 0; y < bh; y++) {
+          const wRow = (by0 + y) * w + bx0;
+          const bRow = y * bw;
+          const ymM = Math.max(0, y - stepM) * bw, ypM = Math.min(bh - 1, y + stepM) * bw;
+          const ymD = Math.max(0, y - stepD) * bw, ypD = Math.min(bh - 1, y + stepD) * bw;
+          const ySat1 = Math.max(0, y - satDy) * bw, ySat2 = Math.min(bh - 1, y + satDy) * bw;
+
+          for (let x = 0; x < bw; x++) {
+            const a = enArr[wRow + x];
+            if (a < 2) continue;
+            const bi = bRow + x;
+            const p4 = bi * 4;
+
+            let sr = swData[p4] / 255, sg = swData[p4 + 1] / 255, sb = swData[p4 + 2] / 255;
+            // Lift base luminosity so high-fired porcelain enamel glows crisp & vivid against dark backgrounds
+            sr = Math.min(1, sr * 1.13 + 0.035);
+            sg = Math.min(1, sg * 1.13 + 0.035);
+            sb = Math.min(1, sb * 1.13 + 0.035);
+
+            const lum0 = 0.299 * sr + 0.587 * sg + 0.114 * sb;
+            const maxC = Math.max(sr, sg, sb), minC = Math.min(sr, sg, sb);
+            const sat0 = maxC - minC;
+
+            // Boost baked enamel pigment saturation cleanly while keeping pale/white swatches crisp silver-porcelain
+            const effChroma = chromaK * 1.14;
+            sr = Math.max(0, Math.min(1, lum0 + (sr - lum0) * effChroma));
+            sg = Math.max(0, Math.min(1, lum0 + (sg - lum0) * effChroma));
+            sb = Math.max(0, Math.min(1, lum0 + (sb - lum0) * effChroma));
+
+            // 1) Surface normals at chiseled bevel & inner enamel dome
+            const xmM = Math.max(0, x - stepM), xpM = Math.min(bw - 1, x + stepM);
+            const gxM = (bGroove[bRow + xmM] - bGroove[bRow + xpM]) * 2.8;
+            const gyM = (bGroove[ymM + x] - bGroove[ypM + x]) * 2.8;
+
+            const xmD = Math.max(0, x - stepD), xpD = Math.min(bw - 1, x + stepD);
+            const gxD = (bDome[bRow + xmD] - bDome[bRow + xpD]) * 3.0;
+            const gyD = (bDome[ymD + x] - bDome[ypD + x]) * 3.0;
+
+            const ndotlM = -(gxM * lx + gyM * ly);
+            const ndotlD = -(gxD * lx + gyD * ly);
+
+            // 2) Satin contour ribbon (crisp narrow metallic reflection wave, never muddying the whole stroke!)
+            const xSat1 = Math.max(0, x - satDx), xSat2 = Math.min(bw - 1, x + satDx);
+            const satWave = Math.abs(bGroove[ySat1 + xSat1] - bGroove[ySat2 + xSat2]);
+            const satinFold = Math.max(0, 1 - Math.abs(satWave - 0.42) / 0.17) * sStep(0.65, 0.92, bRim[bi]);
+            const satinGleam = Math.max(0, 1 - Math.abs(satWave - 0.16) / 0.15) * sStep(0.75, 0.96, bGroove[bi]);
+
+            // Pale/white swatches automatically take on bright liquid-chrome metallic contrast
+            const isSilverZone = sStep(0.80, 0.95, lum0) * Math.max(0, 1 - sat0 * 3.0);
+
+            let r = sr, g = sg, b = sb;
+
+            // 3) Luminous central enamel dome + crisp metallic satin gleam
+            const domeSwelling = sStep(0.42, 0.92, bDome[bi]);
+            const bellyLift = (0.18 + 0.14 * satinGleam * satinK) * glossK * domeSwelling;
+            r = r + (1 - r) * bellyLift;
+            g = g + (1 - g) * bellyLift;
+            b = b + (1 - b) * bellyLift;
+
+            if (satinK > 0.01 && satinFold > 0.01) {
+              const satShade = satinFold * (0.20 + 0.34 * isSilverZone) * satinK;
+              r *= (1 - satShade * 0.65);
+              g *= (1 - satShade * 0.62);
+              b *= (1 - satShade * 0.56);
+            }
+
+            // 4) Signature Razor-Sharp Inset Dark Groove (~1.4..2.8px inside outer wire, zero bleed into center!)
+            const rimSolid = sStep(0.70, 0.90, bRim[bi]);
+            const ringDiff = Math.max(0, bRim[bi] - bGroove[bi]);
+            const sharpTrench = Math.pow(Math.min(1, ringDiff * 3.85), 1.45);
+            const shadowSideBoost = 0.80 + 0.42 * Math.max(0, -ndotlM);
+            const grooveAmt = Math.min(0.94, rimSolid * sharpTrench * shadowSideBoost * 0.95 * grooveK);
+            if (grooveAmt > 0.005) {
+              // Deep saturated jewel groove for colored motifs; crisp dark chrome-slate groove for white/silver motifs
+              const grR = sr * (1 - isSilverZone) * 0.17 + isSilverZone * 0.18;
+              const grG = sg * (1 - isSilverZone) * 0.19 + isSilverZone * 0.20;
+              const grB = sb * (1 - isSilverZone) * 0.23 + isSilverZone * 0.26;
+              r = r * (1 - grooveAmt) + grR * grooveAmt;
+              g = g * (1 - grooveAmt) + grG * grooveAmt;
+              b = b * (1 - grooveAmt) + grB * grooveAmt;
+            }
+
+            // 5) Hard-Chisel Porcelain Mirror Specular Highlight (gleaming white glaze facet on sunlit bevel & belly)
+            if (glossK > 0.01) {
+              const hardBevelHi = sStep(0.16, 0.56, ndotlD) * sStep(0.45, 0.85, bGroove[bi]) * 0.68;
+              const knifeFacetHi = sStep(0.24, 0.62, ndotlM) * rimSolid * 0.48;
+              const bounceHi = sStep(0.32, 0.72, -ndotlD) * sStep(0.55, 0.90, bGroove[bi]) * 0.26;
+              const hi = Math.min(0.96, (hardBevelHi + knifeFacetHi + bounceHi) * glossK);
+              r = r + (1 - r) * hi;
+              g = g + (1 - g) * hi;
+              b = b + (1 - b) * Math.min(1, hi * 1.03);
+            }
+
+            // 6) Razor-Sharp Outer Cloisonné Bright Porcelain-Silver Rim (~1.2px crisp outer wire)
+            if (wireK > 0.01) {
+              const outerEdgeT = Math.max(0, 1 - Math.max(0, bRim[bi] - 0.54) / 0.27);
+              const wireAmt = Math.min(0.98, Math.pow(outerEdgeT, 1.25) * 0.95 * wireK);
+              if (wireAmt > 0.01) {
+                const wr = 0.99 * 0.88 + sr * 0.12;
+                const wg = 0.99 * 0.88 + sg * 0.12;
+                const wb = 1.00 * 0.88 + sb * 0.12;
+                r = r * (1 - wireAmt) + wr * wireAmt;
+                g = g * (1 - wireAmt) + wg * wireAmt;
+                b = b * (1 - wireAmt) + wb * wireAmt;
+              }
+            }
+
+            od[p4] = Math.max(0, Math.min(255, Math.round(r * 255)));
+            od[p4 + 1] = Math.max(0, Math.min(255, Math.round(g * 255)));
+            od[p4 + 2] = Math.max(0, Math.min(255, Math.round(b * 255)));
+            od[p4 + 3] = a;
+          }
+        }
+        ocCtx.putImageData(ocImg, 0, 0);
+
+        outCtx.drawImage(outCrop, bx0, by0);
+        cleanupTemps();
+        return outC;
+      }
+
       // ==================== 填色掐丝渲染流程 ====================
       if (fx.version === "colorfill") {
         // Rule 1a: "黑素和剪影合并再填色" (Merged silhouette P = H ∪ Cavities)
@@ -5963,6 +6357,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         cleanupTemps();
         return outC;
       }
+
+
 
       // ==================== M01 亮面镀银渲染流程 ====================
       if (isSilverGloss) {
@@ -11838,7 +12234,9 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         : (state.bgMode === "original"
             ? `<span class="badge">原底图</span>`
             : `<span class="badge" style="color:var(--muted);">透明底</span>`);
-      bgMeta.innerHTML = `<div class="layer-name">🖼️ 画布底图</div><div class="layer-info">${bgModeBadge}<span>${state.width}×${state.height}</span></div>`;
+      const bgGpuEf = state.bgGpuEffectId ? ALL_EFFECTS.find(e => e.id === state.bgGpuEffectId) : null;
+      const bgGpuBadge = bgGpuEf ? `<span class="badge" style="color:#ffd98e;border-color:rgba(255,217,142,0.45);">${bgGpuEf.label}</span>` : "";
+      bgMeta.innerHTML = `<div class="layer-name">🖼️ 画布底图</div><div class="layer-info">${bgModeBadge}${bgGpuBadge}<span>${state.width}×${state.height}</span></div>`;
 
       const bgEye = document.createElement("button");
       bgEye.className = "eye-btn" + (bgVis ? " on" : "");
@@ -11880,6 +12278,11 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const qCloneBtn = document.getElementById("btnQuickCloneBlur");
       if (qCloneBtn) {
         qCloneBtn.textContent = isBgSelected ? "✦ 克隆底图模糊" : "✦ 克隆模糊层";
+      }
+      const qSetBgBtn = document.getElementById("btnQuickSetAsBg");
+      if (qSetBgBtn) {
+        qSetBgBtn.textContent = isBgSelected ? "🖼️ 更换底图" : "🖼️ 设为底图";
+        qSetBgBtn.title = isBgSelected ? "从本地选择一张新图片替换当前画布底图" : "将当前导入选中的图片图层一键设为画布底图（自动适配画布尺寸）";
       }
       const cur = getSelectedLayer();
       const isAlphaLocked = Boolean(cur && cur.type !== "folder" && cur.alphaLock);
@@ -13067,7 +13470,24 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         rng.oninput = () => {
           p[key] = parseFloat(rng.value);
           valEl.textContent = verId === "gpu_lineart" ? `${p[key]}%` : p[key];
-          scheduleRender(40);
+          if (state.selectedLayerId === "__bg__") {
+            state.bgGpuEffectId = verId;
+            state.bgGpuParams = { ...p };
+            bgCacheKey = "";
+            displayBlurKey = "";
+          } else {
+            const curL = getSelectedLayer();
+            if (curL && curL.type !== "folder") {
+              if (!curL.qiasi || curL.effectId !== verId) {
+                curL.qiasi = true;
+                curL.effectId = verId;
+                const chkQ = document.getElementById("chkLayerQiasi");
+                if (chkQ) chkQ.checked = true;
+              }
+              saveActiveStateToLayer(curL);
+            }
+          }
+          scheduleRender(25);
         };
         if (verId === "gpu_lineart") valEl.textContent = `${p[key]}%`;
         cont.appendChild(div);
@@ -13103,7 +13523,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const isFsCat = verId === "fs_bold" || (typeof verId === "string" && (verId.startsWith("fs_") || verId.startsWith("a0"))) || (presetRec && presetRec.cat === "全屏");
       const isAcrylic = Boolean(presetRec && presetRec.traits && presetRec.traits.isAcrylic);
       const isIceJade = verId === "jade01_ice";
-      const isColorFill = verId === "colorfill" || verId === "ps01_satin_bevel" || isIceJade;
+      const isEnamel = verId === "enamel01_cloisonne";
+      const isColorFill = verId === "colorfill" || verId === "ps01_satin_bevel" || isIceJade || isEnamel;
       const isPsSatinBevel = verId === "ps01_satin_bevel";
       const isGradient = verId === "gradient";
       const isClearGem = verId === "g00_clear_gem";
@@ -13121,7 +13542,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       show("blurRField", !hideAllFillAndCore && !isColorFill && !isGradient);
       show("auxTexGroup", !hideAllFillAndCore && !isColorFill && !isGradient && !isClearGem);
       show("cardBevelGlowShadow", true);
-      show("bevelControlsGroup", !isGpu && !isLayerBlur && !isIceJade && (!isFsCat || Boolean(presetRec && presetRec.traits && presetRec.traits.fsEmboss)));
+      show("bevelControlsGroup", !isGpu && !isLayerBlur && !isIceJade && !isEnamel && (!isFsCat || Boolean(presetRec && presetRec.traits && presetRec.traits.fsEmboss)));
 
       // Sync all effect-specific extra panels so switching layers or effects NEVER leaves a stale color box!
       const isFsEditable = Boolean(FS_PRESET_DEFAULTS[verId]);
@@ -13138,6 +13559,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       const isAnimeMist = verId === "a04_soft_mist_frame" || verId === "a05_soft_mist_tint";
       setFlex("psSatinBevelExtraBox", isPsSatinBevel);
       setFlex("iceJadeExtraBox", isIceJade);
+      setFlex("enamelExtraBox", isEnamel);
       setFlex("popularAnimeExtraBox", isPopularAnime);
       setFlex("trialCardExtraBox", isTrialCard);
       setFlex("animeMistExtraBox", isAnimeMist);
@@ -13145,6 +13567,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       setFlex("fsCustomTintBox", supportsCustomTint);
       if (isPsSatinBevel && typeof syncPsSatinBevelUI === "function") syncPsSatinBevelUI();
       if (isIceJade && typeof syncIceJadeUI === "function") syncIceJadeUI();
+      if (isEnamel && typeof syncEnamelUI === "function") syncEnamelUI();
       if (isPopularAnime && typeof syncPopularAnimeUI === "function") syncPopularAnimeUI();
       if (isTrialCard && typeof syncTrialCardUI === "function") syncTrialCardUI();
       if (isAnimeMist && typeof syncAnimeMistUI === "function") syncAnimeMistUI();
@@ -13159,7 +13582,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     }
 
     function syncMultiVsSingleColorUI() {
-      const isMulti = Boolean(state.fx.multiColorEnable || state.fx.version === "colorfill" || state.fx.version === "ps01_satin_bevel" || state.fx.version === "jade01_ice");
+      const isMulti = Boolean(state.fx.multiColorEnable || state.fx.version === "colorfill" || state.fx.version === "ps01_satin_bevel" || state.fx.version === "jade01_ice" || state.fx.version === "enamel01_cloisonne");
       const sixBody = document.getElementById("sixColorInnerBody");
       const singleRow = document.getElementById("singleColorCard1Row");
       if (sixBody) sixBody.style.display = isMulti ? "flex" : "none";
@@ -13169,7 +13592,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     function selectEffectVersion(verId, labelText) {
       pushFxUndo("切换效果");
       state.fx.version = verId;
-      if (verId === "colorfill" || verId === "ps01_satin_bevel" || verId === "jade01_ice") {
+      if (verId === "colorfill" || verId === "ps01_satin_bevel" || verId === "jade01_ice" || verId === "enamel01_cloisonne") {
         state.fx.multiColorEnable = true;
         const chkMc = document.getElementById("chkMultiColorEnable");
         if (chkMc) chkMc.checked = true;
@@ -13191,12 +13614,26 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
             renderActiveSixSwatchesUI();
           }
         }
+        if (verId === "enamel01_cloisonne" && (!state.fx.sixPaletteId || state.fx.sixPaletteId === "pal_tea" || state.fx.sixPaletteId.startsWith("pal_jade_"))) {
+          const enPal = SIX_COLOR_PALETTES.find(p => p.id === "pal_sakura_sandalwood");
+          if (enPal) {
+            state.fx.sixPaletteId = enPal.id;
+            state.fx.sixColors = [...enPal.colors];
+            renderSixPalettesUI();
+            renderActiveSixSwatchesUI();
+          }
+        }
       }
-      // Assign this effect to the currently selected layer/folder independently!
+      // Assign this effect to the currently selected layer/folder or Canvas Background independently!
       const cur = getSelectedLayer();
       if (cur) {
         cur.effectId = verId;
         cur.qiasi = true;
+      } else if (state.selectedLayerId === "__bg__" && GPU_FILTER_SPECS[verId]) {
+        state.bgGpuEffectId = verId;
+        state.bgGpuParams = { ...(gpuParamState[verId] || GPU_FILTER_SPECS[verId].defaults) };
+        bgCacheKey = "";
+        displayBlurKey = "";
       }
       const atnRec = FILTER_PRESET_MAP[verId];
       const fsKey = verId;
@@ -13216,6 +13653,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       if (psBoxEl) psBoxEl.style.display = verId === "ps01_satin_bevel" ? "flex" : "none";
       const jadeBoxEl = document.getElementById("iceJadeExtraBox");
       if (jadeBoxEl) jadeBoxEl.style.display = verId === "jade01_ice" ? "flex" : "none";
+      const enamelBoxEl = document.getElementById("enamelExtraBox");
+      if (enamelBoxEl) enamelBoxEl.style.display = verId === "enamel01_cloisonne" ? "flex" : "none";
       const isPopularSel = verId === "a06_popular";
       const popBoxEl = document.getElementById("popularAnimeExtraBox");
       if (popBoxEl) popBoxEl.style.display = isPopularSel ? "flex" : "none";
@@ -13241,8 +13680,8 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       // 古风/稿风（7款）
       ps01_satin_bevel: "古风/稿风", m01_silver_gloss: "古风/稿风", m03_mirror_silver: "古风/稿风",
       m02_heavy_silver: "古风/稿风", colorfill: "古风/稿风", g13_prism_gem_fine: "古风/稿风", g00_clear_gem: "古风/稿风",
-      // 古风（13款）
-      jade01_ice: "古风", gradient: "古风", g01_glass_relief: "古风", g02_water_wire: "古风",
+      // 古风（14款）
+      jade01_ice: "古风", enamel01_cloisonne: "古风", gradient: "古风", g01_glass_relief: "古风", g02_water_wire: "古风",
       t01_woven_emboss: "古风", g04_jade_inner_glow: "古风", g05_fine_clear_relief: "古风",
       m12_duotone_wire_relief: "古风", m13_solid_wire_relief: "古风", m14_silk_wire_metal: "古风",
       g14_ivory_jade_glow: "古风", g03_ice_fine_refract: "古风", l05_soft_relief_halo: "古风",
@@ -14201,6 +14640,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       document.querySelectorAll("#bgModeGroup .seg-btn, #propBgModeGroup .seg-btn").forEach(b => b.classList.toggle("active", b.dataset.bg === "original"));
       syncBgBlurUI();
 
+      const fxBundle = deepCloneLayerFxProps(null, "layer_blur");
       const layer = {
         id: nextLayerId++,
         name: "底图 · 模糊层",
@@ -14215,6 +14655,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
         visible: true,
         qiasi: true,
         effectId: "layer_blur",
+        ...fxBundle,
         layoutMode: "single",
         x: state.width / 2,
         y: state.height / 2,
@@ -14852,13 +15293,26 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       pushTransformUndo(l);
       l.flipY = !l.flipY; scheduleRender(0);
     };
-    document.getElementById("btnSetAsBg").onclick = () => {
+    function applySelectedLayerAsBg() {
+      if (state.selectedLayerId === "__bg__") {
+        document.getElementById("fileBg").click();
+        return;
+      }
       const l = getSelectedLayer();
-      if (!l || l.type === "folder" || !l.source) { showToast("请先选择一个图片图层"); return; }
+      if (!l || l.type === "folder" || !l.source) { showToast("请先选中一个导入的图片图层"); return; }
       pushBgUndo("设为底图");
       state.bgDeleted = false;
       state.bgImg = l.source;
       if (!state.bgImg._uid) state.bgImg._uid = Math.random().toString(36).slice(2);
+      // Carry over any active GPU color/lightness adjustment (e.g. HSL调色 / 亮度对比度) from this layer onto Canvas Background!
+      if (l.qiasi && l.effectId && GPU_FILTER_SPECS[l.effectId]) {
+        const lGpu = (l.ownGpu && l.ownGpu[l.effectId]) ? l.ownGpu[l.effectId] : gpuParamState[l.effectId];
+        state.bgGpuEffectId = l.effectId;
+        state.bgGpuParams = lGpu ? { ...lGpu } : null;
+      } else {
+        state.bgGpuEffectId = null;
+        state.bgGpuParams = null;
+      }
       if (state.bgMode === "transparent") {
         state.bgMode = state._lastVisibleBgMode || "original";
         document.querySelectorAll("#bgModeGroup .seg-btn, #propBgModeGroup .seg-btn").forEach(b => b.classList.toggle("active", b.dataset.bg === state.bgMode));
@@ -14874,7 +15328,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       syncLayerUI();
       scheduleRender(0);
       showToast(`已将「${l.name}」设为画布底图` + (fittedAsBg ? `，并完整适配画布 ${state.width} × ${state.height}` : ""));
-    };
+    }
+    document.getElementById("btnSetAsBg").onclick = applySelectedLayerAsBg;
+    const btnQuickSetAsBgEl = document.getElementById("btnQuickSetAsBg");
+    if (btnQuickSetAsBgEl) btnQuickSetAsBgEl.onclick = applySelectedLayerAsBg;
     function bakeSelectedLayerEffect() {
       if (state.selectedLayerId === "__bg__") {
         showToast("画布底图请先点「✦ 克隆底图模糊」，普通图层开启效果后可点此烘焙");
@@ -15495,6 +15952,111 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
     bindJadeSlider("rngJadeBorderAlpha", "jadeBorderAlpha");
     bindJadeSlider("rngJadeTexScale", "jadeTexScale");
     bindJadeSlider("rngJadeSoftSh", "jadeSoftShAlpha");
+
+    // ==================== 掐丝珐琅 (enamel01_cloisonne) 专属参数与四套配色绑定 ====================
+    function syncEnamelUI() {
+      const fx = state.fx;
+      const curMode = (fx.enamelWireStrength ?? 100) <= 0 ? "pure" : (fx.enamelMode || "wire");
+      document.querySelectorAll("#enamelModeSeg .seg-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.enamelmode === curMode);
+      });
+      document.querySelectorAll("#enamelQuickPalRow .enamel-pal-btn").forEach((b) => {
+        const active = b.dataset.palid === fx.sixPaletteId;
+        b.style.borderColor = active ? "rgba(255,212,148,0.88)" : "";
+        b.style.background = active ? "rgba(255,212,148,0.18)" : "";
+      });
+      const chkCav = document.getElementById("chkEnamelFillCavity");
+      if (chkCav) chkCav.checked = Boolean(fx.enamelFillCavity);
+
+      const setR = (rId, vId, val, suf) => {
+        const r = document.getElementById(rId), v = document.getElementById(vId);
+        if (r) r.value = val;
+        if (v) v.textContent = `${val}${suf}`;
+      };
+      setR("rngEnamelWire", "valEnamelWire", fx.enamelWireStrength ?? 100, "%");
+      setR("rngEnamelGroove", "valEnamelGroove", fx.enamelGrooveDepth ?? 105, "%");
+      setR("rngEnamelGloss", "valEnamelGloss", fx.enamelGlossSpec ?? 105, "%");
+      setR("rngEnamelSatin", "valEnamelSatin", fx.enamelSatinSheen ?? 95, "%");
+      setR("rngEnamelChroma", "valEnamelChroma", fx.enamelChroma ?? 115, "%");
+      setR("rngEnamelShadow", "valEnamelShadow", fx.enamelShadowAlpha ?? 62, "%");
+    }
+
+    document.querySelectorAll("#enamelModeSeg .seg-btn").forEach((btn) => {
+      btn.onclick = () => {
+        const m = btn.dataset.enamelmode || "wire";
+        pushFxUndo("切换掐丝珐琅模式");
+        state.fx.enamelMode = m;
+        state.fx.enamelWireStrength = (m === "pure") ? 0 : 100;
+        syncEnamelUI();
+        scheduleRender(0);
+      };
+    });
+
+    document.querySelectorAll("#enamelQuickPalRow .enamel-pal-btn").forEach((btn) => {
+      btn.onclick = () => {
+        const pid = btn.dataset.palid;
+        const palObj = SIX_COLOR_PALETTES.find(p => p.id === pid);
+        if (!palObj) return;
+        pushFxUndo("切换掐丝珐琅配色");
+        state.fx.sixPaletteId = palObj.id;
+        state.fx.sixColors = [...palObj.colors];
+        state.fx.multiColorEnable = true;
+        const chkMc = document.getElementById("chkMultiColorEnable");
+        if (chkMc) chkMc.checked = true;
+        syncMultiVsSingleColorUI();
+        renderSixPalettesUI();
+        renderActiveSixSwatchesUI();
+        syncEnamelUI();
+        scheduleRender(0);
+        showToast(`已套用珐琅釉色：${palObj.name}（${palObj.tag}）`);
+      };
+    });
+
+    const btnEnamelShuf = document.getElementById("btnEnamelShuffleSeed");
+    if (btnEnamelShuf) {
+      btnEnamelShuf.onclick = () => {
+        pushFxUndo("随机轮换珐琅分色");
+        state.fx.fillSeed = ((state.fx.fillSeed || 1) % 97) + 1;
+        state.fx.multiColorEnable = true;
+        scheduleRender(0);
+        showToast(`已切换珐琅分色序列 #${state.fx.fillSeed}`);
+      };
+    }
+
+    const chkEnamelCavEl = document.getElementById("chkEnamelFillCavity");
+    if (chkEnamelCavEl) {
+      chkEnamelCavEl.onchange = (e) => {
+        pushFxUndo("开关珐琅孔洞填实");
+        state.fx.enamelFillCavity = Boolean(e.target.checked);
+        if (state.fx.enamelFillCavity) {
+          state.fx.cavityEnable = true;
+          const c = document.getElementById("chkCavityEnable");
+          if (c) c.checked = true;
+        }
+        syncEnamelUI();
+        scheduleRender(0);
+      };
+    }
+
+    const bindEnamelSlider = (id, key) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.onpointerdown = () => pushFxUndo("调节掐丝珐琅参数");
+      const handler = (e) => {
+        state.fx[key] = parseInt(e.target.value, 10);
+        if (key === "enamelWireStrength") state.fx.enamelMode = state.fx.enamelWireStrength > 0 ? "wire" : "pure";
+        syncEnamelUI();
+        scheduleRender(25);
+      };
+      el.oninput = handler;
+      el.onchange = handler;
+    };
+    bindEnamelSlider("rngEnamelWire", "enamelWireStrength");
+    bindEnamelSlider("rngEnamelGroove", "enamelGrooveDepth");
+    bindEnamelSlider("rngEnamelGloss", "enamelGlossSpec");
+    bindEnamelSlider("rngEnamelSatin", "enamelSatinSheen");
+    bindEnamelSlider("rngEnamelChroma", "enamelChroma");
+    bindEnamelSlider("rngEnamelShadow", "enamelShadowAlpha");
 
     // ==================== 流行效果 (a06_popular) 黑芯原版 + 白芯A/B 参数绑定 ====================
     const POP_PRESET_CONFIGS = {
@@ -16949,9 +17511,10 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
       <div class="guide-body" style="gap:10px;font-size:12.6px;line-height:1.62;overflow-y:auto;padding-right:4px;">
         <div style="padding:9px 11px;border-radius:8px;background:rgba(82,199,160,0.10);border:1px solid rgba(82,199,160,0.34);">
           <div style="font-weight:700;color:#96eed0;margin-bottom:4px;font-size:13px;">📅 11月28日 更新（最新）</div>
-          <div>• 新增<b>「纯本地防闪退自动存盘 + 一键恢复草稿」</b>：每步编辑自动静默存入本地数据库，意外闪退、强刷或误关网页重进时，顶部自动提示并可一键找回全部图层、底图与效果参数</div>
-          <div>• <b>平板 / 手机与多图层显存大幅瘦身</b>：历史撤销画布自动压缩休眠（释放约 95% 显存）、精准识别 iPad 横屏模式、切后台自动释放重度模糊缓存，并支持 WebGL 掉线自愈</div>
-          <div>• 完善开源仓库中文索引与网页检索标签；重申本工具<b>永久免费开源，严禁任何形式倒卖或收费代做</b></div>
+          <div>• 古风 / 填色分类新增<b>「掐丝珐琅」</b>（外圈亮瓷细掐丝 + 内缩双脊深槽压纹 + 饱满烤漆亮釉与斜向冷银刀锋反光，支持亮瓷细掐丝 / 纯雕无外丝切换）</div>
+          <div>• 水印填色区新增<b>「绯樱檀翠」「翠茗流金」「豆青桃琥」「霁色青瓷」</b> 4 套 6 色方案，支持一键分色轮换</div>
+          <div>• 图层列表下方恢复一键<b>「🖼️ 设为底图」</b>快捷按钮；修复<b>「HSL调色」</b>在画布底图与新导入图层上拉动亮度 / 明度不生效的问题，变暗提亮实时响应</div>
+          <div>• 新增<b>「纯本地防闪退自动存盘 + 一键恢复草稿」</b>与<b>平板 / 手机显存大幅瘦身</b>；重申本工具<b>永久免费开源，严禁倒卖收费</b></div>
         </div>
         <div style="padding:9px 11px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);">
           <div style="font-weight:700;color:#ffd98e;margin-bottom:4px;font-size:13px;">📅 11月27日 更新</div>
@@ -16975,7 +17538,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
   <script>
     (function () {
       var uMask = document.getElementById("updateNoticeMask");
-      var U_KEY = "effectStudio_updateSeen_20261128_v3";
+      var U_KEY = "effectStudio_updateSeen_20261128_v5";
       var uSeen = false;
       try { uSeen = !!localStorage.getItem(U_KEY); } catch (e) {}
       function closeUpdateNotice() {
