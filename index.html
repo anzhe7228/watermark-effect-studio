@@ -10,7 +10,19 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <title>水印效果工作室 · 多图层一键出图</title>
+  <title>水印效果工作室 (Watermark Effect Studio) · 多图层一键出图在线水印滤镜工具</title>
+  <meta name="description" content="水印效果工作室（Watermark Effect Studio / watermark-effect-studio）是一款纯前端免费开源、支持离线单文件运行的多图层水印与光学滤镜工具。内置冰感玉石、仿PS立体丝缎琉璃、折光GPU、提取线稿、纯净去白底转透明、全屏防盗水印等95款实时效果，图片100%本地处理不上传。" />
+  <meta name="keywords" content="水印效果工作室,Watermark Effect Studio,watermark-effect-studio,在线水印工具,水印滤镜,折光滤镜,冰感玉石,仿PS立体,提取线稿,去白底转透明,多图层水印,全屏水印,纯前端离线工具,GitHub开源" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://anzhe7228.github.io/watermark-effect-studio/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="水印效果工作室 (Watermark Effect Studio)" />
+  <meta property="og:title" content="水印效果工作室 (Watermark Effect Studio) · 纯前端免费多图层水印与光学滤镜工具" />
+  <meta property="og:description" content="纯前端免费开源多图层水印与光学滤镜工作台，内置冰感玉石、仿PS立体、折光GPU、提取线稿、纯净去白底等95款实时效果，本地运算不上传，支持离线单文件永久使用。" />
+  <meta property="og:url" content="https://anzhe7228.github.io/watermark-effect-studio/" />
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"水印效果工作室","alternateName":["Watermark Effect Studio","watermark-effect-studio","水印工作室"],"url":"https://anzhe7228.github.io/watermark-effect-studio/","codeRepository":"https://github.com/anzhe7228/watermark-effect-studio","applicationCategory":"DesignApplication","operatingSystem":"All","inLanguage":"zh-CN","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"CNY"},"description":"纯前端免费开源多图层水印与光学滤镜在线工作台，内置95款实时光学折光、冰感玉石、仿PS立体、提取线稿与填色效果，100%本地离线可用。"}
+  </script>
   <script>
     // 工作室是独立页面：任何返回都不允许退到查款页（浏览器返回键锁在本页）
     (function () {
@@ -16939,6 +16951,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
           <div style="font-weight:700;color:#96eed0;margin-bottom:4px;font-size:13px;">📅 11月28日 更新（最新）</div>
           <div>• 新增<b>「纯本地防闪退自动存盘 + 一键恢复草稿」</b>：每步编辑自动静默存入本地数据库，意外闪退、强刷或误关网页重进时，顶部自动提示并可一键找回全部图层、底图与效果参数</div>
           <div>• <b>平板 / 手机与多图层显存大幅瘦身</b>：历史撤销画布自动压缩休眠（释放约 95% 显存）、精准识别 iPad 横屏模式、切后台自动释放重度模糊缓存，并支持 WebGL 掉线自愈</div>
+          <div>• 完善开源仓库中文索引与网页检索标签；重申本工具<b>永久免费开源，严禁任何形式倒卖或收费代做</b></div>
         </div>
         <div style="padding:9px 11px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);">
           <div style="font-weight:700;color:#ffd98e;margin-bottom:4px;font-size:13px;">📅 11月27日 更新</div>
@@ -16962,7 +16975,7 @@ if(r<.001){gl_FragColor=texture2D(source,uv);return;}vec4 sum=vec4(0);float tota
   <script>
     (function () {
       var uMask = document.getElementById("updateNoticeMask");
-      var U_KEY = "effectStudio_updateSeen_20261128_v2";
+      var U_KEY = "effectStudio_updateSeen_20261128_v3";
       var uSeen = false;
       try { uSeen = !!localStorage.getItem(U_KEY); } catch (e) {}
       function closeUpdateNotice() {

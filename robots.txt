@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://anzhe7228.github.io/watermark-effect-studio/sitemap.xml
